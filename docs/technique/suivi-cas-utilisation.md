@@ -1,0 +1,45 @@
+# Suivi des cas d'utilisation
+
+Validation et couverture des cas de `docs/utilisateur/cas-utilisation.md`.
+Mis à jour à chaque livraison.
+
+Renumérotation du 06/07/2026 (revue d'Olivier, fusions) : N3 reformulé
+(« je prépare mes courses », quantités incluses) ; ex-N6+N7 → N6
+(rangements + déplacements, y compris par liste cochée) ; ex-N8 datés → N7
+(réécrit générique, exemples en fin de cas) ; ex-N9+N10+N11 → N8 (« je fais
+une recette et je la consigne ») ; ex-N12 → N9 ; ex-N13+N15 → N10 (« je
+planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
+
+| Cas | Validation | Couverture | Notes |
+|---|---|---|---|
+| N1 épuiser/racheter | validé | couvert, testé | |
+| N2 inventaire | dicté par Olivier | couvert, testé | date du dernier inventaire : migration `locations` en attente ; complément « emplacement daté » non couvert (lié à N7) |
+| N3 je prépare mes courses | reformulé par Olivier 06/07 | partiel | le panier « réserve » existe ; **manque : quantité voulue à l'ajout** (recoupe NP4) |
+| N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
+| N5 foyer | validé | couvert | test manuel M4 à dérouler |
+| N6 rangements + déplacements | fusionné par Olivier 06/07 | non couvert | inclut déplacement par produits cochés en liste |
+| N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
+| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | non couvert | étape 4 ; imports en volume (livres CSV/ISBN, recettes par lot) ; clé API Claude nécessaire ; demander le logiciel de scan |
+| N9 retrouver une recette | proposition | non couvert | étape 4 |
+| N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | non couvert | étape 5 ; à la demande ; créneaux `utilisateur/creneaux-courses.md` ; agenda Google plus tard |
+| N11 wish list / beau produit | proposition | non couvert | étape 5 |
+| NP1 produit retrouvé | décidé par Olivier | couvert, testé | |
+| NP2 rupture en magasin | validé | couvert, testé | |
+| NP3 coché par erreur | validé | couvert, testé | |
+| NP4 plusieurs pots d'un coup | **décision en attente** | partiel (+1 fixe) | recoupe N3 reformulé : quantités à l'ajout et à l'achat |
+| NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
+| NP6 inventaire interrompu | validé | couvert, testé | |
+| NP8 produit après planning | proposition | non couvert | avec N10 |
+| NP9-NP11 (recettes) | propositions | non couverts | étape 4 |
+| NP12-NP13 (semaine) | propositions | non couverts | étape 5 |
+
+NP1 à NP13 : non revus par Olivier lors de sa relecture du 06/07/2026 (il
+n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
+
+## Reste à faire transverse
+
+- Migration `locations` (SQL prêt) dès le retour du dashboard Supabase,
+  puis `npm run check:schema` et inventaire réel pour vérifier la date.
+- Amendement N4 (autres listes) et N3 (quantités) : prochain lot courses.
+- Sauvegarde régulière des données (exigence NFR, voir architecture.md).
+- Réinitialisation de mot de passe dans l'application.

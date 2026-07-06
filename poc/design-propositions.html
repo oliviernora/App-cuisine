@@ -1,0 +1,294 @@
+<title>Garde-manger — propositions de design</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg, #F5F4F0);
+    color: var(--ink, #222);
+    font: 16px/1.45 var(--font-body, ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif);
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .switcher {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+  }
+  .switcher-inner {
+    max-width: 640px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .switcher .which { flex: 1; min-width: 200px; }
+  .switcher .which strong { font-size: 1.05rem; }
+  .switcher .which p { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+  .switcher .dots { display: flex; gap: 5px; }
+  .switcher .dots span {
+    width: 8px; height: 8px; border-radius: 999px;
+    background: var(--line);
+  }
+  .switcher .dots span.on { background: var(--accent); }
+  #btn-next {
+    padding: 10px 18px; border: none; border-radius: var(--radius);
+    background: var(--accent); color: var(--accent-ink);
+    font: inherit; font-weight: 700; cursor: pointer;
+  }
+
+  .note {
+    max-width: 640px; margin: 10px auto 0; padding: 0 16px;
+    font-size: 0.8rem; color: var(--muted);
+  }
+
+  /* ----- maquette de l'application ----- */
+  .app {
+    max-width: 640px; margin: 16px auto 40px; padding: 0 16px;
+  }
+  .app-header {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display, Charter, Georgia, serif);
+    font-size: 1.35rem; font-weight: 600;
+  }
+  h1 small { font-weight: 400; color: var(--muted); font-size: 0.72em; }
+  .tabs { display: flex; gap: 6px; }
+  .tabs span {
+    flex: 1; padding: 7px 12px; text-align: center;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--muted); font-weight: 600;
+  }
+  .tabs span.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tabs .count {
+    display: inline-block; min-width: 1.4em; margin-left: 6px; padding: 0 4px;
+    border-radius: 999px; background: var(--warn); color: #fff;
+    font-size: 0.75rem; line-height: 1.4;
+  }
+  .search {
+    margin: 12px 0 8px; padding: 8px 12px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--muted); font-size: 0.95rem;
+  }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; }
+  .chips span {
+    flex: 0 0 auto; padding: 4px 11px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface); color: var(--muted); font-size: 0.83rem; white-space: nowrap;
+  }
+  .chips span.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .group-title {
+    margin: 18px 2px 4px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    font-family: var(--font-display, inherit);
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li.row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 4px; border-bottom: 1px solid var(--line);
+    min-height: 38px;
+  }
+  .row.low { box-shadow: inset 3px 0 0 var(--warn); padding-left: 9px; }
+  .row .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; }
+  .row.low .name, .row.low output { color: var(--warn); }
+  .row.done .name { text-decoration: line-through; color: var(--muted); }
+  .qty { display: flex; align-items: center; }
+  .qty output { min-width: 1.8em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+  .btn {
+    width: 30px; height: 30px; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); border-radius: calc(var(--radius) - 2px);
+    background: var(--surface); color: var(--ink); padding: 0;
+  }
+  .btn.ghost { color: var(--muted); border-color: transparent; background: none; }
+  .btn.cart-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn svg { width: 15px; height: 15px; }
+  .row input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); margin: 0; }
+
+  .addbar {
+    margin-top: 20px; padding: 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .addbar .field {
+    padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg); color: var(--muted); font-size: 0.95rem; min-width: 0;
+  }
+  .f-name { flex: 2 1 130px; }
+  .f-qty { flex: 0 1 56px; }
+  .f-loc { flex: 1 1 90px; }
+  .addbar .mic {
+    width: 42px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .addbar .mic svg { width: 18px; height: 18px; }
+  .addbar .submit {
+    padding: 9px 16px; border: none; border-radius: var(--radius);
+    background: var(--accent); color: var(--accent-ink); font-weight: 700;
+  }
+
+  /* extras par proposition */
+  html[data-p="marche"] .chips span:nth-child(2) { border-color: #C73E36; color: #C73E36; }
+  html[data-p="marche"] .chips span:nth-child(3) { border-color: #E8842C; color: #E8842C; }
+  html[data-p="marche"] .chips span:nth-child(4) { border-color: #3D8B4F; color: #3D8B4F; }
+  html[data-p="marche"] .chips span:nth-child(5) { border-color: #7B4B94; color: #7B4B94; }
+  html[data-p="marche"] .chips span:nth-child(6) { border-color: #2E6F8E; color: #2E6F8E; }
+  html[data-p="ardoise"] h1 { font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive; font-size: 1.5rem; }
+</style>
+
+<div class="switcher">
+  <div class="switcher-inner">
+    <div class="which">
+      <strong id="p-name"></strong>
+      <p id="p-desc"></p>
+    </div>
+    <div class="dots" id="p-dots"></div>
+    <button id="btn-next" type="button">Proposition suivante</button>
+  </div>
+</div>
+<p class="note">Maquette visuelle, non fonctionnelle. Le panier sur chaque ligne est le nouveau bouton « commander » : il met l'ingrédient en liste de courses même s'il reste des pots (pour faire de la réserve).</p>
+
+<div class="app">
+  <div class="app-header">
+    <h1>Garde-manger <small>prototype</small></h1>
+    <div class="tabs">
+      <span class="active">Stock</span>
+      <span>Courses<span class="count">9</span></span>
+    </div>
+  </div>
+
+  <div class="search">Rechercher une épice, un ingrédient…</div>
+  <div class="chips">
+    <span class="active">Tous</span><span>Cuisine</span><span>Sous chauffage</span><span>Réserve entrée</span><span>Autre</span><span>Vegan</span>
+  </div>
+
+  <p class="group-title">Cuisine · 49</p>
+  <ul id="mock-stock"></ul>
+
+  <p class="group-title" style="margin-top:26px">Courses — Boutique spécialisée · 2</p>
+  <ul id="mock-shop"></ul>
+
+  <div class="addbar">
+    <span class="field f-name">Ingrédient</span>
+    <span class="field f-qty">1</span>
+    <span class="field f-loc">Emplacement</span>
+    <span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span>
+    <span class="submit">Ajouter</span>
+  </div>
+</div>
+
+<script>
+  const MINUS = "<path d='M5 12h14'/>";
+  const PLUS = "<path d='M12 5v14M5 12h14'/>";
+  const TRASH = "<path d='M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3'/>";
+  const CART = "<circle cx='9' cy='20' r='1'/><circle cx='18' cy='20' r='1'/><path d='M3 4h2l2.4 12.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 8H6'/>";
+
+  function svg(p) {
+    return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'>" + p + "</svg>";
+  }
+
+  const stockRows = [
+    { name: "Garam masala", qty: 1 },
+    { name: "Poivre de Sichuan", qty: 0, low: true },
+    { name: "Safran", qty: 1, cart: true },
+    { name: "Curry vert thaï", qty: 1 },
+    { name: "Piment d'Espelette", qty: 2 },
+    { name: "Curcuma", qty: 1 }
+  ];
+  document.getElementById("mock-stock").innerHTML = stockRows.map(r =>
+    "<li class='row" + (r.low ? " low" : "") + "'>" +
+    "<span class='name'>" + r.name + "</span>" +
+    "<span class='btn" + (r.cart || r.low ? " cart-on" : "") + "' title='Commander'>" + svg(CART) + "</span>" +
+    "<span class='qty'><span class='btn'>" + svg(MINUS) + "</span><output>" + r.qty + "</output><span class='btn'>" + svg(PLUS) + "</span></span>" +
+    "<span class='btn ghost'>" + svg(TRASH) + "</span>" +
+    "</li>").join("");
+
+  document.getElementById("mock-shop").innerHTML =
+    "<li class='row'><input type='checkbox' disabled><span class='name'>Poivre de Sichuan</span><span class='btn ghost'>" + svg(TRASH) + "</span></li>" +
+    "<li class='row done'><input type='checkbox' checked disabled><span class='name'>Safran</span><span class='btn ghost'>" + svg(TRASH) + "</span></li>";
+
+  const THEMES = [
+    {
+      key: "safran",
+      name: "1. Safran",
+      desc: "Épicerie fine : ivoire chaud, safran brûlé, titres en serif. Chaleureux comme un tiroir à épices.",
+      radius: "10px",
+      fontDisplay: "Charter, Georgia, 'Times New Roman', serif",
+      fontBody: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
+      light: { bg: "#FBF3E4", surface: "#FFFDF7", ink: "#3A2A1A", muted: "#8A7357", accent: "#C0651B", accentInk: "#FFF8EC", warn: "#A33B22", line: "#EAD9BC" },
+      dark: { bg: "#221A10", surface: "#2C2216", ink: "#F2E7D3", muted: "#B39C7D", accent: "#E39344", accentInk: "#2A1A08", warn: "#E06A4A", line: "#42351F" }
+    },
+    {
+      key: "marche",
+      name: "2. Marché",
+      desc: "Étal du samedi matin : blanc franc, accent tomate, une couleur par emplacement, typo ronde.",
+      radius: "14px",
+      fontDisplay: "ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, sans-serif",
+      fontBody: "ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, sans-serif",
+      light: { bg: "#FFFFFF", surface: "#F7F6F2", ink: "#26302A", muted: "#71806F", accent: "#C73E36", accentInk: "#FFF6F4", warn: "#C97B12", line: "#E6E4DC" },
+      dark: { bg: "#14181A", surface: "#1F2528", ink: "#ECEEE8", muted: "#93A096", accent: "#E4635A", accentInk: "#2A0F0C", warn: "#E8A33B", line: "#2E3639" }
+    },
+    {
+      key: "ardoise",
+      name: "3. Ardoise",
+      desc: "Bistrot le soir : ardoise, écriture craie, cuivre des casseroles. Thème sombre assumé, jour et nuit.",
+      radius: "6px",
+      fontDisplay: "Charter, Georgia, serif",
+      fontBody: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
+      light: { bg: "#232827", surface: "#2C3231", ink: "#EFECE2", muted: "#9AA39D", accent: "#C98F52", accentInk: "#241A0D", warn: "#E2B33B", line: "#3A403E" },
+      dark: { bg: "#232827", surface: "#2C3231", ink: "#EFECE2", muted: "#9AA39D", accent: "#C98F52", accentInk: "#241A0D", warn: "#E2B33B", line: "#3A403E" }
+    },
+    {
+      key: "majolique",
+      name: "4. Majolique",
+      desc: "Céramique méditerranéenne : blanc faïence, bleu majolique profond, alertes terre cuite.",
+      radius: "8px",
+      fontDisplay: "Charter, Georgia, 'Times New Roman', serif",
+      fontBody: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
+      light: { bg: "#F4F7F7", surface: "#FFFFFF", ink: "#1E3A4C", muted: "#5E7A8A", accent: "#1F6FA8", accentInk: "#F2F9FF", warn: "#C24E22", line: "#D9E4E8" },
+      dark: { bg: "#0F1E28", surface: "#182B37", ink: "#E2ECF2", muted: "#8FA6B2", accent: "#5FA8D3", accentInk: "#0A2233", warn: "#E07B4E", line: "#26404F" }
+    }
+  ];
+
+  let current = 0;
+
+  function isDark() {
+    const t = document.documentElement.dataset.theme;
+    if (t === "dark") return true;
+    if (t === "light") return false;
+    return matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function apply() {
+    const th = THEMES[current];
+    const c = isDark() ? th.dark : th.light;
+    const root = document.documentElement;
+    root.dataset.p = th.key;
+    root.style.setProperty("--bg", c.bg);
+    root.style.setProperty("--surface", c.surface);
+    root.style.setProperty("--ink", c.ink);
+    root.style.setProperty("--muted", c.muted);
+    root.style.setProperty("--accent", c.accent);
+    root.style.setProperty("--accent-ink", c.accentInk);
+    root.style.setProperty("--warn", c.warn);
+    root.style.setProperty("--line", c.line);
+    root.style.setProperty("--radius", th.radius);
+    root.style.setProperty("--font-display", th.fontDisplay);
+    root.style.setProperty("--font-body", th.fontBody);
+    document.getElementById("p-name").textContent = th.name;
+    document.getElementById("p-desc").textContent = th.desc;
+    document.getElementById("p-dots").innerHTML = THEMES.map((t, i) =>
+      "<span class='" + (i === current ? "on" : "") + "'></span>").join("");
+  }
+
+  document.getElementById("btn-next").onclick = () => {
+    current = (current + 1) % THEMES.length;
+    apply();
+  };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", apply);
+  new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  apply();
+</script>

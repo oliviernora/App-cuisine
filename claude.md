@@ -66,3 +66,6 @@ Technique
 - l'interface doit être épurée, simple, moderne
 - elle est responsive - elle doit marcher sur PC, Smartphone, tablette
 - le code doit être simple, clair, bien structuré
+
+Méthode de développement
+- IMPÉRATIF : avant tout développement, correction ou évolution de l'application, charger et suivre le skill `principes-dev` (.claude/skills/principes-dev/SKILL.md). Ses principes priment sur toute autre habitude.

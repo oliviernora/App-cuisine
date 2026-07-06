@@ -1,0 +1,8 @@
+export const MINUS = "<path d='M5 12h14'/>"
+export const PLUS = "<path d='M12 5v14M5 12h14'/>"
+export const TRASH = "<path d='M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3'/>"
+export const CART = "<circle cx='9' cy='20' r='1'/><circle cx='18' cy='20' r='1'/><path d='M3 4h2l2.4 12.2a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 8H6'/>"
+export const CART_PLUS = CART + "<path d='M12.5 9.5v5M10 12h5'/>"
+export const MIC = "<rect x='9' y='3' width='6' height='11' rx='3'/><path d='M5 11a7 7 0 0 0 14 0'/><path d='M12 18v3'/>"
+export const LOGOUT = "<path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9'/>"
+export const USERS = "<path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/>"
