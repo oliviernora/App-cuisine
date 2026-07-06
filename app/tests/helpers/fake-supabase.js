@@ -4,7 +4,10 @@
  */
 let counter = 0
 
-export const tables = { items: [], shopping: [], households: [], household_members: [], locations: [] }
+export const tables = {
+  items: [], shopping: [], households: [], household_members: [], locations: [],
+  sources: [], recipes: [], realisations: []
+}
 
 export function resetFake() {
   for (const key of Object.keys(tables)) tables[key].length = 0

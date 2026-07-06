@@ -102,7 +102,8 @@ h1 small { font-weight: 400; color: var(--muted); font-size: 0.72em; }
 }
 .group-title .n { font-weight: 400; }
 ul { list-style: none; margin: 0; padding: 0; }
-li.row {
+.loc-item { display: block; }
+li.row, .loc-item .row {
   display: flex; align-items: center; gap: 8px;
   padding: 5px 4px; border-bottom: 1px solid var(--line);
   min-height: 38px;
@@ -228,6 +229,36 @@ li.row {
   border: 1px solid var(--accent); border-radius: var(--radius);
   background: var(--surface); color: var(--accent); font: inherit; font-weight: 600;
 }
+/* onglet Recettes */
+.rowbtn-full {
+  width: 100%; text-align: left; background: none; border: none;
+  font: inherit; color: var(--ink); cursor: pointer; padding: 5px 4px;
+}
+.recent-warn { color: var(--warn); font-weight: 600; }
+.manage-panel a { color: var(--accent); }
+.empty .inv-start { margin-top: 10px; }
+
+.inv-manage {
+  padding: 7px 14px; cursor: pointer; margin-right: 6px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--muted); font: inherit; font-weight: 600;
+}
+.manage-panel {
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; margin: 6px 0 10px;
+}
+.manage-panel p { margin: 0 0 6px; font-size: 0.85rem; color: var(--muted); }
+.manage-row { display: flex; gap: 6px; }
+.manage-row input {
+  flex: 1; min-width: 0; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--bg); color: var(--ink); font: inherit;
+}
+.manage-items { max-height: 40vh; overflow-y: auto; margin-bottom: 8px; }
+.manage-msg { display: block; padding: 6px 2px; }
+.manage-panel .danger-btn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+
 .inv-header { padding: 14px 0 4px; }
 .inv-header h2 { margin: 0; font-size: 1.1rem; }
 .inv-header .muted { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; }

@@ -76,6 +76,19 @@ Liste des emplacements avec leur nombre de produits et la **date du dernier
 inventaire** (« jamais inventorié » sinon). Le bouton « Inventaire » de
 chaque ligne démarre le mode inventaire. Pendant l'inventaire, les onglets
 s'effacent.
+
+### Gérer un emplacement (bouton « Gérer »)
+
+Un panneau se déplie sous l'emplacement :
+- **Renommer** : nouveau nom libre ; un nom déjà existant **fusionne** les
+  deux emplacements (confirmation en deux touches) — les produits se
+  réunissent, les doublons regroupent leurs pots, la date d'inventaire de la
+  destination est conservée.
+- **Déplacer des produits** : cocher les produits, choisir la destination
+  (existante ou nouvelle), « Déplacer (n) ». Un produit déplacé garde
+  quantité, magasin et état « à racheter » ; s'il existe déjà à destination,
+  les pots se regroupent en une seule ligne.
+- Un emplacement sans produit et jamais inventorié disparaît de la liste.
 - Déclarer un produit trouvé : au micro (« trois cumin moulu »), ou taper
   quelques lettres et toucher la ligne. Chaque déclaration ajoute des pots ;
   un produit inconnu est créé (mention « nouveau »).
@@ -103,6 +116,23 @@ ingrédient du stock : +1 pot au stock, puis la ligne disparaît.
 
 Ajoute un produit à acheter sans fiche de stock (ex. « saumon entier » pour
 une recette). Il disparaît une fois rangé.
+
+## Onglet Recettes
+
+- Une ligne par recette : titre, et la **dernière réalisation** en note —
+  « jamais cuisinée », « cuisinée (date non notée) », ou la date. Si la
+  recette a été faite il y a **moins d'un an**, la note passe en orange
+  (règle « jamais deux fois la même recette dans l'année »).
+- Recherche par lettres (accents ignorés), tri alphabétique.
+- Toucher une ligne déplie la fiche : source, lien vers l'article, nom de la
+  vidéo locale, historique des réalisations, et « **J'ai fait cette
+  recette** » (date du jour proposée, commentaire facultatif).
+- État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
+  (série Le Point, dont 91 avec article et 5 déjà cuisinées).
+- Limite actuelle : les recettes ne se synchronisent pas en temps réel entre
+  appareils (rechargées à l'ouverture de l'application) ; les vidéos restent
+  des fichiers du PC (dossier « Alain Passard »), non lisibles depuis
+  l'application.
 
 ## Foyer et comptes
 

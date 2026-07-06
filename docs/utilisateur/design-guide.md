@@ -91,6 +91,20 @@ Règles :
   non-trouvés avant application ; rien n'est écrit au stock avant la
   confirmation. Abandon en deux touches (le bouton devient « Confirmer
   l'abandon »), jamais de fenêtre bloquante.
+- **Onglet Recettes** : une ligne par recette — titre, et en note la
+  dernière réalisation (« jamais cuisinée », « cuisinée (date non notée) »,
+  ou la date). Règle « jamais deux fois dans l'année » : si la dernière
+  réalisation date de moins d'un an, la note passe en orange `--warn`.
+  Toucher la ligne déplie la fiche : source, lien web, vidéo locale,
+  historique des réalisations, et le formulaire « J'ai fait cette recette »
+  (date du jour proposée + commentaire). L'état vide propose l'import
+  d'amorçage (collection Alain Passard).
+- **Gérer un emplacement** (onglet Inventaire — action exceptionnelle) :
+  chaque emplacement a un bouton « Gérer » qui déplie un panneau sous sa
+  ligne : renommer, fusionner dans un autre emplacement, déplacer des
+  produits (cases à cocher + destination, existante ou nouvelle). Une fusion
+  se confirme en deux touches, comme l'abandon d'inventaire ; jamais de
+  fenêtre bloquante. Les écrans Stock et Courses n'en portent rien.
 - **Panier, trois états** (bouton de chaque ligne de stock) :
   1. neutre (trait `--line`) : « commander en réserve » ;
   2. plein (fond accent) : déjà en liste de courses — un appui le retire ;

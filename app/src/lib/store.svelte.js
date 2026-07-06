@@ -8,6 +8,9 @@ export const store = $state({
   items: [],
   shop: [],
   locations: [],
+  sources: [],
+  recipes: [],
+  realisations: [],
   inv: null,
   schemaWarning: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine
@@ -83,6 +86,7 @@ async function bootstrap() {
 async function startData() {
   await refresh()
   await syncShop()
+  await loadRecipes()
   channel = supabase
     .channel('changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, scheduleRefresh)
@@ -239,6 +243,110 @@ export async function clearDone() {
 
 export async function signOut() {
   await supabase.auth.signOut()
+}
+
+/* ----- Recettes (cas N8, N9 — incrément 1) -----
+ * Pas de synchronisation temps réel pour l'instant : chargées au démarrage
+ * et tenues à jour localement après chaque action. */
+
+async function loadRecipes() {
+  const hid = store.household.id
+  const [s, r, re] = await Promise.all([
+    supabase.from('sources').select().eq('household_id', hid),
+    supabase.from('recipes').select().eq('household_id', hid),
+    supabase.from('realisations').select().eq('household_id', hid)
+  ])
+  if (s.error || r.error || re.error) { store.schemaWarning = true; return }
+  store.sources = s.data
+  store.recipes = r.data
+  store.realisations = re.data
+}
+
+/** Dernière réalisation d'une recette : null = jamais, 'inconnue' = date non notée. */
+export function lastMade(recipeId) {
+  const reals = store.realisations.filter(r => r.recipe_id === recipeId)
+  if (!reals.length) return null
+  const dated = reals.map(r => r.made_on).filter(Boolean).sort()
+  return dated.length ? dated[dated.length - 1] : 'inconnue'
+}
+
+export async function addRealisation(recipe, madeOn, comment) {
+  const { data, error } = await supabase.from('realisations')
+    .insert({ household_id: store.household.id, recipe_id: recipe.id, made_on: madeOn || null, comment: comment.trim() })
+    .select().single()
+  if (error) { store.schemaWarning = true; return }
+  store.realisations.push(data)
+}
+
+/** Amorce la bibliothèque avec les 105 recettes vidéo d'Alain Passard. */
+export async function importPassard() {
+  const { PASSARD_SOURCE, PASSARD_RECIPES } = await import('./passard.js')
+  const hid = store.household.id
+  const { data: src, error } = await supabase.from('sources')
+    .insert({ ...PASSARD_SOURCE, household_id: hid }).select().single()
+  if (error || !src) { store.schemaWarning = true; return }
+  const rows = PASSARD_RECIPES.map(r => ({
+    household_id: hid, source_id: src.id, title: r.title, url: r.url, video: r.video
+  }))
+  const { data: created } = await supabase.from('recipes').insert(rows).select()
+  if (!created) { store.schemaWarning = true; return }
+  store.sources.push(src)
+  store.recipes.push(...created)
+  const done = PASSARD_RECIPES.filter(r => r.done)
+    .map(r => created.find(c => c.video === r.video)).filter(Boolean)
+  if (done.length) {
+    const { data: reals } = await supabase.from('realisations')
+      .insert(done.map(d => ({
+        household_id: hid, recipe_id: d.id, made_on: null,
+        comment: 'Déjà cuisinée (import Alain Passard, date non notée)'
+      }))).select()
+    if (reals) store.realisations.push(...reals)
+  }
+}
+
+/* ----- Rangements (cas N6) -----
+ * Déplacer un produit conserve quantité, magasin et état « à racheter ».
+ * S'il existe déjà à destination (même nom), les pots se regroupent. */
+
+export async function moveItem(item, destLoc) {
+  const dest = destLoc.trim()
+  if (!dest || dest === item.loc) return
+  const target = store.items.find(i =>
+    i.id !== item.id && i.loc === dest &&
+    i.name.toLowerCase() === item.name.toLowerCase())
+  if (target) {
+    target.qty += item.qty
+    if (target.qty > target.min && target.dismissed) target.dismissed = false
+    await supabase.from('items')
+      .update({ qty: target.qty, dismissed: target.dismissed }).eq('id', target.id)
+    store.items = store.items.filter(i => i.id !== item.id)
+    store.shop = store.shop.filter(s => s.item_id !== item.id)
+    await supabase.from('items').delete().eq('id', item.id)
+  } else {
+    item.loc = dest
+    await supabase.from('items').update({ loc: dest }).eq('id', item.id)
+  }
+  await syncShop()
+}
+
+export async function moveItems(items, destLoc) {
+  for (const item of [...items]) await moveItem(item, destLoc)
+}
+
+/** Renommer vers un nom libre = renommage ; vers un nom existant = fusion des emplacements. */
+export async function renameLocation(oldName, newName) {
+  const dest = newName.trim()
+  if (!dest || dest === oldName) return
+  await moveItems(store.items.filter(i => i.loc === oldName), dest)
+  const src = store.locations.find(l => l.name === oldName)
+  const dst = store.locations.find(l => l.name === dest)
+  if (src && !dst) {
+    src.name = dest
+    await supabase.from('locations').update({ name: dest }).eq('id', src.id)
+  } else if (src && dst) {
+    store.locations = store.locations.filter(l => l !== src)
+    await supabase.from('locations').delete().eq('id', src.id)
+  }
 }
 
 /* ----- Mode inventaire (cas N2, NP6) -----

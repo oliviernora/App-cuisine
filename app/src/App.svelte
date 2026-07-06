@@ -6,6 +6,7 @@
   import Shopping from './components/Shopping.svelte'
   import Inventory from './components/Inventory.svelte'
   import Inventaires from './components/Inventaires.svelte'
+  import Recettes from './components/Recettes.svelte'
   import Icon from './components/Icon.svelte'
   import { LOGOUT, USERS } from './lib/icons.js'
 
@@ -47,6 +48,7 @@
         <button type="button" class:active={tab === 'shop'} onclick={() => tab = 'shop'}>
           Courses{#if shopCount > 0}<span class="count">{shopCount}</span>{/if}
         </button>
+        <button type="button" class:active={tab === 'recettes'} onclick={() => tab = 'recettes'}>Recettes</button>
         <button type="button" class:active={tab === 'inv'} onclick={() => tab = 'inv'}>Inventaire</button>
       </nav>
     </div>
@@ -63,6 +65,8 @@
       <Stock />
     {:else if tab === 'shop'}
       <Shopping />
+    {:else if tab === 'recettes'}
+      <Recettes />
     {:else}
       <Inventaires />
     {/if}

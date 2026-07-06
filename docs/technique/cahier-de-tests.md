@@ -30,6 +30,17 @@ Fichiers : `app/tests/integration/`.
 | N2 | un produit vu épuisé retrouve son retour automatique | inventaire.test.js |
 | NP6 | l'inventaire interrompu se retrouve au retour | inventaire.test.js |
 | NP6 | abandonner ne laisse aucune écriture | inventaire.test.js |
+| N6 | déplacer un produit : localisation seule change, tout est conservé | rangements.test.js |
+| N6 | un produit épuisé déplacé garde son « à racheter » | rangements.test.js |
+| N6 | déplacement vers un doublon : les pots se regroupent en une ligne | rangements.test.js |
+| N6 | regroupement sur un épuisé : l'entrée de courses auto se résout | rangements.test.js |
+| N6 | déplacement en lot (produits cochés) | rangements.test.js |
+| N6 | renommer : produits et date d'inventaire suivent | rangements.test.js |
+| N6 | fusionner : produits réunis, doublons regroupés, une seule ligne d'emplacement | rangements.test.js |
+| N8 | import Passard : 105 recettes, 1 source, 91 URLs, 5 cuisinées sans date | recettes.test.js |
+| N8 | consigner une réalisation : date, commentaire, dernière date à jour | recettes.test.js |
+| N8 | plusieurs réalisations : la plus récente fait foi | recettes.test.js |
+| N8 | « date non notée » puis date réelle : la date prend le dessus | recettes.test.js |
 | NP4 | *à écrire — décision d'usage en attente* | (todo) |
 
 Les tests tournent sur un simulateur de base de données en mémoire
@@ -59,6 +70,7 @@ une migration manquante.
 | M8 | Création de compte + rejoindre le foyer avec le code | arrivée directe sur les données partagées |
 | M9 | Basculer le tri Emplacement / A→Z, avec et sans recherche | A→Z : liste unique alphabétique avec le lieu en gris ; retour Emplacement : groupes habituels |
 | M10 | Inventaire réel d'un emplacement à la voix (caisse en vrac) | déclaration fluide au micro, bilan juste, stock exact à la fin |
+| M11 | Après migration : import Passard réel, recherche, consigner une réalisation | 105 recettes visibles, dates cohérentes, alerte orange si < 1 an |
 
 ## Journal des passages
 
@@ -69,3 +81,5 @@ une migration manquante.
 | 06/07/2026 | Mode inventaire (N2, NP6) | 19 verts, 1 todo (NP4) | Parcours réel : démarrage sur « Vegan », déclaration au toucher, bilan, abandon deux touches sans écriture | M10 (voix, caisse réelle) à faire par Olivier ; migration `locations` en attente (incident dashboard Supabase) |
 | 06/07/2026 | Onglet Inventaire + panneau Foyer | 19 verts, 1 todo (NP4) | Vérifié sur l'app réelle : 3 onglets, écrans Stock/Courses épurés, liste des emplacements avec dates, panneau Foyer (code + déconnexion) | migration `locations` toujours en attente |
 | 06/07/2026 | Signalement d'Olivier : date d'inventaire inchangée | 19 verts | `check:schema` créé et exécuté : `locations` MANQUANT (404) confirmé — cause = migration bloquée par l'incident Supabase | correctifs : contrôle de schéma obligatoire avant livraison + bandeau dans l'app quand la date ne peut pas être enregistrée ; migration à appliquer dès le retour du dashboard |
+| 06/07/2026 | Recettes incrément 1 (onglet, import Passard, réalisations) | 30 verts, 1 todo (NP4) | non testable sur la vraie base : migration bloquée (incident Supabase) — bandeau explicite dans l'onglet ; à rejouer après migration : import réel + M11 | fichier prêt : supabase/migration-en-attente.sql |
+| 06/07/2026 | N6 rangements (panneau « Gérer ») | 26 verts, 1 todo (NP4) | Parcours réel sur onglet frais : déplacement Huile de coco Vegan→Placard puis retour, panneau, messages | Gel constaté sur l'onglet de longue durée saturé de mises à jour à chaud (HMR) — non reproduit sur onglet frais, code identique ; consigne ajoutée dans exploitation.md ; migration `locations` toujours en attente |

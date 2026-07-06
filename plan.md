@@ -60,6 +60,9 @@ Validé en cours de route :
   retour automatique — implémentée et testée)
 
 ### Étape 2 — Stocks complets (en cours)
+- Fait (06/07/2026) : cas N6 — panneau « Gérer » dans l'onglet Inventaire : renommer,
+  fusionner (2 touches), déplacer des produits cochés vers un emplacement existant ou
+  nouveau, regroupement des doublons ; 7 tests d'intégration, parcours réel vérifié
 - Fait (06/07/2026) : mode inventaire (N2, NP6) — démarrage par emplacement, déclaration
   voix/toucher, cumul, création, correction, bilan des non-trouvés, application d'un bloc,
   reprise après interruption, abandon sans trace. Table `locations` créée (migration en
@@ -90,6 +93,23 @@ Validé en cours de route :
   proposition)
 
 ### Étape 4 — Recettes (démarrée le 06/07/2026)
+- Fait (06/07/2026, incrément 1) : onglet Recettes (recherche, fiche, dernière
+  réalisation avec alerte < 1 an, « J'ai fait cette recette ») amorcé par la collection
+  Alain Passard du projet local (105 recettes vidéo Le Point, 91 URLs, 5 cuisinées) —
+  extraction reproductible par scripts/extract-passard.mjs. Import réel et test M11 en
+  attente de la migration (supabase/migration-en-attente.sql, incident Supabase)
+- Découpage proposé en 4 incréments (06/07/2026) :
+  1. Bibliothèque + recettes saisies à la main : onglet Recettes, fiches (source,
+     ingrédients, étapes), réalisations (date + commentaire), recherche, date de
+     dernière réalisation visible — aucune dépendance externe
+  2. Photos (plat + page du livre) via Supabase Storage, compression côté client
+  3. Extraction IA (photo/PDF/URL → titre, ingrédients, étapes, relecture avant
+     enregistrement) — nécessite la clé API Claude d'Olivier ; de préférence via une
+     Edge Function Supabase pour ne pas exposer la clé (dashboard requis)
+  4. Imports en volume : liste de livres (CSV/ISBN du logiciel de scan d'Olivier),
+     capture de recettes par lot (plusieurs pages)
+- Décision de conception à valider : ingrédients structurés (quantité, unité, nom)
+  dès le départ — nécessaires au calcul des quantités de la semaine (cas N10)
 - Documentation réorganisée le 06/07/2026 : docs/utilisateur/ (à lire et valider par
   Olivier) et docs/technique/ (interne) ; suivi des cas dans
   docs/technique/suivi-cas-utilisation.md

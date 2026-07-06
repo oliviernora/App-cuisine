@@ -17,10 +17,10 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N3 je prépare mes courses | reformulé par Olivier 06/07 | partiel | le panier « réserve » existe ; **manque : quantité voulue à l'ajout** (recoupe NP4) |
 | N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
 | N5 foyer | validé | couvert | test manuel M4 à dérouler |
-| N6 rangements + déplacements | fusionné par Olivier 06/07 | non couvert | inclut déplacement par produits cochés en liste |
+| N6 rangements + déplacements | fusionné par Olivier 06/07 | **couvert, testé** (06/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire |
 | N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
-| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | non couvert | étape 4 ; imports en volume (livres CSV/ISBN, recettes par lot) ; clé API Claude nécessaire ; demander le logiciel de scan |
-| N9 retrouver une recette | proposition | non couvert | étape 4 |
+| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incrément 1, 06/07) | consigner date+commentaire : fait ; amorçage 105 recettes Passard : fait (import en attente de la migration) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
+| N9 retrouver une recette | proposition | **partiel** (incrément 1) | recherche par titre + fiche (source, dates, lien) ; reste : par ingrédient/pays/livre (viendra avec les données structurées) |
 | N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | non couvert | étape 5 ; à la demande ; créneaux `utilisateur/creneaux-courses.md` ; agenda Google plus tard |
 | N11 wish list / beau produit | proposition | non couvert | étape 5 |
 | NP1 produit retrouvé | décidé par Olivier | couvert, testé | |

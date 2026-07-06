@@ -86,6 +86,47 @@ alter table locations enable row level security;
 create policy "emplacements du foyer" on locations
   for all using (is_member(household_id)) with check (is_member(household_id));
 
+-- Recettes (étape 4, incrément 1) : sources, recettes, réalisations.
+create table sources (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  kind text not null default 'livre', -- livre | site | video | perso
+  title text not null,
+  author text not null default '',
+  isbn text not null default '',
+  country text not null default '',
+  categories text not null default '',
+  created_at timestamptz not null default now()
+);
+create table recipes (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  source_id uuid references sources(id) on delete set null,
+  title text not null,
+  page text not null default '',
+  url text not null default '',
+  video text not null default '', -- fichier vidéo local (PC)
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+create table realisations (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  recipe_id uuid not null references recipes(id) on delete cascade,
+  made_on date, -- null = cuisinée à une date non notée
+  comment text not null default '',
+  created_at timestamptz not null default now()
+);
+alter table sources enable row level security;
+alter table recipes enable row level security;
+alter table realisations enable row level security;
+create policy "sources du foyer" on sources
+  for all using (is_member(household_id)) with check (is_member(household_id));
+create policy "recettes du foyer" on recipes
+  for all using (is_member(household_id)) with check (is_member(household_id));
+create policy "réalisations du foyer" on realisations
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
 -- Synchronisation temps réel entre appareils.
 alter publication supabase_realtime add table items;
 alter publication supabase_realtime add table shopping;
