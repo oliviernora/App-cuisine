@@ -169,10 +169,16 @@ Validé en cours de route :
   (19 doublons réels détectés du premier coup), rapprochement de la semaine
   (stock et courses) via le référentiel, autocomplétion des noms connus à la
   saisie du stock ; 5 tests d'intégration, vérifié en réel
-- À venir (incrément 2) : « pour N personnes » sur la recette, besoin =
-  quantité × convives ÷ N ajustable en % ou à la main, agrégation par unité
-  compatible (jamais de conversion hasardeuse), quantités portées sur la
-  liste de courses (recoupe NP4)
+- Fait (07/07, incrément 2) : « pour N personnes » sur la fiche recette ;
+  besoin = quantité × convives ÷ N (facteur 1 si l'un des deux est inconnu),
+  une même recette servie à deux événements compte deux fois ; ajustement
+  global en % et correction à la main ligne par ligne dans le bloc semaine ;
+  agrégation par unité compatible (mg/g/kg et ml/cl/l, jamais g ↔ pièces) ;
+  quantités portées sur la liste de courses (affichage « 1,5 kg ») ;
+  8 tests d'intégration, M15 déroulé en réel
+- Reste (quantités) : NP4 côté stock (acheter plusieurs pots d'un coup,
+  décision Olivier en attente) ; quantités absentes des fiches Passard
+  (les articles n'en donnent pas) : à saisir au fil de l'eau
 
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),

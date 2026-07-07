@@ -204,10 +204,10 @@ export async function toggleOrder(item) {
   }
 }
 
-export async function addShopEntry(name, storeName) {
+export async function addShopEntry(name, storeName, qty = null, unit = '') {
   const { data, error } = await supabase
     .from('shopping')
-    .insert({ household_id: store.household.id, name, store: storeName })
+    .insert({ household_id: store.household.id, name, store: storeName, qty, unit })
     .select().single()
   if (!error) store.shop.push(data)
 }
@@ -296,8 +296,8 @@ export function parseIngredientLine(line) {
   return { qty, unit, name: rest }
 }
 
-/** Remplace les ingrédients (un par ligne) et le texte de la recette. */
-export async function saveRecipeDetails(recipe, ingredientsText, steps) {
+/** Remplace les ingrédients (un par ligne), le texte de la recette et « pour N personnes ». */
+export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null) {
   const hid = store.household.id
   const rows = ingredientsText.split('\n').map(parseIngredientLine).filter(Boolean)
     .map((r, i) => ({ ...r, position: i, household_id: hid, recipe_id: recipe.id }))
@@ -310,7 +310,8 @@ export async function saveRecipeDetails(recipe, ingredientsText, steps) {
   }
   store.ingredients = [...store.ingredients.filter(i => i.recipe_id !== recipe.id), ...created]
   recipe.steps = steps
-  await supabase.from('recipes').update({ steps }).eq('id', recipe.id)
+  recipe.servings = servings
+  await supabase.from('recipes').update({ steps, servings }).eq('id', recipe.id)
 }
 
 export function ingredientsOf(recipeId) {
@@ -401,32 +402,81 @@ async function answerMerge(a, b, field) {
 export const confirmMerge = (a, b) => answerMerge(a, b, 'aliases')
 export const rejectMerge = (a, b) => answerMerge(a, b, 'rejected')
 
+/* ----- Quantités de la semaine (cas N10, décisions Olivier 07/07/2026) -----
+ * Besoin = quantité × convives ÷ « pour N personnes » (facteur 1 si l'un des
+ * deux est inconnu), ajustable globalement en % et à la main ligne par ligne.
+ * L'agrégation n'additionne que les unités convertibles entre elles (masse,
+ * volume) ou identiques — jamais de conversion hasardeuse. */
+
+const UNIT_BASE = { mg: ['g', 0.001], g: ['g', 1], kg: ['g', 1000], ml: ['ml', 1], cl: ['ml', 10], l: ['ml', 1000] }
+
+function toBase(qty, unit) {
+  const conv = UNIT_BASE[unit]
+  return conv ? { qty: qty * conv[1], unit: conv[0] } : { qty, unit }
+}
+
+/** Quantité affichable : { qty, unit } en unité lisible (1500 g → 1,5 kg). */
+export function displayPart(part) {
+  let { qty, unit } = part
+  if (unit === 'g' && qty >= 1000) { qty /= 1000; unit = 'kg' }
+  if (unit === 'ml' && qty >= 1000) { qty /= 1000; unit = 'l' }
+  return { qty: Math.round(qty * 100) / 100, unit }
+}
+
+export function formatQty(qty, unit) {
+  const d = displayPart({ qty, unit })
+  return String(d.qty).replace('.', ',') + (d.unit ? ' ' + d.unit : '')
+}
+
 /**
  * Besoins de la semaine (événements d'aujourd'hui et à venir) : chaque
  * ingrédient est rapproché du stock et de la liste de courses via le
- * référentiel (nom replié ou alias confirmé).
+ * référentiel (nom replié ou alias confirmé). Une même recette servie à deux
+ * événements compte deux fois. `parts` : quantités agrégées par unité de
+ * base ; `count` : nombre d'occurrences (utile quand aucune quantité).
  */
-export function weekNeeds() {
+export function weekNeeds(scalePct = 100) {
   const today = new Date().toISOString().slice(0, 10)
-  const eventIds = new Set(store.events.filter(e => e.day >= today).map(e => e.id))
-  const recipeIds = new Set(store.eventRecipes.filter(er => eventIds.has(er.event_id)).map(er => er.recipe_id))
+  const upcoming = store.events.filter(e => e.day >= today)
   const needs = []
-  for (const ing of store.ingredients) {
-    if (!recipeIds.has(ing.recipe_id)) continue
-    const key = fold(canonicalName(ing.name))
-    const existing = needs.find(n => n.key === key)
-    if (existing) { existing.count += 1; continue }
-    const match = store.items.find(i => sameIngredient(i.name, ing.name) && i.qty > 0)
-    const inShopping = store.shop.some(s => sameIngredient(s.name, ing.name))
-    needs.push({ key, name: ing.name, qty: ing.qty, unit: ing.unit, count: 1, match: match ?? null, inShopping })
+  for (const event of upcoming) {
+    for (const er of store.eventRecipes.filter(er => er.event_id === event.id)) {
+      const recipe = store.recipes.find(r => r.id === er.recipe_id)
+      const scale = (recipe?.servings > 0 && event.guests > 0 ? event.guests / recipe.servings : 1) * scalePct / 100
+      for (const ing of store.ingredients.filter(i => i.recipe_id === er.recipe_id)) {
+        const key = fold(canonicalName(ing.name))
+        let need = needs.find(n => n.key === key)
+        if (!need) {
+          const match = store.items.find(i => sameIngredient(i.name, ing.name) && i.qty > 0)
+          const inShopping = store.shop.some(s => sameIngredient(s.name, ing.name))
+          need = { key, name: ing.name, parts: [], count: 0, match: match ?? null, inShopping }
+          needs.push(need)
+        }
+        need.count += 1
+        if (ing.qty != null) {
+          const base = toBase(ing.qty * scale, ing.unit)
+          const part = need.parts.find(p => p.unit === base.unit)
+          if (part) part.qty += base.qty
+          else need.parts.push(base)
+        }
+      }
+    }
   }
   return needs.toSorted((a, b) => a.name.localeCompare(b.name, 'fr'))
 }
 
-/** Ajoute aux courses les besoins de la semaine ni en stock ni déjà en liste. */
-export async function addWeekMissing() {
-  const missing = weekNeeds().filter(n => !n.match && !n.inShopping)
-  for (const need of missing) await addShopEntry(need.name, '')
+/**
+ * Ajoute aux courses les besoins ni en stock ni déjà en liste, avec leur
+ * quantité (celle corrigée à la main si fournie, sinon la quantité calculée
+ * quand elle tient en une seule unité).
+ */
+export async function addWeekMissing(scalePct = 100, overrides = {}) {
+  const missing = weekNeeds(scalePct).filter(n => !n.match && !n.inShopping)
+  for (const need of missing) {
+    const over = overrides[need.key]
+    const part = !over && need.parts.length === 1 ? need.parts[0] : over
+    await addShopEntry(need.name, '', part?.qty ?? null, part?.unit ?? '')
+  }
   return missing.length
 }
 

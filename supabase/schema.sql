@@ -34,6 +34,8 @@ create table shopping (
   store text not null default '',
   done boolean not null default false,
   manual boolean not null default false,
+  qty numeric, -- quantité à acheter (null = non précisée)
+  unit text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -108,6 +110,7 @@ create table recipes (
   video text not null default '', -- fichier vidéo local (PC)
   notes text not null default '',
   steps text not null default '', -- texte de la recette (étapes)
+  servings int, -- « pour N personnes » (null = inconnu, pas de mise à l'échelle)
   created_at timestamptz not null default now()
 );
 create table recipe_ingredients (

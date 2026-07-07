@@ -21,12 +21,12 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
 | N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incréments 1-2, 07/07) | consigner date+commentaire : fait ; 105 recettes Passard importées, 82 fiches remplies dans la vraie base (682 ingrédients, M13 déroulé) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
 | N9 retrouver une recette | proposition | **partiel** (incrément 1) | recherche par titre + fiche (source, dates, lien) ; reste : par ingrédient/pays/livre (viendra avec les données structurées) |
-| N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incrément 1, 06/07) | fait : événements (jour, type, convives, contraintes), recettes associées avec alerte < 1 an, consignation à la date de l'événement ; reste : quantités à l'échelle (attend les ingrédients structurés), vérification liste de courses, planning des tournées (attend créneaux + décision), agenda Google |
+| N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incréments 1-3, 07/07) | fait : événements, recettes associées avec alerte < 1 an, consignation, quantités à l'échelle (« pour N personnes » × convives, % global, correction à la main, agrégation par unité compatible), quantités en liste de courses ; reste : planning des tournées (attend créneaux + décision), agenda Google |
 | N11 wish list / beau produit | proposition | non couvert | étape 5 |
 | NP1 produit retrouvé | décidé par Olivier | couvert, testé | |
 | NP2 rupture en magasin | validé | couvert, testé | |
 | NP3 coché par erreur | validé | couvert, testé | |
-| NP4 plusieurs pots d'un coup | **décision en attente** | partiel (+1 fixe) | recoupe N3 reformulé : quantités à l'ajout et à l'achat |
+| NP4 plusieurs pots d'un coup | **décision en attente** | partiel (+1 fixe) | recoupe N3 reformulé : quantités à l'ajout et à l'achat côté stock ; les quantités semaine → courses sont couvertes depuis le 07/07 |
 | NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
 | NP6 inventaire interrompu | validé | couvert, testé | |
 | NP8 produit après planning | proposition | non couvert | avec N10 |

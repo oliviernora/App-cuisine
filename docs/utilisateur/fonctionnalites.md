@@ -141,8 +141,9 @@ une recette). Il disparaît une fois rangé.
   commentaire facultatif).
 - « Ajouter/Modifier ingrédients et recette » : les ingrédients se saisissent
   un par ligne (« 500 g asperges vertes ») — quantité, unité et nom sont
-  compris automatiquement ; le texte de la recette est libre. (La photo
-  viendra dans un prochain incrément.)
+  compris automatiquement ; le texte de la recette est libre. Le champ
+  « **Pour N personnes** » sert au calcul des quantités de la semaine.
+  (La photo viendra dans un prochain incrément.)
 - État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
   (série Le Point, dont 91 avec article et 5 déjà cuisinées).
 - Limite actuelle : les recettes ne se synchronisent pas en temps réel entre
@@ -171,8 +172,16 @@ une recette). Il disparaît une fois rangé.
   par les liens confirmés dans « Ingrédients à rapprocher »** (onglet
   Inventaire) : « citrons » retrouve « Citron » du stock une fois le lien
   confirmé.
-- À venir : quantités à l'échelle des convives, planning des tournées selon
-  vos créneaux.
+- **Quantités calculées** : si la recette indique « pour N personnes », les
+  quantités sont mises à l'échelle des convives de l'événement (recette pour
+  4 servie à 8 = quantités doublées ; une même recette sur deux événements
+  compte deux fois). « Ajuster les quantités : % » modère tout d'un coup
+  (appétits, richesse des plats) ; chaque ligne « à acheter » se corrige
+  aussi à la main, et c'est la valeur corrigée qui part en courses. Les
+  unités compatibles s'additionnent (500 g + 1 kg = 1,5 kg) ; jamais de
+  conversion hasardeuse (« 1,5 kg + 2 gousses » reste tel quel). En liste de
+  courses, la quantité s'affiche devant le nom (« 1,5 kg asperges vertes »).
+- À venir : planning des tournées selon vos créneaux.
 
 ## Foyer et comptes
 

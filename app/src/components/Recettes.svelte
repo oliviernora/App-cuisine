@@ -47,6 +47,7 @@
   let editing = $state(false)
   let ingText = $state('')
   let stepsText = $state('')
+  let servingsText = $state('')
 
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
@@ -59,12 +60,13 @@
     ingText = ingredientsOf(recipe.id)
       .map(i => [i.qty, i.unit, i.name].filter(v => v !== null && v !== '').join(' ')).join('\n')
     stepsText = recipe.steps ?? ''
+    servingsText = recipe.servings ?? ''
     editing = true
   }
 
   async function saveEdit(recipe) {
     busy = true
-    await saveRecipeDetails(recipe, ingText, stepsText)
+    await saveRecipeDetails(recipe, ingText, stepsText, Number(servingsText) > 0 ? Number(servingsText) : null)
     busy = false
     editing = false
   }
@@ -130,6 +132,12 @@
               </div>
               <div class="manage-block">
                 {#if editing}
+                  <p class="manage-row">
+                    <label>Pour
+                      <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={servingsText}
+                        aria-label="Nombre de personnes" placeholder="?">
+                      personnes (sert au calcul des quantités de la semaine)</label>
+                  </p>
                   <p>Ingrédients — un par ligne (ex. « 500 g asperges vertes ») :</p>
                   <textarea bind:value={ingText} rows="6"></textarea>
                   <p>Recette (étapes) :</p>
@@ -140,7 +148,7 @@
                   </div>
                 {:else}
                   {#if ingredientsOf(recipe.id).length}
-                    <p>Ingrédients :</p>
+                    <p>Ingrédients{recipe.servings ? ' (pour ' + recipe.servings + ' personnes)' : ''} :</p>
                     <ul>
                       {#each ingredientsOf(recipe.id) as ing (ing.id)}
                         <li class="row"><span class="name">{[ing.qty, ing.unit, ing.name].filter(v => v !== null && v !== '').join(' ')}</span></li>

@@ -79,6 +79,7 @@ une migration manquante.
 | M12 | Après migration : planifier une semaine réelle (2-3 événements, recettes, consigner) | semaine lisible d'un coup d'œil, réalisations aux bonnes dates |
 | M13 | Ingrédients d'une recette + bloc « Courses de la semaine » : événement du jour, recette associée, ajouter les manquants | ingrédients listés avec état en stock / déjà en liste / à acheter ; les manquants passent en liste de courses sans doublon |
 | M14 | Master list : répondre « Oui » à une proposition d'« Ingrédients à rapprocher » (Inventaire) | la proposition disparaît pour toujours, l'alias est en base, le bloc semaine reconnaît désormais les deux orthographes |
+| M15 | Quantités : recette « pour 4 » avec quantités, événement à 8 convives, % puis correction à la main, ajouter aux courses | quantités doublées à l'écran, % recalcule en direct, la correction manuelle prime, la liste de courses porte la quantité corrigée |
 
 ## Journal des passages
 
@@ -86,6 +87,7 @@ Dernière entrée en premier :
 
 | Date | Périmètre | Automatisés | Manuels | Notes |
 |---|---|---|---|---|
+| 07/07/2026 | Quantités de la semaine (N10, incrément quantités) | 56 verts, 1 todo (NP4) | check:schema 12/12 (14 colonnes vérifiées) ; M15 déroulé en réel sur la tatin d'endives (pour 4 → 8 convives = 8 endives, 150 % = 12, correction à 10 → « 10 endives » en courses) ; fiche et données remises à l'identique après le test | constaté en cours de test : les recettes des événements du 06/07 ont été réorganisées en base (Dîner maison 1→0, Invitation 2→3) sans action de la session — vraisemblablement un autre appareil du foyer ; signalé à Olivier |
 | 07/07/2026 | Master list (référentiel d'ingrédients, incrément 1) | 48 verts, 1 todo (NP4) | check:schema 12/12 OK ; M14 déroulé en réel (19 doublons détectés dans les vraies données, « carottes ≈ carotte » confirmé → alias en base, proposition disparue) ; 18 propositions laissées à Olivier | décisions Olivier : master list depuis ses données, suggestion à confirmer, jamais de fusion silencieuse |
 | 07/07/2026 matin | Migration appliquée + remplissage réel + M13 | 43 verts, 1 todo (NP4) | check:schema 11/11 OK ; remplissage réel 82/82 fiches (682 ingrédients en base) ; M13 déroulé (événement du jour + tatin d'endives : 6 ingrédients « à acheter » → « déjà en liste », liste de courses juste, nettoyage propre) | doublon d'import découvert (import Passard lancé 2× le 06/07, 210 recettes) : doublon de 22h38 supprimé avec l'accord d'Olivier (aucune donnée saisie dessus), garde-fou ajouté dans `importPassard()` + test ; cause : onglet resté sur l'état « aucune recette » |
 | 07/07/2026 | Fiches Passard complètes (82/82 extraites et fusionnées) | 42 verts, 1 todo (NP4) | remplissage réel toujours bloqué par la migration `recipe_ingredients` (dashboard Supabase indisponible sur toutes les tentatives du jour) ; M13 dès que possible | |

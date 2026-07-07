@@ -1,5 +1,5 @@
 <script>
-  import { store, addEvent, removeEvent, attachRecipe, detachRecipe, addRealisation, lastMade, weekNeeds, addWeekMissing } from '../lib/store.svelte.js'
+  import { store, addEvent, removeEvent, attachRecipe, detachRecipe, addRealisation, lastMade, weekNeeds, addWeekMissing, displayPart, formatQty } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { TRASH } from '../lib/icons.js'
 
@@ -32,8 +32,23 @@
       .map(er => store.recipes.find(r => r.id === er.recipe_id)).filter(Boolean)
   }
 
-  const needs = $derived(weekNeeds())
+  let pct = $state(100)
+  let overrides = $state({})
+  const needs = $derived(weekNeeds(pct))
   const missing = $derived(needs.filter(n => !n.match && !n.inShopping))
+
+  /** « 1,5 kg + 2 gousses ail » ; sans quantité, « ail (×2) ». */
+  function needLabel(need) {
+    const parts = need.parts.map(p => formatQty(p.qty, p.unit)).join(' + ')
+    const times = !need.parts.length && need.count > 1 ? ' (×' + need.count + ')' : ''
+    return (parts ? parts + ' ' : '') + need.name + times
+  }
+
+  function setOverride(need, value) {
+    const qty = Number(value)
+    if (qty > 0) overrides[need.key] = { qty, unit: displayPart(need.parts[0]).unit }
+    else delete overrides[need.key]
+  }
 
   const pickResults = $derived.by(() => {
     if (!pick.trim()) return []
@@ -83,10 +98,26 @@
 
   {#if needs.length}
     <p class="group-title">Courses de la semaine <span class="n">· {needs.length} ingrédients</span></p>
+    {#if needs.some(n => n.parts.length)}
+      <div class="toolbar" style="justify-content: flex-start">
+        <label class="note">Ajuster les quantités&nbsp;:
+          <input class="f-qty" type="number" inputmode="numeric" min="10" max="500" step="10"
+            bind:value={pct} aria-label="Pourcentage d'ajustement"> %
+        </label>
+      </div>
+    {/if}
     <ul>
       {#each needs as need (need.key)}
         <li class="row">
-          <span class="name">{[need.qty, need.unit, need.name].filter(v => v !== null && v !== '').join(' ')}{need.count > 1 ? ' (×' + need.count + ')' : ''}</span>
+          {#if !need.match && !need.inShopping && need.parts.length === 1}
+            <input class="f-qty" type="number" min="0" step="any"
+              value={overrides[need.key]?.qty ?? displayPart(need.parts[0]).qty}
+              onchange={e => setOverride(need, e.target.value)}
+              aria-label={'Quantité de ' + need.name}>
+            <span class="name">{overrides[need.key]?.unit ?? displayPart(need.parts[0]).unit} {need.name}</span>
+          {:else}
+            <span class="name">{needLabel(need)}</span>
+          {/if}
           {#if need.match}
             <span class="note ok-note">en stock — {need.match.loc}</span>
           {:else if need.inShopping}
@@ -100,7 +131,7 @@
     {#if missing.length}
       <div class="toolbar" style="justify-content: flex-start">
         <button type="button" disabled={busy}
-          onclick={async () => { busy = true; await addWeekMissing(); busy = false }}>
+          onclick={async () => { busy = true; await addWeekMissing(pct, overrides); overrides = {}; busy = false }}>
           Ajouter les manquants aux courses ({missing.length})
         </button>
       </div>
