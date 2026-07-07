@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { store, addItem, changeQty, removeItem, toggleOrder } from '../lib/store.svelte.js'
+  import { store, addItem, changeQty, removeItem, toggleOrder, knownNames } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { MINUS, PLUS, TRASH, CART, CART_PLUS, MIC } from '../lib/icons.js'
 
@@ -157,7 +157,7 @@
 
 <div class="addbar">
   <form onsubmit={submit} autocomplete="off">
-    <input class="f-name" bind:value={name} placeholder="Ingrédient" required>
+    <input class="f-name" bind:value={name} list="known-ingredients" placeholder="Ingrédient" required>
     <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={qty} aria-label="Nombre de pots" title="Nombre de pots">
     <input class="f-loc" bind:value={itemLoc} list="locs" placeholder="Emplacement">
     <input class="f-loc" bind:value={itemStore} list="stores" placeholder="Où acheter">
@@ -174,4 +174,7 @@
 </datalist>
 <datalist id="stores">
   {#each STORES as s (s)}<option value={s}></option>{/each}
+</datalist>
+<datalist id="known-ingredients">
+  {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
 </datalist>

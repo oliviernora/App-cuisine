@@ -14,6 +14,7 @@ export const store = $state({
   events: [],
   eventRecipes: [],
   ingredients: [],
+  refs: [],
   inv: null,
   schemaWarning: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine
@@ -254,21 +255,23 @@ export async function signOut() {
 
 async function loadRecipes() {
   const hid = store.household.id
-  const [s, r, re, ev, er, ing] = await Promise.all([
+  const [s, r, re, ev, er, ing, rf] = await Promise.all([
     supabase.from('sources').select().eq('household_id', hid),
     supabase.from('recipes').select().eq('household_id', hid),
     supabase.from('realisations').select().eq('household_id', hid),
     supabase.from('events').select().eq('household_id', hid),
     supabase.from('event_recipes').select().eq('household_id', hid),
-    supabase.from('recipe_ingredients').select().eq('household_id', hid)
+    supabase.from('recipe_ingredients').select().eq('household_id', hid),
+    supabase.from('ingredient_refs').select().eq('household_id', hid)
   ])
-  if (s.error || r.error || re.error || ev.error || er.error || ing.error) { store.schemaWarning = true; return }
+  if (s.error || r.error || re.error || ev.error || er.error || ing.error || rf.error) { store.schemaWarning = true; return }
   store.sources = s.data
   store.recipes = r.data
   store.realisations = re.data
   store.events = ev.data
   store.eventRecipes = er.data
   store.ingredients = ing.data
+  store.refs = rf.data
 }
 
 const UNITS = ['cuillères à soupe', 'cuillère à soupe', 'cuillères à café', 'cuillère à café',
@@ -319,10 +322,89 @@ function fold(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
+/* ----- Référentiel d'ingrédients (master list, décision Olivier 07/07/2026) -----
+ * Deux noms désignent le même ingrédient s'ils sont identiques une fois
+ * repliés (casse et accents ignorés), ou s'ils sont réunis dans une même
+ * entrée du référentiel (nom + alias confirmés à la main). Les rapprochements
+ * refusés sont mémorisés (rejected) pour ne jamais être reproposés. */
+
+function refKeys(ref) {
+  return [fold(ref.name), ...ref.aliases.map(fold)]
+}
+
+function refOf(name) {
+  const f = fold(name)
+  return store.refs.find(r => refKeys(r).includes(f)) ?? null
+}
+
+export function sameIngredient(a, b) {
+  const fa = fold(a), fb = fold(b)
+  if (fa === fb) return true
+  const ref = refOf(a)
+  return ref ? refKeys(ref).includes(fb) : false
+}
+
+/** Nom canonique : celui du référentiel si le nom y figure, sinon le nom tel quel. */
+export function canonicalName(name) {
+  return refOf(name)?.name ?? name
+}
+
+/** Forme naïve au singulier, pour détecter les doublons probables (citrons/citron). */
+function depluralize(name) {
+  return fold(name).split(' ').map(w => w.length > 3 ? w.replace(/[sx]$/, '') : w).join(' ')
+}
+
+/** Tous les noms d'ingrédients connus (stock + recettes), une graphie par nom replié. */
+export function knownNames() {
+  const byFold = new Map()
+  for (const n of [...store.items.map(i => i.name), ...store.ingredients.map(i => i.name)]) {
+    const t = n.trim()
+    if (t && !byFold.has(fold(t))) byFold.set(fold(t), t)
+  }
+  return [...byFold.values()]
+}
+
+/** Paires de noms probablement identiques, à confirmer une par une (jamais de fusion silencieuse). */
+export function pendingMerges() {
+  const groups = Map.groupBy(knownNames(), depluralize)
+  const pairs = []
+  for (const [, names] of groups) {
+    for (let i = 1; i < names.length; i++) {
+      const [a, b] = [names[0], names[i]]
+      if (sameIngredient(a, b)) continue
+      const ref = refOf(a) ?? refOf(b)
+      if (ref?.rejected.map(fold).includes(fold(refOf(a) ? b : a))) continue
+      pairs.push({ a, b })
+    }
+  }
+  return pairs.toSorted((p, q) => p.a.localeCompare(q.a, 'fr'))
+}
+
+/** Mémorise la réponse à « a et b, même ingrédient ? » dans le référentiel. */
+async function answerMerge(a, b, field) {
+  let ref = refOf(a) ?? refOf(b)
+  if (!ref) {
+    const { data, error } = await supabase.from('ingredient_refs')
+      .insert({ household_id: store.household.id, name: a }).select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    data.aliases ??= []; data.rejected ??= []
+    store.refs.push(data)
+    ref = store.refs[store.refs.length - 1]
+  }
+  const other = refKeys(ref).includes(fold(a)) ? b : a
+  ref[field] = [...ref[field], other]
+  const { error } = await supabase.from('ingredient_refs')
+    .update({ [field]: ref[field] }).eq('id', ref.id)
+  if (error) store.schemaWarning = true
+}
+
+export const confirmMerge = (a, b) => answerMerge(a, b, 'aliases')
+export const rejectMerge = (a, b) => answerMerge(a, b, 'rejected')
+
 /**
  * Besoins de la semaine (événements d'aujourd'hui et à venir) : chaque
- * ingrédient est rapproché du stock par son nom (accents et casse ignorés).
- * Rapprochement volontairement strict pour commencer — à affiner (alias).
+ * ingrédient est rapproché du stock et de la liste de courses via le
+ * référentiel (nom replié ou alias confirmé).
  */
 export function weekNeeds() {
   const today = new Date().toISOString().slice(0, 10)
@@ -331,11 +413,11 @@ export function weekNeeds() {
   const needs = []
   for (const ing of store.ingredients) {
     if (!recipeIds.has(ing.recipe_id)) continue
-    const key = fold(ing.name)
+    const key = fold(canonicalName(ing.name))
     const existing = needs.find(n => n.key === key)
     if (existing) { existing.count += 1; continue }
-    const match = store.items.find(i => fold(i.name) === key && i.qty > 0)
-    const inShopping = store.shop.some(s => fold(s.name) === key)
+    const match = store.items.find(i => sameIngredient(i.name, ing.name) && i.qty > 0)
+    const inShopping = store.shop.some(s => sameIngredient(s.name, ing.name))
     needs.push({ key, name: ing.name, qty: ing.qty, unit: ing.unit, count: 1, match: match ?? null, inShopping })
   }
   return needs.toSorted((a, b) => a.name.localeCompare(b.name, 'fr'))
@@ -397,6 +479,11 @@ export async function addRealisation(recipe, madeOn, comment) {
 export async function importPassard() {
   const { PASSARD_SOURCE, PASSARD_RECIPES } = await import('./passard.js')
   const hid = store.household.id
+  // Garde-fou : ne jamais réimporter si la source existe déjà dans la base
+  // (un onglet resté sur l'état « aucune recette » a déjà causé un double import).
+  const { data: dejaLa } = await supabase.from('sources')
+    .select('id').eq('household_id', hid).eq('title', PASSARD_SOURCE.title).limit(1)
+  if (dejaLa?.length) return
   const { data: src, error } = await supabase.from('sources')
     .insert({ ...PASSARD_SOURCE, household_id: hid }).select().single()
   if (error || !src) { store.schemaWarning = true; return }

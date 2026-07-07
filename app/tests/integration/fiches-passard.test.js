@@ -34,6 +34,16 @@ test('le remplissage complète toutes les recettes couvertes par les fiches', as
   expect(tables.recipe_ingredients.length).toBeGreaterThan(200)
 })
 
+test('un second import Passard ne crée pas de doublons (bug du 06/07 : onglet resté sur l\'état vide)', async () => {
+  expect(tables.recipes.length).toBe(store.recipes.length)
+  const avant = tables.recipes.length
+
+  await importPassard()
+
+  expect(tables.sources.filter(s => s.title.includes('Passard')).length).toBe(1)
+  expect(tables.recipes.length).toBe(avant)
+})
+
 test('idempotent : un second passage ne refait rien, une fiche déjà remplie est respectée', async () => {
   const recipe = store.recipes.find(r => r.url.includes('rhubarbe-a-un-sourire'))
   await saveRecipeDetails(recipe, 'mes propres ingrédients', 'ma version à moi')

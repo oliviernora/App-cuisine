@@ -1,5 +1,6 @@
 <script>
-  import { store, startInventory, renameLocation, moveItems } from '../lib/store.svelte.js'
+  import { store, startInventory, renameLocation, moveItems, pendingMerges,
+    confirmMerge as confirmIngredient, rejectMerge as rejectIngredient } from '../lib/store.svelte.js'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
     'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
@@ -74,6 +75,14 @@
     selected = []
     moveDest = ''
   }
+
+  const merges = $derived(pendingMerges())
+
+  async function answer(m, yes) {
+    busy = true
+    await (yes ? confirmIngredient(m.a, m.b) : rejectIngredient(m.a, m.b))
+    busy = false
+  }
 </script>
 
 <section>
@@ -82,6 +91,20 @@
       la base de données doit être mise à jour (migration « locations » en attente).</p>
   {/if}
   {#if message}<p class="note manage-msg">{message}</p>{/if}
+
+  {#if merges.length}
+    <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
+    <ul>
+      {#each merges as m (m.a + '|' + m.b)}
+        <li class="row">
+          <span class="name">« {m.b} » et « {m.a} » : même ingrédient ?</span>
+          <button type="button" class="inv-start" disabled={busy} onclick={() => answer(m, true)}>Oui</button>
+          <button type="button" class="inv-manage" disabled={busy} onclick={() => answer(m, false)}>Non</button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
   <p class="group-title">Emplacements <span class="n">· {locs.length}</span></p>
   <ul>
     {#each locs as name (name)}

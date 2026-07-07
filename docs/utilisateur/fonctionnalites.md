@@ -52,7 +52,9 @@ chaque ligne). La recherche par lettres fonctionne dans les deux vues.
 ### Formulaire d'ajout
 
 Nom, nombre de pots, emplacement, où acheter, puis Ajouter. Si un emplacement
-est filtré (chip active), il préremplit le champ emplacement.
+est filtré (chip active), il préremplit le champ emplacement. Le champ nom
+**suggère les ingrédients déjà connus** (stock et recettes) pour éviter les
+orthographes différentes du même produit.
 
 Au micro : dire par exemple « trois oignons » — le nom et la quantité se
 préremplissent, vérifier puis toucher Ajouter. La dictée du clavier
@@ -76,6 +78,15 @@ Liste des emplacements avec leur nombre de produits et la **date du dernier
 inventaire** (« jamais inventorié » sinon). Le bouton « Inventaire » de
 chaque ligne démarre le mode inventaire. Pendant l'inventaire, les onglets
 s'effacent.
+
+### Ingrédients à rapprocher (master list)
+
+Quand deux noms se ressemblent (« carottes » / « carotte », singulier,
+pluriel, majuscules) entre le stock et les recettes, une question apparaît en
+haut de l'onglet : « même ingrédient ? ». **Oui** relie les deux orthographes
+pour toujours : le stock, les recettes et la liste de courses les considèrent
+comme un seul ingrédient. **Non** est aussi mémorisé : la question ne revient
+jamais. Rien n'est jamais fusionné sans votre accord.
 
 ### Gérer un emplacement (bouton « Gérer »)
 
@@ -156,10 +167,10 @@ une recette). Il disparaît une fois rangé.
   ingrédients, un bloc liste chaque ingrédient avec son état — « en stock »
   (vert, avec l'emplacement), « déjà en liste », ou « à acheter » (orange).
   « Ajouter les manquants aux courses (n) » les envoie en liste, sans
-  doublon. Le rapprochement se fait par nom (accents et casse ignorés) :
-  écrire « ail » dans la recette retrouve « Ail » du stock — mais
-  « gousse d'ail » ne retrouverait pas « Ail » ; des liens explicites
-  viendront l'améliorer.
+  doublon. Le rapprochement se fait par nom (accents et casse ignorés) **et
+  par les liens confirmés dans « Ingrédients à rapprocher »** (onglet
+  Inventaire) : « citrons » retrouve « Citron » du stock une fois le lien
+  confirmé.
 - À venir : quantités à l'échelle des convives, planning des tournées selon
   vos créneaux.
 

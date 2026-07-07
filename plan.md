@@ -50,11 +50,15 @@ Validé en cours de route :
 - Documentation tenue à jour à chaque livraison
 
 ### Actions en attente
-- (Migration appliquée le 06/07/2026 au soir, après la fin de l'incident Supabase —
-  détectée par veille automatique de leur page de statut. Les 10 tables sont conformes
-  (`check:schema` complet), les 105 recettes Passard importées dans la vraie base,
-  tests M11-M12 déroulés. La date de dernier inventaire s'enregistrera au prochain
+- (Plus aucune migration en attente : `recipe_ingredients` + `recipes.steps`
+  appliquée le 07/07/2026 au matin via le SQL Editor — `check:schema` 11/11.
+  La grande migration du 06/07 avait été appliquée le 06/07 au soir, tests
+  M11-M12 déroulés. La date de dernier inventaire s'enregistrera au prochain
   inventaire réel.)
+- Incident du 06/07 découvert et réglé le 07/07 : l'import Passard avait tourné
+  deux fois (onglet resté sur l'état « aucune recette »), 210 recettes au lieu de
+  105. Doublon supprimé avec l'accord d'Olivier (aucune donnée saisie dessus),
+  garde-fou ajouté dans `importPassard()` + test d'intégration.
 
 ### Décisions en attente (Olivier)
 - NP4 : comment saisir l'achat de plusieurs pots d'un coup
@@ -102,10 +106,12 @@ Validé en cours de route :
   sans doublon) ; « Consigner » renommé « Marquer faite ». Migration
   `recipe_ingredients` en attente (dashboard instable). Photo : incrément suivant.
   Ingrédients Passard : extraction Le Point à automatiser ou saisie au fil de l'eau
+- Fait (07/07 matin) : migration appliquée, remplissage réel TERMINÉ — 82 fiches
+  remplies dans la vraie base (682 lignes d'ingrédients), test M13 déroulé de bout
+  en bout (événement du jour + tatin d'endives : états en stock / déjà en liste /
+  à acheter, ajout des manquants, nettoyage propre) ; 43 tests verts
 - Fait (07/07) : extraction TERMINÉE — 82 fiches sur 82 (9 lots), fusionnées dans
-  fiches-data.json et le module applicatif ; 42 tests verts. Ne manque que la migration
-  recipe_ingredients (dashboard Supabase toujours indisponible — SQL prêt dans
-  migration-en-attente.sql) pour activer le bouton de remplissage et le test M13
+  fiches-data.json et le module applicatif ; 42 tests verts
 - (Historique) extraction intelligente de 40 fiches sur 82 (lots 1-4 :
   ingrédients structurés + recette condensée reformulée, jamais le texte verbatim) →
   « Alain Passard/fiches-data.json » (base réutilisable) + module applicatif généré
@@ -149,6 +155,24 @@ Validé en cours de route :
 - Capture photo/PDF/URL, extraction IA (titre, ingrédients, étapes), photo du plat
 - Historique : dates de réalisation + commentaires, notes personnelles, amendements
 - Recettes perso
+
+### Ingrédients — master list et quantités (décisions Olivier 07/07/2026)
+- Constat d'Olivier : séparer quantité / unité / nom (déjà en place dans
+  `recipe_ingredients`), calculer la quantité à commander, et éviter les
+  orthographes différentes du même ingrédient via une « master list »
+- Décisions : master list amorcée depuis SES données (stock + fiches), jamais
+  de liste générique ; rapprochement par suggestion à confirmer (« citrons ≈
+  citron ? »), réponse mémorisée (alias si oui, refus définitif si non),
+  jamais de fusion silencieuse
+- Fait (07/07, incrément 1) : table `ingredient_refs` (nom canonique + alias +
+  refus), panneau « Ingrédients à rapprocher » dans l'onglet Inventaire
+  (19 doublons réels détectés du premier coup), rapprochement de la semaine
+  (stock et courses) via le référentiel, autocomplétion des noms connus à la
+  saisie du stock ; 5 tests d'intégration, vérifié en réel
+- À venir (incrément 2) : « pour N personnes » sur la recette, besoin =
+  quantité × convives ÷ N ajustable en % ou à la main, agrégation par unité
+  compatible (jamais de conversion hasardeuse), quantités portées sur la
+  liste de courses (recoupe NP4)
 
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),

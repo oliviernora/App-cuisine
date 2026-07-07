@@ -18,7 +18,8 @@ const CHECKS = {
   recipe_ingredients: 'id,recipe_id,position,qty,unit,name',
   realisations: 'id,recipe_id,made_on,comment',
   events: 'id,day,title,guests,contraintes',
-  event_recipes: 'event_id,recipe_id'
+  event_recipes: 'event_id,recipe_id',
+  ingredient_refs: 'id,name,aliases,rejected'
 }
 
 let failed = false

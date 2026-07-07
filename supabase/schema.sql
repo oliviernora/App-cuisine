@@ -163,6 +163,22 @@ create policy "événements du foyer" on events
 create policy "recettes des événements du foyer" on event_recipes
   for all using (is_member(household_id)) with check (is_member(household_id));
 
+-- Référentiel d'ingrédients (master list, décision Olivier 07/07/2026) :
+-- une entrée par ingrédient canonique ; aliases = orthographes confirmées
+-- comme identiques ; rejected = rapprochements refusés (jamais reproposés).
+create table ingredient_refs (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  name text not null,
+  aliases text[] not null default '{}',
+  rejected text[] not null default '{}',
+  created_at timestamptz not null default now(),
+  unique (household_id, name)
+);
+alter table ingredient_refs enable row level security;
+create policy "référentiel du foyer" on ingredient_refs
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
 -- Synchronisation temps réel entre appareils.
 alter publication supabase_realtime add table items;
 alter publication supabase_realtime add table shopping;

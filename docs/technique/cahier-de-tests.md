@@ -77,6 +77,8 @@ une migration manquante.
 | M10 | Inventaire réel d'un emplacement à la voix (caisse en vrac) | déclaration fluide au micro, bilan juste, stock exact à la fin |
 | M11 | Après migration : import Passard réel, recherche, consigner une réalisation | 105 recettes visibles, dates cohérentes, alerte orange si < 1 an |
 | M12 | Après migration : planifier une semaine réelle (2-3 événements, recettes, consigner) | semaine lisible d'un coup d'œil, réalisations aux bonnes dates |
+| M13 | Ingrédients d'une recette + bloc « Courses de la semaine » : événement du jour, recette associée, ajouter les manquants | ingrédients listés avec état en stock / déjà en liste / à acheter ; les manquants passent en liste de courses sans doublon |
+| M14 | Master list : répondre « Oui » à une proposition d'« Ingrédients à rapprocher » (Inventaire) | la proposition disparaît pour toujours, l'alias est en base, le bloc semaine reconnaît désormais les deux orthographes |
 
 ## Journal des passages
 
@@ -84,6 +86,8 @@ Dernière entrée en premier :
 
 | Date | Périmètre | Automatisés | Manuels | Notes |
 |---|---|---|---|---|
+| 07/07/2026 | Master list (référentiel d'ingrédients, incrément 1) | 48 verts, 1 todo (NP4) | check:schema 12/12 OK ; M14 déroulé en réel (19 doublons détectés dans les vraies données, « carottes ≈ carotte » confirmé → alias en base, proposition disparue) ; 18 propositions laissées à Olivier | décisions Olivier : master list depuis ses données, suggestion à confirmer, jamais de fusion silencieuse |
+| 07/07/2026 matin | Migration appliquée + remplissage réel + M13 | 43 verts, 1 todo (NP4) | check:schema 11/11 OK ; remplissage réel 82/82 fiches (682 ingrédients en base) ; M13 déroulé (événement du jour + tatin d'endives : 6 ingrédients « à acheter » → « déjà en liste », liste de courses juste, nettoyage propre) | doublon d'import découvert (import Passard lancé 2× le 06/07, 210 recettes) : doublon de 22h38 supprimé avec l'accord d'Olivier (aucune donnée saisie dessus), garde-fou ajouté dans `importPassard()` + test ; cause : onglet resté sur l'état « aucune recette » |
 | 07/07/2026 | Fiches Passard complètes (82/82 extraites et fusionnées) | 42 verts, 1 todo (NP4) | remplissage réel toujours bloqué par la migration `recipe_ingredients` (dashboard Supabase indisponible sur toutes les tentatives du jour) ; M13 dès que possible | |
 | 07/07/2026 | Fiches Passard (extraction 40/82 + remplissage) | 42 verts, 1 todo (NP4) | remplissage réel bloqué par la migration `recipe_ingredients` (dashboard Supabase indisponible malgré plusieurs stratégies d'onglets) ; M13 à dérouler après | pipeline rejouable : make-batches → extraction par lots → merge-fiches |
 | 06/07/2026 soir | Ingrédients + recette (N8), Courses de la semaine (N10) | 40 verts, 1 todo (NP4) | à dérouler après la petite migration (M13 : saisir les ingrédients d'une recette, vérifier le bloc Courses de la semaine, ajouter les manquants) | migration `recipe_ingredients` en attente (dashboard instable) ; « Consigner » renommé « Marquer faite » |

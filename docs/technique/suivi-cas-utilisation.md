@@ -19,7 +19,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N5 foyer | validé | couvert | test manuel M4 à dérouler |
 | N6 rangements + déplacements | fusionné par Olivier 06/07 | **couvert, testé** (06/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire |
 | N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
-| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incrément 1, 06/07) | consigner date+commentaire : fait ; amorçage 105 recettes Passard : fait (import en attente de la migration) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
+| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incréments 1-2, 07/07) | consigner date+commentaire : fait ; 105 recettes Passard importées, 82 fiches remplies dans la vraie base (682 ingrédients, M13 déroulé) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
 | N9 retrouver une recette | proposition | **partiel** (incrément 1) | recherche par titre + fiche (source, dates, lien) ; reste : par ingrédient/pays/livre (viendra avec les données structurées) |
 | N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incrément 1, 06/07) | fait : événements (jour, type, convives, contraintes), recettes associées avec alerte < 1 an, consignation à la date de l'événement ; reste : quantités à l'échelle (attend les ingrédients structurés), vérification liste de courses, planning des tournées (attend créneaux + décision), agenda Google |
 | N11 wish list / beau produit | proposition | non couvert | étape 5 |
@@ -42,12 +42,18 @@ n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
   import Passard réel effectué ; date d'inventaire à constater au prochain
   inventaire réel.)
 - Amendement N4 (autres listes) et N3 (quantités) : prochain lot courses.
-- Migration `recipe_ingredients` + `recipes.steps` en attente (dashboard
-  Supabase instable au soir du 06/07) — fichier prêt.
-- Rapprochement ingrédients ↔ stock : v1 par nom exact (accents/casse
-  ignorés) ; à améliorer par des liens explicites (alias) confirmés à
-  l'usage — remarque d'Olivier du 06/07.
-- Ingrédients des 105 recettes Passard à remplir : extraction des articles
-  Le Point (91 URLs) à automatiser, ou saisie au fil de l'eau dans la fiche.
+- (Migration `recipe_ingredients` + `recipes.steps` appliquée le 07/07/2026
+  au matin — check:schema 11/11, remplissage réel des 82 fiches fait, M13
+  déroulé. Au passage : doublon d'import Passard du 06/07 découvert et
+  nettoyé, garde-fou ajouté dans le code + test.)
+- Rapprochement ingrédients ↔ stock : v2 livrée le 07/07 (master list,
+  décision Olivier) — alias confirmés un par un dans « Ingrédients à
+  rapprocher » (onglet Inventaire), refus mémorisés, autocomplétion des noms
+  connus à la saisie. Reste (N3/N10/NP4) : quantités — « pour N personnes »
+  sur la recette, besoin mis à l'échelle et ajustable, quantités en liste de
+  courses.
+- Ingrédients des recettes Passard : 82 fiches remplies (07/07/2026) ; les
+  23 restantes n'ont pas d'article exploitable (pages vidéo sans texte) —
+  saisie au fil de l'eau dans la fiche si besoin.
 - Sauvegarde régulière des données (exigence NFR, voir architecture.md).
 - Réinitialisation de mot de passe dans l'application.

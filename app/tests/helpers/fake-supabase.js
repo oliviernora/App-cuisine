@@ -7,7 +7,7 @@ let counter = 0
 export const tables = {
   items: [], shopping: [], households: [], household_members: [], locations: [],
   sources: [], recipes: [], realisations: [], events: [], event_recipes: [],
-  recipe_ingredients: []
+  recipe_ingredients: [], ingredient_refs: []
 }
 
 export function resetFake() {
