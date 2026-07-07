@@ -6,7 +6,8 @@ let counter = 0
 
 export const tables = {
   items: [], shopping: [], households: [], household_members: [], locations: [],
-  sources: [], recipes: [], realisations: []
+  sources: [], recipes: [], realisations: [], events: [], event_recipes: [],
+  recipe_ingredients: []
 }
 
 export function resetFake() {
@@ -59,14 +60,18 @@ function from(table) {
       }
     },
     delete() {
-      const remove = keep => {
-        for (let i = rows.length - 1; i >= 0; i--) if (!keep(rows[i])) rows.splice(i, 1)
-        return Promise.resolve({ data: null, error: null })
+      const filters = []
+      const chain = {
+        eq(col, val) { filters.push(r => r[col] === val); return chain },
+        in(col, vals) { filters.push(r => vals.includes(r[col])); return chain },
+        then(resolve, reject) {
+          for (let i = rows.length - 1; i >= 0; i--) {
+            if (filters.every(f => f(rows[i]))) rows.splice(i, 1)
+          }
+          return Promise.resolve({ data: null, error: null }).then(resolve, reject)
+        }
       }
-      return {
-        eq: (col, val) => remove(r => r[col] !== val),
-        in: (col, vals) => remove(r => !vals.includes(r[col]))
-      }
+      return chain
     }
   }
 }

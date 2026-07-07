@@ -50,9 +50,11 @@ Validé en cours de route :
 - Documentation tenue à jour à chaque livraison
 
 ### Actions en attente
-- Migration `locations` à appliquer (SQL prêt dans supabase/schema.sql) — dashboard
-  Supabase en incident le 06/07/2026 ; sans elle, tout fonctionne sauf l'enregistrement
-  de la date de dernier inventaire
+- (Migration appliquée le 06/07/2026 au soir, après la fin de l'incident Supabase —
+  détectée par veille automatique de leur page de statut. Les 10 tables sont conformes
+  (`check:schema` complet), les 105 recettes Passard importées dans la vraie base,
+  tests M11-M12 déroulés. La date de dernier inventaire s'enregistrera au prochain
+  inventaire réel.)
 
 ### Décisions en attente (Olivier)
 - NP4 : comment saisir l'achat de plusieurs pots d'un coup
@@ -93,6 +95,29 @@ Validé en cours de route :
   proposition)
 
 ### Étape 4 — Recettes (démarrée le 06/07/2026)
+- Fait (06/07 soir, incrément 2, remarques d'Olivier) : ingrédients structurés
+  (quantité/unité/nom, saisie une ligne par ingrédient) et texte de la recette dans la
+  fiche, modifiables ; « Courses de la semaine » dans l'onglet Semaine (rapprochement
+  par nom avec le stock, états en stock / déjà en liste / à acheter, ajout des manquants
+  sans doublon) ; « Consigner » renommé « Marquer faite ». Migration
+  `recipe_ingredients` en attente (dashboard instable). Photo : incrément suivant.
+  Ingrédients Passard : extraction Le Point à automatiser ou saisie au fil de l'eau
+- Fait (07/07) : extraction TERMINÉE — 82 fiches sur 82 (9 lots), fusionnées dans
+  fiches-data.json et le module applicatif ; 42 tests verts. Ne manque que la migration
+  recipe_ingredients (dashboard Supabase toujours indisponible — SQL prêt dans
+  migration-en-attente.sql) pour activer le bouton de remplissage et le test M13
+- (Historique) extraction intelligente de 40 fiches sur 82 (lots 1-4 :
+  ingrédients structurés + recette condensée reformulée, jamais le texte verbatim) →
+  « Alain Passard/fiches-data.json » (base réutilisable) + module applicatif généré
+  (merge-fiches.mjs) + bouton « Compléter les fiches Passard (n) » dans l'onglet
+  Recettes (idempotent, respecte les fiches déjà remplies) — 42 tests verts.
+  Reste : lots 5-9 (42 fiches), migration recipe_ingredients (dashboard Supabase
+  indisponible), remplissage réel puis test M13
+- Fait (06/07 soir) : moisson des 91 articles Le Point via le navigateur →
+  « Alain Passard/lepoint-passard.json » (91 entrées, 82 textes complets de recettes,
+  9 pages /video/ 2015 sans texte). Reste : lecture des textes par lots pour en tirer
+  ingrédients + étapes (fiches-data), puis injection dans l'app (après la migration
+  recipe_ingredients, dashboard Supabase toujours instable)
 - Fait (06/07/2026, incrément 1) : onglet Recettes (recherche, fiche, dernière
   réalisation avec alerte < 1 an, « J'ai fait cette recette ») amorcé par la collection
   Alain Passard du projet local (105 recettes vidéo Le Point, 91 URLs, 5 cuisinées) —
@@ -125,7 +150,12 @@ Validé en cours de route :
 - Historique : dates de réalisation + commentaires, notes personnelles, amendements
 - Recettes perso
 
-### Étape 5 — Semaine et événements
+### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
+- Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),
+  recettes associées avec alerte « déjà cuisinée il y a moins d'un an », consignation à
+  la date de l'événement. Tables events/event_recipes ajoutées à la migration en attente.
+  Reste dans N10 : quantités à l'échelle (attend ingrédients structurés), vérification
+  de la liste de courses, planning des tournées (attend créneaux d'Olivier)
 - Événements (dîner maison, association 15-25 personnes, invitation, pique-nique) avec convives et contraintes (halal, casher, végétarien, pas épicé, budget)
 - Calcul automatique des ingrédients, ajustable en % ou à la main
 - Wish list, recherche de recettes par bel ingrédient acheté

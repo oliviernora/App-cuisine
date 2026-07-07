@@ -59,7 +59,7 @@ h1 small { font-weight: 400; color: var(--muted); font-size: 0.72em; }
 
 .tabs { display: flex; gap: 6px; }
 .tabs button {
-  flex: 1; padding: 7px 12px;
+  flex: 1; padding: 7px 6px; font-size: 0.92rem;
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--muted);
   font: inherit; font-weight: 600; cursor: pointer;
@@ -235,6 +235,14 @@ li.row, .loc-item .row {
   font: inherit; color: var(--ink); cursor: pointer; padding: 5px 4px;
 }
 .recent-warn { color: var(--warn); font-weight: 600; }
+.ok-note { color: var(--ok); }
+.manage-panel textarea {
+  width: 100%; padding: 8px 10px; margin-bottom: 8px;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--bg); color: var(--ink); font: inherit; font-size: 0.9rem;
+  resize: vertical;
+}
+.manage-panel .steps { white-space: pre-wrap; color: var(--ink); font-size: 0.9rem; }
 .manage-panel a { color: var(--accent); }
 .empty .inv-start { margin-top: 10px; }
 

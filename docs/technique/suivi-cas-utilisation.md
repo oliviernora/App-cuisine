@@ -21,7 +21,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
 | N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incrément 1, 06/07) | consigner date+commentaire : fait ; amorçage 105 recettes Passard : fait (import en attente de la migration) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
 | N9 retrouver une recette | proposition | **partiel** (incrément 1) | recherche par titre + fiche (source, dates, lien) ; reste : par ingrédient/pays/livre (viendra avec les données structurées) |
-| N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | non couvert | étape 5 ; à la demande ; créneaux `utilisateur/creneaux-courses.md` ; agenda Google plus tard |
+| N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incrément 1, 06/07) | fait : événements (jour, type, convives, contraintes), recettes associées avec alerte < 1 an, consignation à la date de l'événement ; reste : quantités à l'échelle (attend les ingrédients structurés), vérification liste de courses, planning des tournées (attend créneaux + décision), agenda Google |
 | N11 wish list / beau produit | proposition | non couvert | étape 5 |
 | NP1 produit retrouvé | décidé par Olivier | couvert, testé | |
 | NP2 rupture en magasin | validé | couvert, testé | |
@@ -38,8 +38,16 @@ n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
 
 ## Reste à faire transverse
 
-- Migration `locations` (SQL prêt) dès le retour du dashboard Supabase,
-  puis `npm run check:schema` et inventaire réel pour vérifier la date.
+- (Migration appliquée le 06/07/2026 au soir — schéma complet conforme,
+  import Passard réel effectué ; date d'inventaire à constater au prochain
+  inventaire réel.)
 - Amendement N4 (autres listes) et N3 (quantités) : prochain lot courses.
+- Migration `recipe_ingredients` + `recipes.steps` en attente (dashboard
+  Supabase instable au soir du 06/07) — fichier prêt.
+- Rapprochement ingrédients ↔ stock : v1 par nom exact (accents/casse
+  ignorés) ; à améliorer par des liens explicites (alias) confirmés à
+  l'usage — remarque d'Olivier du 06/07.
+- Ingrédients des 105 recettes Passard à remplir : extraction des articles
+  Le Point (91 URLs) à automatiser, ou saisie au fil de l'eau dans la fiche.
 - Sauvegarde régulière des données (exigence NFR, voir architecture.md).
 - Réinitialisation de mot de passe dans l'application.

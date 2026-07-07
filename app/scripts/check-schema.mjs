@@ -12,7 +12,13 @@ const CHECKS = {
   household_members: 'household_id,user_id',
   items: 'id,qty,min,dismissed',
   shopping: 'id,done,manual,item_id',
-  locations: 'id,name,last_inventory_at'
+  locations: 'id,name,last_inventory_at',
+  sources: 'id,kind,title,isbn',
+  recipes: 'id,source_id,title,url,video,notes,steps',
+  recipe_ingredients: 'id,recipe_id,position,qty,unit,name',
+  realisations: 'id,recipe_id,made_on,comment',
+  events: 'id,day,title,guests,contraintes',
+  event_recipes: 'event_id,recipe_id'
 }
 
 let failed = false

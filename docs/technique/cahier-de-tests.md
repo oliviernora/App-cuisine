@@ -41,6 +41,11 @@ Fichiers : `app/tests/integration/`.
 | N8 | consigner une réalisation : date, commentaire, dernière date à jour | recettes.test.js |
 | N8 | plusieurs réalisations : la plus récente fait foi | recettes.test.js |
 | N8 | « date non notée » puis date réelle : la date prend le dessus | recettes.test.js |
+| N10 | poser un événement : jour, type, convives, contraintes | semaine.test.js |
+| N10 | associer des recettes, sans doublon | semaine.test.js |
+| N10 | retirer une recette sans toucher les autres | semaine.test.js |
+| N10 | consigner : la réalisation porte la date de l'événement | semaine.test.js |
+| N10 | supprimer un événement retire ses associations | semaine.test.js |
 | NP4 | *à écrire — décision d'usage en attente* | (todo) |
 
 Les tests tournent sur un simulateur de base de données en mémoire
@@ -71,8 +76,18 @@ une migration manquante.
 | M9 | Basculer le tri Emplacement / A→Z, avec et sans recherche | A→Z : liste unique alphabétique avec le lieu en gris ; retour Emplacement : groupes habituels |
 | M10 | Inventaire réel d'un emplacement à la voix (caisse en vrac) | déclaration fluide au micro, bilan juste, stock exact à la fin |
 | M11 | Après migration : import Passard réel, recherche, consigner une réalisation | 105 recettes visibles, dates cohérentes, alerte orange si < 1 an |
+| M12 | Après migration : planifier une semaine réelle (2-3 événements, recettes, consigner) | semaine lisible d'un coup d'œil, réalisations aux bonnes dates |
 
 ## Journal des passages
+
+Dernière entrée en premier :
+
+| Date | Périmètre | Automatisés | Manuels | Notes |
+|---|---|---|---|---|
+| 07/07/2026 | Fiches Passard complètes (82/82 extraites et fusionnées) | 42 verts, 1 todo (NP4) | remplissage réel toujours bloqué par la migration `recipe_ingredients` (dashboard Supabase indisponible sur toutes les tentatives du jour) ; M13 dès que possible | |
+| 07/07/2026 | Fiches Passard (extraction 40/82 + remplissage) | 42 verts, 1 todo (NP4) | remplissage réel bloqué par la migration `recipe_ingredients` (dashboard Supabase indisponible malgré plusieurs stratégies d'onglets) ; M13 à dérouler après | pipeline rejouable : make-batches → extraction par lots → merge-fiches |
+| 06/07/2026 soir | Ingrédients + recette (N8), Courses de la semaine (N10) | 40 verts, 1 todo (NP4) | à dérouler après la petite migration (M13 : saisir les ingrédients d'une recette, vérifier le bloc Courses de la semaine, ajouter les manquants) | migration `recipe_ingredients` en attente (dashboard instable) ; « Consigner » renommé « Marquer faite » |
+| 06/07/2026 soir | Migration appliquée + M11 + M12 | 35 verts, 1 todo (NP4) | check:schema 10/10 OK ; import réel 105 recettes ; M11 (recherche « asperges » : 5 dont 2 cuisinées, fiche avec lien et formulaire) ; M12 (événement test + recette associée + suppression propre) | onglet Chrome longuement ouvert gelé à nouveau → fermé ; consigne exploitation.md confirmée ; date d'inventaire à constater au prochain inventaire réel (M10) |
 
 | Date | Périmètre | Automatisés | Manuels | Notes |
 |---|---|---|---|---|
@@ -81,5 +96,6 @@ une migration manquante.
 | 06/07/2026 | Mode inventaire (N2, NP6) | 19 verts, 1 todo (NP4) | Parcours réel : démarrage sur « Vegan », déclaration au toucher, bilan, abandon deux touches sans écriture | M10 (voix, caisse réelle) à faire par Olivier ; migration `locations` en attente (incident dashboard Supabase) |
 | 06/07/2026 | Onglet Inventaire + panneau Foyer | 19 verts, 1 todo (NP4) | Vérifié sur l'app réelle : 3 onglets, écrans Stock/Courses épurés, liste des emplacements avec dates, panneau Foyer (code + déconnexion) | migration `locations` toujours en attente |
 | 06/07/2026 | Signalement d'Olivier : date d'inventaire inchangée | 19 verts | `check:schema` créé et exécuté : `locations` MANQUANT (404) confirmé — cause = migration bloquée par l'incident Supabase | correctifs : contrôle de schéma obligatoire avant livraison + bandeau dans l'app quand la date ne peut pas être enregistrée ; migration à appliquer dès le retour du dashboard |
+| 06/07/2026 | Semaine incrément 1 (événements, recettes associées) | 35 verts, 1 todo (NP4) | Onglet vérifié (bandeau migration + formulaire) ; parcours réel complet à rejouer après migration (M12) | |
 | 06/07/2026 | Recettes incrément 1 (onglet, import Passard, réalisations) | 30 verts, 1 todo (NP4) | non testable sur la vraie base : migration bloquée (incident Supabase) — bandeau explicite dans l'onglet ; à rejouer après migration : import réel + M11 | fichier prêt : supabase/migration-en-attente.sql |
 | 06/07/2026 | N6 rangements (panneau « Gérer ») | 26 verts, 1 todo (NP4) | Parcours réel sur onglet frais : déplacement Huile de coco Vegan→Placard puis retour, panneau, messages | Gel constaté sur l'onglet de longue durée saturé de mises à jour à chaud (HMR) — non reproduit sur onglet frais, code identique ; consigne ajoutée dans exploitation.md ; migration `locations` toujours en attente |

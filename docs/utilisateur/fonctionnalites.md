@@ -125,14 +125,43 @@ une recette). Il disparaît une fois rangé.
   (règle « jamais deux fois la même recette dans l'année »).
 - Recherche par lettres (accents ignorés), tri alphabétique.
 - Toucher une ligne déplie la fiche : source, lien vers l'article, nom de la
-  vidéo locale, historique des réalisations, et « **J'ai fait cette
-  recette** » (date du jour proposée, commentaire facultatif).
+  vidéo locale, **ingrédients**, **texte de la recette**, historique des
+  réalisations, et « **J'ai fait cette recette** » (date du jour proposée,
+  commentaire facultatif).
+- « Ajouter/Modifier ingrédients et recette » : les ingrédients se saisissent
+  un par ligne (« 500 g asperges vertes ») — quantité, unité et nom sont
+  compris automatiquement ; le texte de la recette est libre. (La photo
+  viendra dans un prochain incrément.)
 - État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
   (série Le Point, dont 91 avec article et 5 déjà cuisinées).
 - Limite actuelle : les recettes ne se synchronisent pas en temps réel entre
   appareils (rechargées à l'ouverture de l'application) ; les vidéos restent
   des fichiers du PC (dossier « Alain Passard »), non lisibles depuis
   l'application.
+
+## Onglet Semaine
+
+- Les événements groupés par jour : type (dîner maison, repas association,
+  invitation, pique-nique — ou libre), nombre de convives, contraintes
+  (halal, végétarien, pas épicé…).
+- Toucher un événement le déplie : recettes associées (avec leur dernière
+  réalisation, orange si moins d'un an — utile pour ne pas refaire deux fois
+  la même dans l'année), ajout par recherche dans la bibliothèque, retrait,
+  et « **Consigner** » qui enregistre la réalisation à la date de
+  l'événement avec le contexte (« Repas association (20 pers.) »).
+- « **Marquer faite** » sur une recette d'un événement enregistre la
+  réalisation à la date de l'événement, avec le contexte en commentaire.
+- Suppression d'un événement confirmée en deux touches.
+- **Courses de la semaine** : dès qu'un événement à venir a des recettes avec
+  ingrédients, un bloc liste chaque ingrédient avec son état — « en stock »
+  (vert, avec l'emplacement), « déjà en liste », ou « à acheter » (orange).
+  « Ajouter les manquants aux courses (n) » les envoie en liste, sans
+  doublon. Le rapprochement se fait par nom (accents et casse ignorés) :
+  écrire « ail » dans la recette retrouve « Ail » du stock — mais
+  « gousse d'ail » ne retrouverait pas « Ail » ; des liens explicites
+  viendront l'améliorer.
+- À venir : quantités à l'échelle des convives, planning des tournées selon
+  vos créneaux.
 
 ## Foyer et comptes
 

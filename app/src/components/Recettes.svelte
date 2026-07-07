@@ -1,5 +1,9 @@
 <script>
-  import { store, lastMade, addRealisation, importPassard } from '../lib/store.svelte.js'
+  import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails, fillPassardDetails, passardFillableCount } from '../lib/store.svelte.js'
+  import { PASSARD_FICHES } from '../lib/passard-fiches.js'
+
+  const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
+  const fillable = $derived(passardFillableCount(ficheUrls))
 
   let search = $state('')
   let open = $state(null)
@@ -40,10 +44,29 @@
       .toSorted((a, b) => (b.made_on ?? '') < (a.made_on ?? '') ? -1 : 1)
   }
 
+  let editing = $state(false)
+  let ingText = $state('')
+  let stepsText = $state('')
+
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
     madeOn = new Date().toISOString().slice(0, 10)
     comment = ''
+    editing = false
+  }
+
+  function startEdit(recipe) {
+    ingText = ingredientsOf(recipe.id)
+      .map(i => [i.qty, i.unit, i.name].filter(v => v !== null && v !== '').join(' ')).join('\n')
+    stepsText = recipe.steps ?? ''
+    editing = true
+  }
+
+  async function saveEdit(recipe) {
+    busy = true
+    await saveRecipeDetails(recipe, ingText, stepsText)
+    busy = false
+    editing = false
   }
 
   async function fait(recipe, e) {
@@ -71,6 +94,15 @@
     <input id="search" type="search" bind:value={search} placeholder="Rechercher une recette…" aria-label="Rechercher">
   </div>
 
+  {#if fillable > 0}
+    <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
+      <button type="button" disabled={busy}
+        onclick={async () => { busy = true; await fillPassardDetails(); busy = false }}>
+        Compléter les fiches Passard — ingrédients et recette ({fillable})
+      </button>
+    </div>
+  {/if}
+
   {#if store.recipes.length === 0}
     <div class="empty">
       <p>Aucune recette pour l'instant.</p>
@@ -95,6 +127,31 @@
                 {#if sourceOf(recipe)}<p>Source : {sourceOf(recipe).title}</p>{/if}
                 {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Article Le Point</a></p>{/if}
                 {#if recipe.video}<p class="note">Vidéo locale : {recipe.video}</p>{/if}
+              </div>
+              <div class="manage-block">
+                {#if editing}
+                  <p>Ingrédients — un par ligne (ex. « 500 g asperges vertes ») :</p>
+                  <textarea bind:value={ingText} rows="6"></textarea>
+                  <p>Recette (étapes) :</p>
+                  <textarea bind:value={stepsText} rows="8"></textarea>
+                  <div class="manage-row">
+                    <button type="button" class="inv-start" disabled={busy} onclick={() => saveEdit(recipe)}>Enregistrer</button>
+                    <button type="button" class="inv-manage" onclick={() => editing = false}>Annuler</button>
+                  </div>
+                {:else}
+                  {#if ingredientsOf(recipe.id).length}
+                    <p>Ingrédients :</p>
+                    <ul>
+                      {#each ingredientsOf(recipe.id) as ing (ing.id)}
+                        <li class="row"><span class="name">{[ing.qty, ing.unit, ing.name].filter(v => v !== null && v !== '').join(' ')}</span></li>
+                      {/each}
+                    </ul>
+                  {/if}
+                  {#if recipe.steps}<p class="steps">{recipe.steps}</p>{/if}
+                  <button type="button" class="inv-manage" onclick={() => startEdit(recipe)}>
+                    {ingredientsOf(recipe.id).length || recipe.steps ? 'Modifier ingrédients et recette' : 'Ajouter ingrédients et recette'}
+                  </button>
+                {/if}
               </div>
               {#if realsOf(recipe).length}
                 <div class="manage-block">

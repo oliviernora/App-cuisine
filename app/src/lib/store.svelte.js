@@ -11,6 +11,9 @@ export const store = $state({
   sources: [],
   recipes: [],
   realisations: [],
+  events: [],
+  eventRecipes: [],
+  ingredients: [],
   inv: null,
   schemaWarning: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine
@@ -251,15 +254,127 @@ export async function signOut() {
 
 async function loadRecipes() {
   const hid = store.household.id
-  const [s, r, re] = await Promise.all([
+  const [s, r, re, ev, er, ing] = await Promise.all([
     supabase.from('sources').select().eq('household_id', hid),
     supabase.from('recipes').select().eq('household_id', hid),
-    supabase.from('realisations').select().eq('household_id', hid)
+    supabase.from('realisations').select().eq('household_id', hid),
+    supabase.from('events').select().eq('household_id', hid),
+    supabase.from('event_recipes').select().eq('household_id', hid),
+    supabase.from('recipe_ingredients').select().eq('household_id', hid)
   ])
-  if (s.error || r.error || re.error) { store.schemaWarning = true; return }
+  if (s.error || r.error || re.error || ev.error || er.error || ing.error) { store.schemaWarning = true; return }
   store.sources = s.data
   store.recipes = r.data
   store.realisations = re.data
+  store.events = ev.data
+  store.eventRecipes = er.data
+  store.ingredients = ing.data
+}
+
+const UNITS = ['cuillères à soupe', 'cuillère à soupe', 'cuillères à café', 'cuillère à café',
+  'c. à s.', 'c. à c.', 'pincées', 'pincée', 'gousses', 'gousse', 'bottes', 'botte',
+  'tranches', 'tranche', 'pièces', 'pièce', 'brins', 'brin', 'feuilles', 'feuille',
+  'kg', 'mg', 'g', 'cl', 'ml', 'l', 'cs', 'cc']
+
+/** « 500 g d'asperges vertes » → { qty: 500, unit: 'g', name: 'asperges vertes' }. */
+export function parseIngredientLine(line) {
+  let rest = line.trim().replace(/\s+/g, ' ')
+  if (!rest) return null
+  let qty = null
+  const m = rest.match(/^(\d+(?:[.,]\d+)?)\s*/)
+  if (m) { qty = Number(m[1].replace(',', '.')); rest = rest.slice(m[0].length) }
+  let unit = ''
+  const lower = rest.toLowerCase()
+  for (const u of UNITS) {
+    if (lower === u || lower.startsWith(u + ' ')) { unit = u; rest = rest.slice(u.length).trim(); break }
+  }
+  rest = rest.replace(/^d(?:e |')\s*/i, '').trim()
+  if (!rest) return null
+  return { qty, unit, name: rest }
+}
+
+/** Remplace les ingrédients (un par ligne) et le texte de la recette. */
+export async function saveRecipeDetails(recipe, ingredientsText, steps) {
+  const hid = store.household.id
+  const rows = ingredientsText.split('\n').map(parseIngredientLine).filter(Boolean)
+    .map((r, i) => ({ ...r, position: i, household_id: hid, recipe_id: recipe.id }))
+  await supabase.from('recipe_ingredients').delete().eq('recipe_id', recipe.id)
+  let created = []
+  if (rows.length) {
+    const { data, error } = await supabase.from('recipe_ingredients').insert(rows).select()
+    if (error) { store.schemaWarning = true; return }
+    created = data
+  }
+  store.ingredients = [...store.ingredients.filter(i => i.recipe_id !== recipe.id), ...created]
+  recipe.steps = steps
+  await supabase.from('recipes').update({ steps }).eq('id', recipe.id)
+}
+
+export function ingredientsOf(recipeId) {
+  return store.ingredients.filter(i => i.recipe_id === recipeId)
+    .toSorted((a, b) => a.position - b.position)
+}
+
+function fold(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+/**
+ * Besoins de la semaine (événements d'aujourd'hui et à venir) : chaque
+ * ingrédient est rapproché du stock par son nom (accents et casse ignorés).
+ * Rapprochement volontairement strict pour commencer — à affiner (alias).
+ */
+export function weekNeeds() {
+  const today = new Date().toISOString().slice(0, 10)
+  const eventIds = new Set(store.events.filter(e => e.day >= today).map(e => e.id))
+  const recipeIds = new Set(store.eventRecipes.filter(er => eventIds.has(er.event_id)).map(er => er.recipe_id))
+  const needs = []
+  for (const ing of store.ingredients) {
+    if (!recipeIds.has(ing.recipe_id)) continue
+    const key = fold(ing.name)
+    const existing = needs.find(n => n.key === key)
+    if (existing) { existing.count += 1; continue }
+    const match = store.items.find(i => fold(i.name) === key && i.qty > 0)
+    const inShopping = store.shop.some(s => fold(s.name) === key)
+    needs.push({ key, name: ing.name, qty: ing.qty, unit: ing.unit, count: 1, match: match ?? null, inShopping })
+  }
+  return needs.toSorted((a, b) => a.name.localeCompare(b.name, 'fr'))
+}
+
+/** Ajoute aux courses les besoins de la semaine ni en stock ni déjà en liste. */
+export async function addWeekMissing() {
+  const missing = weekNeeds().filter(n => !n.match && !n.inShopping)
+  for (const need of missing) await addShopEntry(need.name, '')
+  return missing.length
+}
+
+/* ----- Semaine (cas N10 — incrément 1 : événements et recettes associées) ----- */
+
+export async function addEvent(fields) {
+  const { data, error } = await supabase.from('events')
+    .insert({ ...fields, household_id: store.household.id })
+    .select().single()
+  if (error) { store.schemaWarning = true; return }
+  store.events.push(data)
+}
+
+export async function removeEvent(event) {
+  store.events = store.events.filter(e => e.id !== event.id)
+  store.eventRecipes = store.eventRecipes.filter(er => er.event_id !== event.id)
+  await supabase.from('events').delete().eq('id', event.id)
+}
+
+export async function attachRecipe(event, recipe) {
+  if (store.eventRecipes.some(er => er.event_id === event.id && er.recipe_id === recipe.id)) return
+  const { error } = await supabase.from('event_recipes')
+    .insert({ household_id: store.household.id, event_id: event.id, recipe_id: recipe.id })
+  if (error) { store.schemaWarning = true; return }
+  store.eventRecipes.push({ household_id: store.household.id, event_id: event.id, recipe_id: recipe.id })
+}
+
+export async function detachRecipe(event, recipe) {
+  store.eventRecipes = store.eventRecipes.filter(er => !(er.event_id === event.id && er.recipe_id === recipe.id))
+  await supabase.from('event_recipes').delete().eq('event_id', event.id).eq('recipe_id', recipe.id)
 }
 
 /** Dernière réalisation d'une recette : null = jamais, 'inconnue' = date non notée. */
@@ -302,6 +417,32 @@ export async function importPassard() {
       }))).select()
     if (reals) store.realisations.push(...reals)
   }
+}
+
+/**
+ * Complète les recettes Passard (ingrédients + texte) depuis les fiches
+ * extraites des articles Le Point. Idempotent : ne touche que les recettes
+ * dont l'URL correspond et qui n'ont encore ni ingrédients ni texte.
+ */
+export async function fillPassardDetails() {
+  const { PASSARD_FICHES } = await import('./passard-fiches.js')
+  const byUrl = new Map(PASSARD_FICHES.map(f => [f.url, f]))
+  let filled = 0
+  for (const recipe of store.recipes) {
+    const fiche = recipe.url && byUrl.get(recipe.url)
+    if (!fiche) continue
+    if (recipe.steps || ingredientsOf(recipe.id).length) continue
+    await saveRecipeDetails(recipe, fiche.ingredients.join('\n'), fiche.steps)
+    if (store.schemaWarning) return filled
+    filled++
+  }
+  return filled
+}
+
+/** Nombre de recettes complétables par les fiches Passard. */
+export function passardFillableCount(ficheUrls) {
+  return store.recipes.filter(r =>
+    r.url && ficheUrls.has(r.url) && !r.steps && !ingredientsOf(r.id).length).length
 }
 
 /* ----- Rangements (cas N6) -----

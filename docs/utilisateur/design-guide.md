@@ -91,6 +91,14 @@ Règles :
   non-trouvés avant application ; rien n'est écrit au stock avant la
   confirmation. Abandon en deux touches (le bouton devient « Confirmer
   l'abandon »), jamais de fenêtre bloquante.
+- **Onglet Semaine** : les événements groupés par jour (jour de la semaine
+  en titre de groupe) — chaque ligne : type d'événement, convives et
+  contraintes en note. La ligne se déplie : recettes associées (avec leur
+  dernière réalisation, orange si moins d'un an), retrait, ajout par
+  recherche dans la bibliothèque, et « Consigner » qui enregistre la
+  réalisation à la date de l'événement. Formulaire d'ajout en bas : date,
+  type (suggestions : dîner maison, repas association, invitation,
+  pique-nique), convives, contraintes.
 - **Onglet Recettes** : une ligne par recette — titre, et en note la
   dernière réalisation (« jamais cuisinée », « cuisinée (date non notée) »,
   ou la date). Règle « jamais deux fois dans l'année » : si la dernière

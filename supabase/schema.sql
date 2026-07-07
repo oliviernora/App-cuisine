@@ -107,8 +107,21 @@ create table recipes (
   url text not null default '',
   video text not null default '', -- fichier vidéo local (PC)
   notes text not null default '',
+  steps text not null default '', -- texte de la recette (étapes)
   created_at timestamptz not null default now()
 );
+create table recipe_ingredients (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  recipe_id uuid not null references recipes(id) on delete cascade,
+  position int not null default 0,
+  qty numeric,
+  unit text not null default '',
+  name text not null
+);
+alter table recipe_ingredients enable row level security;
+create policy "ingredients de recettes du foyer" on recipe_ingredients
+  for all using (is_member(household_id)) with check (is_member(household_id));
 create table realisations (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
@@ -125,6 +138,29 @@ create policy "sources du foyer" on sources
 create policy "recettes du foyer" on recipes
   for all using (is_member(household_id)) with check (is_member(household_id));
 create policy "réalisations du foyer" on realisations
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Semaine (cas N10, incrément 1) : événements et recettes associées.
+create table events (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  day date not null,
+  title text not null default 'Dîner maison',
+  guests int not null default 4,
+  contraintes text not null default '',
+  created_at timestamptz not null default now()
+);
+create table event_recipes (
+  household_id uuid not null references households(id) on delete cascade,
+  event_id uuid not null references events(id) on delete cascade,
+  recipe_id uuid not null references recipes(id) on delete cascade,
+  primary key (event_id, recipe_id)
+);
+alter table events enable row level security;
+alter table event_recipes enable row level security;
+create policy "événements du foyer" on events
+  for all using (is_member(household_id)) with check (is_member(household_id));
+create policy "recettes des événements du foyer" on event_recipes
   for all using (is_member(household_id)) with check (is_member(household_id));
 
 -- Synchronisation temps réel entre appareils.
