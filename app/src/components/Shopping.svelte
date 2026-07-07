@@ -1,5 +1,5 @@
 <script>
-  import { store, addShopEntry, setDone, removeShopEntry, clearDone, formatQty } from '../lib/store.svelte.js'
+  import { store, addShopEntry, setDone, removeShopEntry, clearDone, formatQty, toggleAvailable } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { TRASH } from '../lib/icons.js'
 
@@ -30,12 +30,20 @@
     <p class="group-title">{storeKey} <span class="n">· {group.length}</span></p>
     <ul>
       {#each group as entry (entry.id)}
-        <li class="row" class:done={entry.done}>
-          <input type="checkbox" checked={entry.done} aria-label="Acheté"
+        <li class="row" class:done={entry.done || entry.available}>
+          <input type="checkbox" checked={entry.done} disabled={entry.available} aria-label="Acheté"
             onchange={e => setDone(entry, e.target.checked)}>
-          <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
-          <span class="note">{entry.item_id ? (entry.manual ? 'réserve' : 'auto') : ''}</span>
-          <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeShopEntry(entry)}><Icon d={TRASH} /></button>
+          {#if entry.origin === 'semaine'}
+            <button type="button" class="rowbtn-full info" title="Basculer « je l'ai déjà » / « à acheter »"
+              onclick={() => toggleAvailable(entry)}>
+              <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
+            </button>
+            <span class="note">{entry.available ? 'je l\'ai' : 'semaine'}</span>
+          {:else}
+            <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
+            <span class="note">{entry.item_id ? (entry.manual ? 'réserve' : 'auto') : ''}</span>
+            <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeShopEntry(entry)}><Icon d={TRASH} /></button>
+          {/if}
         </li>
       {/each}
     </ul>

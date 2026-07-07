@@ -22,6 +22,15 @@
   let qty = $state(1)
   let itemLoc = $state('')
   let itemStore = $state('')
+  let newLoc = $state(false)
+
+  /* Les emplacements peuvent être nombreux : liste déroulante des existants,
+   * avec une entrée « Nouvel emplacement… » (demande Olivier 07/07). */
+  const locNames = $derived.by(() => {
+    const names = [...new Set([...store.items.map(i => i.loc).filter(Boolean),
+      ...store.locations.map(l => l.name), ...DEFAULT_LOCS])]
+    return names.toSorted((a, b) => a.localeCompare(b, 'fr'))
+  })
   let hint = $state('Micro : dites par exemple « deux garam masala ». La dictée du clavier iPhone marche aussi.')
   let listening = $state(false)
   let voiceAvailable = $state(true)
@@ -159,7 +168,16 @@
   <form onsubmit={submit} autocomplete="off">
     <input class="f-name" bind:value={name} list="known-ingredients" placeholder="Ingrédient" required>
     <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={qty} aria-label="Nombre de pots" title="Nombre de pots">
-    <input class="f-loc" bind:value={itemLoc} list="locs" placeholder="Emplacement">
+    {#if newLoc}
+      <input class="f-loc" bind:value={itemLoc} placeholder="Nouvel emplacement" aria-label="Emplacement">
+    {:else}
+      <select class="f-loc" bind:value={itemLoc} aria-label="Emplacement"
+        onchange={e => { if (e.target.value === '__nouveau__') { itemLoc = ''; newLoc = true } }}>
+        <option value="">Emplacement…</option>
+        {#each locNames as l (l)}<option value={l}>{l}</option>{/each}
+        <option value="__nouveau__">— Nouvel emplacement… —</option>
+      </select>
+    {/if}
     <input class="f-loc" bind:value={itemStore} list="stores" placeholder="Où acheter">
     {#if voiceAvailable}
       <button class="mic" class:listening type="button" aria-label="Saisie vocale" onclick={toggleMic}><Icon d={MIC} /></button>

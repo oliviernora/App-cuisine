@@ -12,8 +12,8 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, addItem, addEvent, attachRecipe, importPassard,
-  parseIngredientLine, saveRecipeDetails, ingredientsOf, weekNeeds, addWeekMissing
+  store, addItem, addEvent, updateEvent, attachRecipe, detachRecipe, importPassard,
+  parseIngredientLine, saveRecipeDetails, ingredientsOf, weekNeeds
 } from '../../src/lib/store.svelte.js'
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -24,6 +24,8 @@ beforeEach(async () => {
   store.items = []; store.shop = []
   store.sources = []; store.recipes = []; store.realisations = []
   store.events = []; store.eventRecipes = []; store.ingredients = []
+  store.refs = []
+  store.recipesLoaded = true
   store.schemaWarning = false
   await importPassard()
 })
@@ -56,7 +58,7 @@ describe('N8 — ingrédients et texte de la recette', () => {
   })
 })
 
-describe('N10 — je vérifie ma liste de courses', () => {
+describe('N10 — courses des repas synchronisées automatiquement', () => {
   async function setupWeek() {
     const recipe = store.recipes[0]
     await saveRecipeDetails(recipe, '500 g asperges vertes\n2 gousses d\'ail\nparmesan', 'x')
@@ -65,29 +67,48 @@ describe('N10 — je vérifie ma liste de courses', () => {
     return recipe
   }
 
-  test('rapprochement : en stock, déjà en liste, ou à acheter', async () => {
+  test('rapprochement : en stock, déjà en liste (réappro), ou ligne semaine', async () => {
     await setupWeek()
     await addItem({ name: 'Ail', qty: 1, min: 0, loc: 'Cuisine', store: '' })
-    await addItem({ name: 'Parmesan', qty: 0, min: 0, loc: 'Frigo', store: '' }) // épuisé → déjà en liste auto
+    await addItem({ name: 'Parmesan', qty: 0, min: 0, loc: 'Frigo', store: '' }) // épuisé → réappro auto
 
     const needs = weekNeeds()
     expect(needs).toHaveLength(3)
     expect(needs.find(n => n.name === 'ail').match.loc).toBe('Cuisine')
     expect(needs.find(n => n.name === 'parmesan').match).toBeNull()
-    expect(needs.find(n => n.name === 'parmesan').inShopping).toBe(true)
-    expect(needs.find(n => n.name === 'asperges vertes').match).toBeNull()
+    expect(needs.find(n => n.name === 'parmesan').entry.origin).toBe('reappro')
+    expect(needs.find(n => n.name === 'asperges vertes').entry.origin).toBe('semaine')
   })
 
-  test('ajouter les manquants : seuls les vrais manquants partent en courses', async () => {
-    await setupWeek()
+  test('ajouter une recette met la liste de courses à jour immédiatement, sans doublon', async () => {
     await addItem({ name: 'Ail', qty: 1, min: 0, loc: 'Cuisine', store: '' })
+    await setupWeek()
 
-    const added = await addWeekMissing()
+    const semaine = store.shop.filter(s => s.origin === 'semaine')
+    expect(semaine.map(s => s.name).sort()).toEqual(['asperges vertes', 'parmesan'])
+    // l'ail est en stock : pas de ligne ; pas de doublon si on resynchronise
+    await attachRecipe(store.events[0], store.recipes[0])
+    expect(store.shop.filter(s => s.origin === 'semaine')).toHaveLength(2)
+  })
 
-    expect(added).toBe(2) // asperges vertes + parmesan
-    expect(store.shop.map(s => s.name).sort()).toEqual(['asperges vertes', 'parmesan'])
-    const again = await addWeekMissing()
-    expect(again).toBe(0) // pas de doublon au second appel
+  test('retirer la recette retire ses lignes semaine (mais pas le réappro ni le manuel)', async () => {
+    await setupWeek()
+    expect(store.shop.filter(s => s.origin === 'semaine').length).toBeGreaterThan(0)
+
+    await detachRecipe(store.events[0], store.recipes[0])
+
+    expect(store.shop.filter(s => s.origin === 'semaine')).toHaveLength(0)
+  })
+
+  test('modifier la date d\'un événement recalcule les courses (futur → passé : lignes retirées)', async () => {
+    await setupWeek()
+    expect(store.shop.filter(s => s.origin === 'semaine').length).toBeGreaterThan(0)
+
+    await updateEvent(store.events[0], { day: '2020-01-01' })
+
+    expect(store.events[0].day).toBe('2020-01-01')
+    expect(store.shop.filter(s => s.origin === 'semaine')).toHaveLength(0)
+    expect(tables.events[0].day).toBe('2020-01-01')
   })
 
   test('les événements passés ne comptent pas dans les besoins', async () => {
@@ -97,5 +118,6 @@ describe('N10 — je vérifie ma liste de courses', () => {
     await attachRecipe(store.events[0], recipe)
 
     expect(weekNeeds()).toHaveLength(0)
+    expect(store.shop.filter(s => s.origin === 'semaine')).toHaveLength(0)
   })
 })

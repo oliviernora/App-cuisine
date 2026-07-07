@@ -23,18 +23,26 @@
   const seenItems = $derived(locItems.filter(i => store.inv.seen[i.id] !== undefined))
   const notFound = $derived(locItems.filter(i => store.inv.seen[i.id] === undefined))
 
+  /* Ambiguïté (demande Olivier 07/07) : « carvi » peut correspondre à carvi,
+   * carvi noir, carvi noir entier… → un menu de choix, jamais de pari. */
+  let choice = $state(null) // { name, n, candidates }
+
   function declareByName(name, n) {
-    const match = locItems.filter(i => fold(i.name) === fold(name))[0]
-      ?? locItems.filter(i => fold(i.name).includes(fold(name)))[0]
-    if (match) declare(match, n)
-    else declare(name, n)
     search = ''
-    return match?.name ?? name + ' (nouveau)'
+    const exact = locItems.find(i => fold(i.name) === fold(name))
+    if (exact) { declare(exact, n); return exact.name }
+    const candidates = locItems.filter(i => fold(i.name).includes(fold(name)))
+    if (candidates.length === 1) { declare(candidates[0], n); return candidates[0].name }
+    if (candidates.length > 1) { choice = { name, n, candidates }; return null }
+    declare(name, n)
+    return name + ' (nouveau)'
   }
 
   function submit(e) {
     e.preventDefault()
-    if (search.trim()) hint = 'Vu : ' + declareByName(search.trim(), 1)
+    if (!search.trim()) return
+    const vu = declareByName(search.trim(), 1)
+    hint = vu ? 'Vu : ' + vu : 'Plusieurs produits correspondent — choisissez dans la liste.'
   }
 
   async function terminer() {
@@ -57,7 +65,9 @@
       let n = 1
       if (/^\d+$/.test(words[0])) { n = Number(words[0]); words = words.slice(1) }
       else if (NUMBER_WORDS[words[0]]) { n = NUMBER_WORDS[words[0]]; words = words.slice(1) }
-      hint = 'Vu : ' + declareByName(words.join(' '), n) + (n > 1 ? ' × ' + n : '')
+      const vu = declareByName(words.join(' '), n)
+      hint = vu ? 'Vu : ' + vu + (n > 1 ? ' × ' + n : '')
+        : 'Plusieurs produits correspondent — choisissez dans la liste.'
     }
   })
 </script>
@@ -67,6 +77,27 @@
     <h2>Inventaire — {store.inv.loc}</h2>
     <p class="muted">{seenItems.length + store.inv.created.length} vus · {notFound.length} à vérifier</p>
   </div>
+
+  {#if choice}
+    <div class="panel">
+      <p>« {choice.name} »{choice.n > 1 ? ' × ' + choice.n : ''} — plusieurs produits correspondent :</p>
+      <ul class="manage-items">
+        {#each choice.candidates as c (c.id)}
+          <li class="row">
+            <button type="button" class="rowbtn" onclick={() => { declare(c, choice.n); hint = 'Vu : ' + c.name; choice = null }}>
+              {c.name}
+            </button>
+          </li>
+        {/each}
+        <li class="row">
+          <button type="button" class="rowbtn" onclick={() => { declare(choice.name, choice.n); hint = 'Vu : ' + choice.name + ' (nouveau)'; choice = null }}>
+            Nouveau produit « {choice.name} »
+          </button>
+        </li>
+      </ul>
+      <button type="button" class="inv-manage" onclick={() => choice = null}>Annuler</button>
+    </div>
+  {/if}
 
   {#if bilan}
     <div class="panel bilan">

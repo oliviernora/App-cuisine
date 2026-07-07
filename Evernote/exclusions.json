@@ -1,0 +1,7 @@
+{
+ "_comment": "Notes écartées à la main pendant l'extraction (en plus des douteuses de tri.md). Relues par enex-lots.mjs.",
+ "exclues": [
+  { "id": "015-the-25-essential-dishes-to-eat-in-paris-the-new-york-times", "raison": "article de presse (liste de restaurants), pas une recette" },
+  { "id": "019-palette-a-la-diable-alsace-saveurs", "raison": "page boutique d'un produit charcutier, pas une recette" }
+ ]
+}

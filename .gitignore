@@ -1,2 +1,8 @@
 node_modules/
 dist/
+
+# Données volumineuses locales (import Evernote) : jamais dans git.
+# Le tri (tri.md) et l'inventaire (inventaire.json) restent versionnés.
+Recettes.enex
+Evernote/photos/
+Evernote/textes/

@@ -36,8 +36,9 @@ function from(table) {
       return chain
     },
     insert(payload) {
-      const defaults = table === 'shopping' ? { done: false, manual: false }
-        : table === 'items' ? { dismissed: false } : {}
+      const defaults = table === 'shopping' ? { done: false, manual: false, origin: 'reappro', available: false, qty: null, unit: '' }
+        : table === 'items' ? { dismissed: false }
+        : table === 'event_recipes' ? { scale_pct: 100, qty_overrides: {} } : {}
       const inserted = (Array.isArray(payload) ? payload : [payload])
         .map(r => ({ id: 'row-' + ++counter, created_at: 'T' + counter, ...defaults, ...r }))
       rows.push(...inserted)
@@ -52,12 +53,15 @@ function from(table) {
       }
     },
     update(values) {
-      return {
-        eq(col, val) {
-          rows.filter(r => r[col] === val).forEach(r => Object.assign(r, values))
-          return Promise.resolve({ data: null, error: null })
+      const filters = []
+      const chain = {
+        eq(col, val) { filters.push(r => r[col] === val); return chain },
+        then(resolve, reject) {
+          rows.filter(r => filters.every(f => f(r))).forEach(r => Object.assign(r, values))
+          return Promise.resolve({ data: null, error: null }).then(resolve, reject)
         }
       }
+      return chain
     },
     delete() {
       const filters = []

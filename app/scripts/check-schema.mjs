@@ -11,15 +11,15 @@ const CHECKS = {
   households: 'id,name',
   household_members: 'household_id,user_id',
   items: 'id,qty,min,dismissed',
-  shopping: 'id,done,manual,item_id,qty,unit',
+  shopping: 'id,done,manual,item_id,qty,unit,origin,available',
   locations: 'id,name,last_inventory_at',
   sources: 'id,kind,title,isbn',
-  recipes: 'id,source_id,title,url,video,notes,steps,servings',
+  recipes: 'id,source_id,title,url,video,notes,steps,servings,country',
   recipe_ingredients: 'id,recipe_id,position,qty,unit,name',
   realisations: 'id,recipe_id,made_on,comment',
   events: 'id,day,title,guests,contraintes',
-  event_recipes: 'event_id,recipe_id',
-  ingredient_refs: 'id,name,aliases,rejected'
+  event_recipes: 'event_id,recipe_id,scale_pct,qty_overrides',
+  ingredient_refs: 'id,name,aliases,rejected,category'
 }
 
 let failed = false

@@ -1,5 +1,7 @@
 <script>
-  import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails, fillPassardDetails, passardFillableCount } from '../lib/store.svelte.js'
+  import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails,
+    fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
+    knownNames } from '../lib/store.svelte.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
 
   const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
@@ -10,16 +12,45 @@
   let madeOn = $state(new Date().toISOString().slice(0, 10))
   let comment = $state('')
   let busy = $state(false)
+  let sourceFilter = $state('Toutes')
 
   function fold(s) {
     return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   }
 
+  /** Nom court d'une source pour les chips (« Alain Passard — … » → « Alain Passard »). */
+  function shortSource(source) {
+    return source.title.split(' — ')[0]
+  }
+
+  const sourceChips = $derived.by(() => {
+    const used = new Set(store.recipes.map(r => r.source_id).filter(Boolean))
+    return store.sources.filter(s => used.has(s.id))
+      .toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
+  })
+
+  let ingFilter = $state('')
+
+  /** Recherche multicritère (titre, ingrédient, pays, source, mot du texte)
+   * + menu déroulant des sources + filtre par ingrédient (liste réduite en tapant). */
   const list = $derived.by(() => {
-    let recipes = store.recipes
-    if (search) recipes = recipes.filter(r => fold(r.title).includes(fold(search)))
+    let recipes = searchRecipes(search)
+    if (sourceFilter !== 'Toutes') recipes = recipes.filter(r => r.source_id === sourceFilter)
+    if (ingFilter.trim()) recipes = recipes.filter(r =>
+      store.ingredients.some(i => i.recipe_id === r.id && fold(i.name).includes(fold(ingFilter))))
     return recipes.toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
   })
+
+  let manageSources = $state(false)
+  let sourceNames = $state({})
+  let newSource = $state('')
+
+  async function renameOne(source) {
+    const title = (sourceNames[source.id] ?? '').trim()
+    if (!title) return
+    await renameSource(source, title)
+    sourceNames = {}
+  }
 
   function sourceOf(recipe) {
     return store.sources.find(s => s.id === recipe.source_id)
@@ -48,6 +79,8 @@
   let ingText = $state('')
   let stepsText = $state('')
   let servingsText = $state('')
+  let countryText = $state('')
+  let sourcePick = $state('')
 
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
@@ -61,12 +94,16 @@
       .map(i => [i.qty, i.unit, i.name].filter(v => v !== null && v !== '').join(' ')).join('\n')
     stepsText = recipe.steps ?? ''
     servingsText = recipe.servings ?? ''
+    countryText = recipe.country ?? ''
+    sourcePick = recipe.source_id ?? ''
     editing = true
   }
 
   async function saveEdit(recipe) {
     busy = true
-    await saveRecipeDetails(recipe, ingText, stepsText, Number(servingsText) > 0 ? Number(servingsText) : null)
+    await saveRecipeDetails(recipe, ingText, stepsText,
+      Number(servingsText) > 0 ? Number(servingsText) : null, countryText)
+    if (sourcePick && sourcePick !== recipe.source_id) await setRecipeSource(recipe, sourcePick)
     busy = false
     editing = false
   }
@@ -94,7 +131,44 @@
 
   <div class="filters">
     <input id="search" type="search" bind:value={search} placeholder="Rechercher une recette…" aria-label="Rechercher">
+    <div class="chips">
+      <select bind:value={sourceFilter} aria-label="Filtrer par source">
+        <option value="Toutes">Toutes les sources</option>
+        {#each sourceChips as source (source.id)}
+          <option value={source.id}>{source.title}</option>
+        {/each}
+      </select>
+      <input bind:value={ingFilter} list="known-ingredients-rec" placeholder="Par ingrédient…"
+        aria-label="Filtrer par ingrédient">
+      <button type="button" class="inv-manage" onclick={() => manageSources = !manageSources}>Gérer les sources</button>
+    </div>
   </div>
+  <datalist id="known-ingredients-rec">
+    {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
+  </datalist>
+
+  {#if manageSources}
+    <div class="manage-panel">
+      <p>Renommer une source — un nom déjà existant <strong>fusionne</strong> les deux :</p>
+      <ul class="manage-items">
+        {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as source (source.id)}
+          <li class="row">
+            <div class="info">
+              <span class="name" title={source.title}>{source.title}</span>
+              <span class="note">{store.recipes.filter(r => r.source_id === source.id).length} recette(s)</span>
+            </div>
+            <input bind:value={sourceNames[source.id]} placeholder="Nouveau nom" aria-label={'Renommer ' + source.title}>
+            <button type="button" class="inv-manage" disabled={busy} onclick={() => renameOne(source)}>Renommer</button>
+          </li>
+        {/each}
+      </ul>
+      <div class="manage-row">
+        <input bind:value={newSource} placeholder="Nouvelle source (livre, site…)" aria-label="Nouvelle source">
+        <button type="button" class="inv-start" disabled={busy || !newSource.trim()}
+          onclick={async () => { await addSource(newSource); newSource = '' }}>Ajouter</button>
+      </div>
+    </div>
+  {/if}
 
   {#if fillable > 0}
     <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
@@ -126,8 +200,8 @@
           {#if open === recipe.id}
             <div class="manage-panel">
               <div class="manage-block">
-                {#if sourceOf(recipe)}<p>Source : {sourceOf(recipe).title}</p>{/if}
-                {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Article Le Point</a></p>{/if}
+                {#if sourceOf(recipe)}<p>Source : {sourceOf(recipe).title}{recipe.country ? ' · Pays : ' + recipe.country : ''}</p>{/if}
+                {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Voir en ligne ({new URL(recipe.url).hostname.replace('www.', '')})</a></p>{/if}
                 {#if recipe.video}<p class="note">Vidéo locale : {recipe.video}</p>{/if}
               </div>
               <div class="manage-block">
@@ -137,6 +211,18 @@
                       <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={servingsText}
                         aria-label="Nombre de personnes" placeholder="?">
                       personnes (sert au calcul des quantités de la semaine)</label>
+                  </p>
+                  <p class="manage-row">
+                    <label>Pays d'origine
+                      <input bind:value={countryText} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
+                    </label>
+                    <label>Source
+                      <select bind:value={sourcePick} aria-label="Source">
+                        {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
+                          <option value={s.id}>{s.title}</option>
+                        {/each}
+                      </select>
+                    </label>
                   </p>
                   <p>Ingrédients — un par ligne (ex. « 500 g asperges vertes ») :</p>
                   <textarea bind:value={ingText} rows="6"></textarea>

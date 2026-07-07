@@ -13,7 +13,7 @@
 
   let tab = $state('stock')
   let showFoyer = $state(false)
-  const shopCount = $derived(store.shop.filter(s => !s.done).length)
+  const shopCount = $derived(store.shop.filter(s => !s.done && !s.available).length)
 
   init()
 </script>
@@ -44,7 +44,7 @@
           </button>
         </div>
       {/if}
-      <nav class="tabs" hidden={!!store.inv}>
+      <nav class="tabs">
         <button type="button" class:active={tab === 'stock'} onclick={() => tab = 'stock'}>Stock</button>
         <button type="button" class:active={tab === 'shop'} onclick={() => tab = 'shop'}>
           Courses{#if shopCount > 0}<span class="count">{shopCount}</span>{/if}
@@ -61,9 +61,7 @@
   {/if}
 
   <main class:offline={!store.online}>
-    {#if store.inv}
-      <Inventory />
-    {:else if tab === 'stock'}
+    {#if tab === 'stock'}
       <Stock />
     {:else if tab === 'shop'}
       <Shopping />
@@ -71,6 +69,9 @@
       <Recettes />
     {:else if tab === 'semaine'}
       <Semaine />
+    {:else if store.inv}
+      <!-- Inventaire en cours : changer d'onglet met en pause, revenir reprend ici. -->
+      <Inventory />
     {:else}
       <Inventaires />
     {/if}

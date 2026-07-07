@@ -1,5 +1,22 @@
 # Plan d'action — App cuisine
 
+## Reprise rapide (état au 07/07/2026 au soir)
+
+- L'app (Vite+Svelte 5+Supabase, dossier `app/`, `npm run dev` ou
+  `demarrer.cmd`) couvre : stock+voix, courses automatiques (réappro + repas
+  de la semaine + achats libres, bascule « je l'ai »), 118 recettes
+  (recherche multicritère, sources gérées, « pour N personnes », pays),
+  semaine À venir/Passés (Modifier, Fait, ajustements % et quantités PAR
+  recette et PAR événement), inventaires pausables, master list des
+  ingrédients (alias + catégories).
+- Vérifs avant toute livraison : `npm test` (63 verts) + `npm run
+  check:schema` (13 tables) + parcours réel navigateur (cahier M1-M25).
+- EN ATTENTE d'Olivier : pays d'origine (proposition faite), tri Evernote
+  (21 douteuses dans `Evernote/tri.md`), décision NP4, créneaux courses.
+- Chantier de fond : import Evernote lots 2-24 (~290 fiches) — pipeline et
+  état dans `Evernote/README.md` et la section « Import Evernote » ci-dessous.
+- Prochaine étape suggérée : photos (étape 4, incrément 2, Supabase Storage).
+
 ## Décisions prises (06/07/2026)
 
 - Périmètre du POC : stocks + liste de courses
@@ -106,6 +123,13 @@ Validé en cours de route :
   sans doublon) ; « Consigner » renommé « Marquer faite ». Migration
   `recipe_ingredients` en attente (dashboard instable). Photo : incrément suivant.
   Ingrédients Passard : extraction Le Point à automatiser ou saisie au fil de l'eau
+- Fait (07/07) : 3 recettes du site Marie Claire ajoutées à la demande d'Olivier
+  (source « Marie Claire — Cuisine », ingrédients structurés, recette condensée,
+  « pour N personnes », réalisation « date non notée ») — capture faite en
+  session via le navigateur, en attendant l'extraction IA (incrément 3) ;
+  **filtre par source** (chips « Toutes / Alain Passard / Marie Claire ») dans
+  l'onglet Recettes, cumulable avec la recherche ; lien de fiche généralisé
+  (« Voir en ligne (site) » au lieu de « Article Le Point » en dur)
 - Fait (07/07 matin) : migration appliquée, remplissage réel TERMINÉ — 82 fiches
   remplies dans la vraie base (682 lignes d'ingrédients), test M13 déroulé de bout
   en bout (événement du jour + tatin d'endives : états en stock / déjà en liste /
@@ -179,6 +203,73 @@ Validé en cours de route :
 - Reste (quantités) : NP4 côté stock (acheter plusieurs pots d'un coup,
   décision Olivier en attente) ; quantités absentes des fiches Passard
   (les articles n'en donnent pas) : à saisir au fil de l'eau
+
+### Import Evernote (décisions Olivier 07/07/2026)
+- `Recettes.enex` (296 Mo) : 371 notes, surtout des captures web 2020-2021
+  (282 marieclaire.fr, ~15 autres sites), des recettes perso, des scans (9 PDF),
+  quelques non-recettes ; 1 667 images
+- Décisions : importer tout ce qui est recette (liste des douteux soumise à
+  Olivier AVANT import) ; PAS de réalisation automatique (Olivier marquera
+  lui-même) ; photos extraites en local dès maintenant (dossier Evernote/),
+  rattachement à l'app quand le stockage photos existera
+- Méthode : pipeline rejouable comme Passard — extract-enex.mjs (inventaire,
+  tri, textes, photos) → validation du tri par Olivier → extraction des fiches
+  par lots (ingrédients structurés + recette condensée, jamais verbatim) →
+  import idempotent avec dédoublonnage par URL
+- Fait (07/07) : script `app/scripts/extract-enex.mjs` exécuté — 371 notes
+  lues : 309 captures web (dont 4 incomplètes, rechargeables par URL),
+  13 notes perso, 49 scans photos seules (dont un lot de pages de livre
+  chinois du 01/06/2020) ; 914 photos extraites dans `Evernote/photos/` ;
+  textes dans `Evernote/textes/` ; .enex et photos exclus de git
+- Fait (07/07 midi, GO d'Olivier) : base réutilisable créée —
+  `Evernote/recettes-data.json` (format documenté dans `Evernote/README.md`,
+  indépendante de l'app) + `import.sql` idempotent généré par
+  `enex-merge.mjs` ; pipeline complet : extract-enex → enex-lots (24 lots de
+  ~13) → fiches par lot en session → enex-merge → import dashboard
+- Avancement des lots : **lot 1 fait** (11 fiches, 10 importées + salade de
+  poulet dédupliquée par URL ; 2 intrus écartés → `exclusions.json` : article
+  NYT et page boutique Alsace Saveurs). Restent lots 2 à 24 (~290 fiches),
+  à traiter par lots sur les prochaines sessions
+- EN ATTENTE : validation par Olivier des 21 notes douteuses
+  (`Evernote/tri.md`) — elles s'ajouteront en fin de chantier
+
+### Lot d'évolutions demandé par Olivier le 07/07/2026 (livré le jour même)
+- Recherche multicritère des recettes (titre, ingrédient, pays, source, mot du
+  texte), dans Recettes ET dans la recherche de la Semaine ; champ « pays
+  d'origine » sur la fiche ; sources gérées (renommer/fusionner/créer, choix
+  dans l'éditeur de fiche)
+- Bloc « Courses de la semaine » en déroulant (replié par défaut)
+- Courses synchronisées automatiquement (décision Olivier) : l'onglet Courses
+  fait la somme réappro + ingrédients des repas à venir + achats libres ;
+  lignes « semaine » créées/requantifiées/retirées à chaque changement,
+  bascule « je l'ai déjà », dédoublonnage avec le réappro, « Ranger » passe
+  les lignes semaine achetées en « je l'ai »
+- Ajustement des quantités PAR RECETTE ET PAR ÉVÉNEMENT (% + corrections
+  ligne à ligne, mémorisés sur event_recipes)
+- EN ATTENTE (pays d'origine) : proposition de pré-remplissage soumise à
+  Olivier — France par défaut pour Passard et les recettes françaises,
+  Inde pour les dals, Antilles pour la salade de poulet créole
+- Remarques d'Olivier (07/07 après-midi), livrées le jour même :
+  bug du « clignotement » corrigé à la racine (quantités numeric renvoyées
+  en texte → boucle de réécritures ; + verrou de réentrance + rechargement
+  complet sur mise à jour du store en dev) ; Semaine scindée À venir/Passés
+  avec « Modifier » (date/contenu, courses recalculées) et « Fait » sur les
+  passés (consignation recette par recette, plus de « Marquer faite » sur le
+  futur) ; « Recherche avancée » (filtres source + pays) dans la recherche de
+  recettes de la Semaine ; master list des ingrédients par CATÉGORIES dans
+  l'onglet Inventaire (non classés en tête, catégories libres suggérées)
+- Remarques en vrac (07/07 fin de journée), livrées : inventaire pausable
+  (changer d'onglet suspend, revenir reprend — les onglets restent visibles) ;
+  menu de choix quand une dictée correspond à plusieurs produits (carvi…) ;
+  dates affichées en toutes lettres FR à côté des champs de date ;
+  emplacements en liste déroulante (+ « Nouvel emplacement… ») ; sources en
+  menu déroulant + filtre « Par ingrédient » avec suggestions (Recettes et
+  recherche avancée de la Semaine) ; stabilité de la liste de courses
+  PROUVÉE (0 mutation DOM au scroll) — le clignotement résiduel vu par
+  Olivier = sa fenêtre sur l'ancien code, un Ctrl+F5 suffit
+- À nettoyer (repéré via la master list) : ~quelques ingrédients Passard
+  mal découpés (« /2 canard » : fractions ½ non gérées par
+  parseIngredientLine) — corriger le parseur et re-remplir ces fiches
 
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),

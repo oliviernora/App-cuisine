@@ -82,31 +82,42 @@ Règles :
 - **Couleur sémantique « ok »** : vert #3D8B4F (clair) / #6FBE8C (sombre) —
   réservé à « vu / confirmé » (inventaire). Distinct de l'accent et de
   l'orange alerte.
-- **Mode inventaire** : plein écran le temps de l'inventaire (les onglets
-  s'effacent). En-tête : nom de l'emplacement, compte « vus / à vérifier »,
-  date du dernier inventaire. Déclarer = dire au micro ou taper quelques
-  lettres puis toucher la ligne ; chaque touche ajoute un pot. Trois
+- **Mode inventaire** : occupe l'onglet Inventaire le temps de l'inventaire,
+  mais les onglets restent visibles — **changer d'onglet met en pause,
+  revenir reprend où on en était** (07/07/2026). En-tête : nom de
+  l'emplacement, compte « vus / à vérifier ». Déclarer = dire au micro ou
+  taper quelques lettres puis toucher la ligne ; chaque touche ajoute un pot.
+  Si un nom correspond à **plusieurs produits**, un **menu de choix** liste
+  les candidats + « Nouveau produit » — jamais de pari (07/07/2026). Trois
   sections : À vérifier (gris), Vus (vert, compteur corrigeable − n +),
-  Nouveaux (créés pendant l'inventaire). Fin = écran de bilan listant les
-  non-trouvés avant application ; rien n'est écrit au stock avant la
-  confirmation. Abandon en deux touches (le bouton devient « Confirmer
-  l'abandon »), jamais de fenêtre bloquante.
-- **Onglet Semaine** : les événements groupés par jour (jour de la semaine
-  en titre de groupe) — chaque ligne : type d'événement, convives et
-  contraintes en note. La ligne se déplie : recettes associées (avec leur
-  dernière réalisation, orange si moins d'un an), retrait, ajout par
-  recherche dans la bibliothèque, et « Consigner » qui enregistre la
-  réalisation à la date de l'événement. Formulaire d'ajout en bas : date,
-  type (suggestions : dîner maison, repas association, invitation,
-  pique-nique), convives, contraintes.
+  Nouveaux. Fin = écran de bilan listant les non-trouvés avant application ;
+  rien n'est écrit au stock avant la confirmation. Abandon en deux touches,
+  jamais de fenêtre bloquante.
+- **Onglet Semaine** (refonte 07/07/2026) : en tête, le **bloc dépliant**
+  « ▸ Courses de la semaine · n à acheter » (replié par défaut, lecture
+  seule) ; puis les sections **À venir** (chronologique) et **Passés** (du
+  plus récent au plus ancien), événements groupés par jour. Chaque événement :
+  « Modifier » (date, type, convives, contraintes) ; les passés ont en plus
+  « Fait » (recettes une à une : « Oui, faite » consigne à la date de
+  l'événement, « Non » écarte). Un événement à venir se déplie : recettes
+  associées — toucher une recette ouvre **ses ingrédients à l'échelle de
+  l'événement** (« Ajuster la recette : % » + quantités corrigeables ligne à
+  ligne, valables pour cet événement seul) — et la recherche d'une recette à
+  ajouter, avec « Recherche avancée ▾ » (source, pays, ingrédient).
+  Formulaire d'ajout en bas ; à côté de chaque champ de date, la date en
+  toutes lettres en français.
 - **Onglet Recettes** : une ligne par recette — titre, et en note la
   dernière réalisation (« jamais cuisinée », « cuisinée (date non notée) »,
   ou la date). Règle « jamais deux fois dans l'année » : si la dernière
   réalisation date de moins d'un an, la note passe en orange `--warn`.
-  Toucher la ligne déplie la fiche : source, lien web, vidéo locale,
-  historique des réalisations, et le formulaire « J'ai fait cette recette »
-  (date du jour proposée + commentaire). L'état vide propose l'import
-  d'amorçage (collection Alain Passard).
+  Sous la recherche libre (titre, ingrédient, pays, source, mot du texte) :
+  un **menu déroulant des sources**, un champ « **Par ingrédient…** » à
+  suggestions, et « Gérer les sources » (renommer = fusionner si le nom
+  existe, créer). Toucher la ligne déplie la fiche : source et pays, lien
+  « Voir en ligne (site) », « pour N personnes », ingrédients, texte,
+  historique des réalisations, formulaire « J'ai fait cette recette », et
+  l'éditeur (ingrédients un par ligne, pays, source). L'état vide propose
+  l'import d'amorçage (collection Alain Passard).
 - **Gérer un emplacement** (onglet Inventaire — action exceptionnelle) :
   chaque emplacement a un bouton « Gérer » qui déplie un panneau sous sa
   ligne : renommer, fusionner dans un autre emplacement, déplacer des
@@ -120,6 +131,25 @@ Règles :
      épuisé retiré du panier par l'utilisateur — un appui le remet en liste.
      Jamais de retour automatique après un retrait volontaire (décision
      Olivier, NP1) ; le retour automatique se réarme quand le stock remonte.
+- **Bloc dépliant** (07/07/2026) : une ligne au style de liste avec chevron
+  « ▸ / ▾ » dans le nom et un résumé en note (« 17 à acheter ·
+  18 ingrédients ») ; toucher déplie le détail. Sert au bloc « Courses de la
+  semaine » et à la « Master list des ingrédients ». Replié par défaut : les
+  écrans quotidiens restent courts.
+- **Menus déroulants et champs à suggestions** (07/07/2026) : quand les
+  valeurs possibles sont nombreuses mais connues (emplacements, sources,
+  pays), un `select` natif ; quand on cherche dans une grande liste
+  (ingrédients), un champ texte avec suggestions au fil de la frappe
+  (datalist). Les selects offrent une entrée « — Nouvel… — » quand la
+  création est permise.
+- **Lignes « semaine » des courses** (07/07/2026) : gérées automatiquement
+  (créées/requantifiées/retirées avec les repas) ; pas de poubelle ; note
+  « semaine » ; **toucher le nom** bascule « je l'ai » (ligne barrée, non
+  comptée) ↔ « à acheter ». Les lignes réappro gardent poubelle et notes
+  « auto »/« réserve ».
+- **Master list des ingrédients** (onglet Inventaire, 07/07/2026) : bloc
+  dépliant listant tous les ingrédients connus par **catégorie**, non classés
+  en tête, filtre texte, saisie de catégorie par ligne (suggestions).
 - **Sélecteur de tri** : deux segments à droite de la recherche —
   « Emplacement » (groupes par lieu, ordre fixe) et « A→Z » (liste unique
   alphabétique, le lieu s'affiche en note grise sur chaque ligne).

@@ -1,6 +1,12 @@
 import { supabase } from './supabase.js'
 import { seedRows } from './seed.js'
 
+/* En développement, une mise à jour à chaud de ce module laisserait tourner
+ * l'ancienne instance (canal temps réel, synchros) à côté de la nouvelle —
+ * elles se battraient sur la liste de courses (leçon du 07/07/2026).
+ * On force donc un rechargement complet de la page. */
+if (import.meta.hot) import.meta.hot.accept(() => location.reload()) // rechargement complet
+
 export const store = $state({
   ready: false,
   session: null,
@@ -16,6 +22,7 @@ export const store = $state({
   ingredients: [],
   refs: [],
   inv: null,
+  recipesLoaded: false, // avant le chargement, la synchro des courses de la semaine ne tourne pas
   schemaWarning: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine
 })
@@ -64,6 +71,7 @@ function reset() {
   store.household = null
   store.items = []
   store.shop = []
+  store.recipesLoaded = false
   if (channel) { supabase.removeChannel(channel); channel = null }
 }
 
@@ -157,6 +165,7 @@ export async function syncShop() {
     const { data } = await supabase.from('shopping').insert(inserts).select()
     if (data) store.shop.push(...data)
   }
+  await syncWeekShopping()
 }
 
 export async function addItem(fields) {
@@ -230,18 +239,26 @@ export async function removeShopEntry(entry) {
   }
 }
 
-/** Chaque ligne cochée ajoute un pot au stock lié, puis sort de la liste. */
+/** Chaque ligne cochée ajoute un pot au stock lié, puis sort de la liste.
+ * Une ligne « semaine » achetée devient « je l'ai » (le besoin est couvert). */
 export async function clearDone() {
   const done = store.shop.filter(s => s.done)
-  for (const entry of done) {
+  const semaine = done.filter(s => s.origin === 'semaine')
+  const autres = done.filter(s => s.origin !== 'semaine')
+  for (const entry of autres) {
     const item = store.items.find(i => i.id === entry.item_id)
     if (item) {
       item.qty += 1
       await supabase.from('items').update({ qty: item.qty }).eq('id', item.id)
     }
   }
-  store.shop = store.shop.filter(s => !s.done)
-  if (done.length) await supabase.from('shopping').delete().in('id', done.map(d => d.id))
+  for (const entry of semaine) {
+    entry.done = false
+    entry.available = true
+    await supabase.from('shopping').update({ done: false, available: true }).eq('id', entry.id)
+  }
+  store.shop = store.shop.filter(s => !autres.includes(s))
+  if (autres.length) await supabase.from('shopping').delete().in('id', autres.map(d => d.id))
   await syncShop()
 }
 
@@ -272,6 +289,8 @@ async function loadRecipes() {
   store.eventRecipes = er.data
   store.ingredients = ing.data
   store.refs = rf.data
+  store.recipesLoaded = true
+  await syncWeekShopping()
 }
 
 const UNITS = ['cuillères à soupe', 'cuillère à soupe', 'cuillères à café', 'cuillère à café',
@@ -296,8 +315,8 @@ export function parseIngredientLine(line) {
   return { qty, unit, name: rest }
 }
 
-/** Remplace les ingrédients (un par ligne), le texte de la recette et « pour N personnes ». */
-export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null) {
+/** Remplace les ingrédients (un par ligne), le texte, « pour N personnes » et le pays. */
+export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null, country = recipe.country ?? '') {
   const hid = store.household.id
   const rows = ingredientsText.split('\n').map(parseIngredientLine).filter(Boolean)
     .map((r, i) => ({ ...r, position: i, household_id: hid, recipe_id: recipe.id }))
@@ -311,7 +330,56 @@ export async function saveRecipeDetails(recipe, ingredientsText, steps, servings
   store.ingredients = [...store.ingredients.filter(i => i.recipe_id !== recipe.id), ...created]
   recipe.steps = steps
   recipe.servings = servings
-  await supabase.from('recipes').update({ steps, servings }).eq('id', recipe.id)
+  recipe.country = country.trim()
+  await supabase.from('recipes').update({ steps, servings, country: recipe.country }).eq('id', recipe.id)
+  await syncWeekShopping()
+}
+
+/**
+ * Recherche plein texte d'une recette (décision Olivier 07/07/2026) : chaque
+ * mot doit se trouver dans le titre, le pays, la source, un ingrédient ou le
+ * texte de la recette (accents et casse ignorés).
+ */
+export function searchRecipes(query) {
+  const words = fold(query.trim()).split(/\s+/).filter(Boolean)
+  if (!words.length) return store.recipes
+  return store.recipes.filter(r => {
+    const source = store.sources.find(s => s.id === r.source_id)
+    const hay = fold([r.title, r.country ?? '', source?.title ?? '', r.steps ?? '',
+      ...store.ingredients.filter(i => i.recipe_id === r.id).map(i => i.name)].join('\n'))
+    return words.every(w => hay.includes(w))
+  })
+}
+
+/* ----- Sources : liste courte et gérée (décision Olivier 07/07/2026) ----- */
+
+/** Renomme une source ; un titre déjà existant fusionne les deux (recettes réaffectées). */
+export async function renameSource(source, newTitle) {
+  const title = newTitle.trim()
+  if (!title || title === source.title) return
+  const target = store.sources.find(s => s.id !== source.id && s.title === title)
+  if (target) {
+    for (const r of store.recipes.filter(r => r.source_id === source.id)) r.source_id = target.id
+    await supabase.from('recipes').update({ source_id: target.id }).eq('source_id', source.id)
+    store.sources = store.sources.filter(s => s.id !== source.id)
+    await supabase.from('sources').delete().eq('id', source.id)
+  } else {
+    source.title = title
+    await supabase.from('sources').update({ title }).eq('id', source.id)
+  }
+}
+
+export async function addSource(title, kind = 'livre') {
+  const t = title.trim()
+  if (!t || store.sources.some(s => s.title === t)) return
+  const { data, error } = await supabase.from('sources')
+    .insert({ household_id: store.household.id, title: t, kind }).select().single()
+  if (!error) store.sources.push(data)
+}
+
+export async function setRecipeSource(recipe, sourceId) {
+  recipe.source_id = sourceId
+  await supabase.from('recipes').update({ source_id: sourceId }).eq('id', recipe.id)
 }
 
 export function ingredientsOf(recipeId) {
@@ -402,6 +470,35 @@ async function answerMerge(a, b, field) {
 export const confirmMerge = (a, b) => answerMerge(a, b, 'aliases')
 export const rejectMerge = (a, b) => answerMerge(a, b, 'rejected')
 
+/** Master list : tous les ingrédients canoniques connus, avec leur catégorie. */
+export function masterList() {
+  const byKey = new Map()
+  for (const name of knownNames()) {
+    const canonical = canonicalName(name)
+    const key = fold(canonical)
+    if (!byKey.has(key)) {
+      byKey.set(key, { name: canonical, category: refOf(canonical)?.category ?? '' })
+    }
+  }
+  return [...byKey.values()].toSorted((a, b) => a.name.localeCompare(b.name, 'fr'))
+}
+
+/** Range un ingrédient dans une catégorie (créée l'entrée du référentiel au besoin). */
+export async function setIngredientCategory(name, category) {
+  const cat = category.trim()
+  const ref = refOf(name)
+  if (!ref) {
+    const { data, error } = await supabase.from('ingredient_refs')
+      .insert({ household_id: store.household.id, name, category: cat }).select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    data.aliases ??= []; data.rejected ??= []; data.category ??= cat
+    store.refs.push(data)
+  } else {
+    ref.category = cat
+    await supabase.from('ingredient_refs').update({ category: cat }).eq('id', ref.id)
+  }
+}
+
 /* ----- Quantités de la semaine (cas N10, décisions Olivier 07/07/2026) -----
  * Besoin = quantité × convives ÷ « pour N personnes » (facteur 1 si l'un des
  * deux est inconnu), ajustable globalement en % et à la main ligne par ligne.
@@ -428,33 +525,70 @@ export function formatQty(qty, unit) {
   return String(d.qty).replace('.', ',') + (d.unit ? ' ' + d.unit : '')
 }
 
+/** Facteur d'échelle d'une recette pour un événement : convives ÷ « pour N » × ajustement %. */
+export function eventScale(event, er) {
+  const recipe = store.recipes.find(r => r.id === er.recipe_id)
+  const base = recipe?.servings > 0 && event.guests > 0 ? event.guests / recipe.servings : 1
+  return base * (er.scale_pct ?? 100) / 100
+}
+
+/** Ingrédients d'une recette pour un événement : à l'échelle, corrections à la main comprises. */
+export function eventIngredients(event, er) {
+  const scale = eventScale(event, er)
+  return ingredientsOf(er.recipe_id).map(ing => {
+    const override = er.qty_overrides?.[ing.name]
+    return {
+      ...ing,
+      qty: override ?? (ing.qty != null ? Math.round(ing.qty * scale * 100) / 100 : null),
+      overridden: override != null
+    }
+  })
+}
+
+/** Ajustement % d'une recette pour un événement donné uniquement. */
+export async function setEventRecipeScale(er, pct) {
+  er.scale_pct = Math.max(1, Math.round(Number(pct)) || 100)
+  await supabase.from('event_recipes').update({ scale_pct: er.scale_pct })
+    .eq('event_id', er.event_id).eq('recipe_id', er.recipe_id)
+  await syncWeekShopping()
+}
+
+/** Quantité corrigée à la main pour un ingrédient d'une recette d'un événement (0 ou vide = retour au calcul). */
+export async function setEventQtyOverride(er, name, qty) {
+  const overrides = { ...(er.qty_overrides ?? {}) }
+  if (Number(qty) > 0) overrides[name] = Number(qty)
+  else delete overrides[name]
+  er.qty_overrides = overrides
+  await supabase.from('event_recipes').update({ qty_overrides: overrides })
+    .eq('event_id', er.event_id).eq('recipe_id', er.recipe_id)
+  await syncWeekShopping()
+}
+
 /**
  * Besoins de la semaine (événements d'aujourd'hui et à venir) : chaque
  * ingrédient est rapproché du stock et de la liste de courses via le
  * référentiel (nom replié ou alias confirmé). Une même recette servie à deux
- * événements compte deux fois. `parts` : quantités agrégées par unité de
- * base ; `count` : nombre d'occurrences (utile quand aucune quantité).
+ * événements compte deux fois ; l'échelle et les corrections se règlent
+ * recette par recette dans l'événement. `parts` : quantités agrégées par
+ * unité de base ; `entry` : la ligne de courses correspondante s'il y en a une.
  */
-export function weekNeeds(scalePct = 100) {
+export function weekNeeds() {
   const today = new Date().toISOString().slice(0, 10)
-  const upcoming = store.events.filter(e => e.day >= today)
   const needs = []
-  for (const event of upcoming) {
-    for (const er of store.eventRecipes.filter(er => er.event_id === event.id)) {
-      const recipe = store.recipes.find(r => r.id === er.recipe_id)
-      const scale = (recipe?.servings > 0 && event.guests > 0 ? event.guests / recipe.servings : 1) * scalePct / 100
-      for (const ing of store.ingredients.filter(i => i.recipe_id === er.recipe_id)) {
+  for (const event of store.events.filter(e => e.day >= today)) {
+    for (const er of store.eventRecipes.filter(x => x.event_id === event.id)) {
+      for (const ing of eventIngredients(event, er)) {
         const key = fold(canonicalName(ing.name))
         let need = needs.find(n => n.key === key)
         if (!need) {
           const match = store.items.find(i => sameIngredient(i.name, ing.name) && i.qty > 0)
-          const inShopping = store.shop.some(s => sameIngredient(s.name, ing.name))
-          need = { key, name: ing.name, parts: [], count: 0, match: match ?? null, inShopping }
+          const entry = store.shop.find(s => sameIngredient(s.name, ing.name))
+          need = { key, name: ing.name, parts: [], count: 0, match: match ?? null, entry: entry ?? null }
           needs.push(need)
         }
         need.count += 1
         if (ing.qty != null) {
-          const base = toBase(ing.qty * scale, ing.unit)
+          const base = toBase(ing.qty, ing.unit)
           const part = need.parts.find(p => p.unit === base.unit)
           if (part) part.qty += base.qty
           else need.parts.push(base)
@@ -466,18 +600,79 @@ export function weekNeeds(scalePct = 100) {
 }
 
 /**
- * Ajoute aux courses les besoins ni en stock ni déjà en liste, avec leur
- * quantité (celle corrigée à la main si fournie, sinon la quantité calculée
- * quand elle tient en une seule unité).
+ * Synchronise la liste de courses avec les repas à venir (décision Olivier
+ * 07/07/2026) : chaque ingrédient manquant a sa ligne « semaine », créée,
+ * requantifiée et retirée automatiquement à chaque changement de la semaine,
+ * du stock ou d'une recette. Un besoin déjà couvert par une ligne de
+ * réapprovisionnement n'est pas doublonné. Les lignes « je l'ai »
+ * (available) restent mémorisées tant que le besoin existe.
  */
-export async function addWeekMissing(scalePct = 100, overrides = {}) {
-  const missing = weekNeeds(scalePct).filter(n => !n.match && !n.inShopping)
-  for (const need of missing) {
-    const over = overrides[need.key]
-    const part = !over && need.parts.length === 1 ? need.parts[0] : over
-    await addShopEntry(need.name, '', part?.qty ?? null, part?.unit ?? '')
+/* Postgres renvoie les colonnes numeric en texte (« 1.5 ») : toute
+ * comparaison de quantités doit être numérique, sinon la synchro réécrit
+ * les mêmes lignes en boucle (leçon du 07/07/2026 : liste qui clignote). */
+function sameQty(a, b) {
+  return (a == null && b == null) || Number(a) === Number(b)
+}
+
+/* Une seule synchronisation à la fois : les échos temps réel de nos propres
+ * écritures relancent refresh() → syncShop() → ici ; sans verrou, deux
+ * passages concurrents s'insèrent mutuellement des doublons. */
+let weekSyncRunning = false
+let weekSyncQueued = false
+
+export async function syncWeekShopping() {
+  if (!store.household || !store.recipesLoaded) return
+  if (weekSyncRunning) { weekSyncQueued = true; return }
+  weekSyncRunning = true
+  try {
+    const needs = weekNeeds().filter(n => !n.match)
+    const covered = need => store.shop.some(s => s.origin !== 'semaine' && sameIngredient(s.name, need.name))
+    for (const need of needs) {
+      if (covered(need)) continue
+      const part = need.parts.length === 1 ? need.parts[0] : null
+      // toujours chercher dans l'état vivant : store.shop peut avoir été
+      // remplacé par un refresh pendant les await précédents
+      const row = store.shop.find(s => s.origin === 'semaine' && sameIngredient(s.name, need.name))
+      if (!row) {
+        const { data, error } = await supabase.from('shopping')
+          .insert({ household_id: store.household.id, name: need.name, store: '',
+            origin: 'semaine', qty: part?.qty ?? null, unit: part?.unit ?? '' })
+          .select().single()
+        if (error) { store.schemaWarning = true; return }
+        store.shop.push(data)
+      } else if (!sameQty(row.qty, part?.qty ?? null) || row.unit !== (part?.unit ?? '')) {
+        row.qty = part?.qty ?? null
+        row.unit = part?.unit ?? ''
+        await supabase.from('shopping').update({ qty: row.qty, unit: row.unit }).eq('id', row.id)
+      }
+    }
+    // Retirer : plus de besoin, couvert par le réappro, ou doublon (on garde la première ligne).
+    const gardees = new Set()
+    const stale = store.shop.filter(row => {
+      if (row.origin !== 'semaine') return false
+      const need = needs.find(n => sameIngredient(row.name, n.name))
+      if (!need || covered(need) || gardees.has(need.key)) return true
+      gardees.add(need.key)
+      return false
+    })
+    if (stale.length) {
+      store.shop = store.shop.filter(s => !stale.includes(s))
+      await supabase.from('shopping').delete().in('id', stale.map(s => s.id))
+    }
+  } finally {
+    weekSyncRunning = false
   }
-  return missing.length
+  if (weekSyncQueued) {
+    weekSyncQueued = false
+    await syncWeekShopping()
+  }
+}
+
+/** Bascule « je l'ai déjà » ↔ « à acheter » sur un ingrédient de repas. */
+export async function toggleAvailable(entry) {
+  entry.available = !entry.available
+  if (entry.available) entry.done = false
+  await supabase.from('shopping').update({ available: entry.available, done: entry.done }).eq('id', entry.id)
 }
 
 /* ----- Semaine (cas N10 — incrément 1 : événements et recettes associées) ----- */
@@ -490,10 +685,19 @@ export async function addEvent(fields) {
   store.events.push(data)
 }
 
+/** Modifie un événement (date, type, convives, contraintes) — passé ou futur. */
+export async function updateEvent(event, fields) {
+  Object.assign(event, fields)
+  store.events = [...store.events]
+  await supabase.from('events').update(fields).eq('id', event.id)
+  await syncWeekShopping()
+}
+
 export async function removeEvent(event) {
   store.events = store.events.filter(e => e.id !== event.id)
   store.eventRecipes = store.eventRecipes.filter(er => er.event_id !== event.id)
   await supabase.from('events').delete().eq('id', event.id)
+  await syncWeekShopping()
 }
 
 export async function attachRecipe(event, recipe) {
@@ -501,12 +705,15 @@ export async function attachRecipe(event, recipe) {
   const { error } = await supabase.from('event_recipes')
     .insert({ household_id: store.household.id, event_id: event.id, recipe_id: recipe.id })
   if (error) { store.schemaWarning = true; return }
-  store.eventRecipes.push({ household_id: store.household.id, event_id: event.id, recipe_id: recipe.id })
+  store.eventRecipes.push({ household_id: store.household.id, event_id: event.id, recipe_id: recipe.id,
+    scale_pct: 100, qty_overrides: {} })
+  await syncWeekShopping()
 }
 
 export async function detachRecipe(event, recipe) {
   store.eventRecipes = store.eventRecipes.filter(er => !(er.event_id === event.id && er.recipe_id === recipe.id))
   await supabase.from('event_recipes').delete().eq('event_id', event.id).eq('recipe_id', recipe.id)
+  await syncWeekShopping()
 }
 
 /** Dernière réalisation d'une recette : null = jamais, 'inconnue' = date non notée. */

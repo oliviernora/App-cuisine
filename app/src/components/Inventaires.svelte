@@ -1,6 +1,7 @@
 <script>
   import { store, startInventory, renameLocation, moveItems, pendingMerges,
-    confirmMerge as confirmIngredient, rejectMerge as rejectIngredient } from '../lib/store.svelte.js'
+    confirmMerge as confirmIngredient, rejectMerge as rejectIngredient,
+    masterList, setIngredientCategory } from '../lib/store.svelte.js'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
     'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
@@ -83,6 +84,28 @@
     await (yes ? confirmIngredient(m.a, m.b) : rejectIngredient(m.a, m.b))
     busy = false
   }
+
+  /* Master list : les ingrédients rangés par catégorie, non classés en tête. */
+  const CATEGORIES_SUGGEREES = ['Épices', 'Herbes', 'Légumes', 'Fruits', 'Viandes',
+    'Poissons et fruits de mer', 'Épicerie', 'Crèmerie', 'Boissons']
+  let mlOpen = $state(false)
+  let mlSearch = $state('')
+
+  function foldml(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  }
+
+  const mlSections = $derived.by(() => {
+    let liste = masterList()
+    if (mlSearch.trim()) liste = liste.filter(i => foldml(i.name).includes(foldml(mlSearch)))
+    const groupes = [...Map.groupBy(liste, i => i.category)]
+    return groupes.toSorted((a, b) => (a[0] === '') !== (b[0] === '')
+      ? (a[0] === '' ? -1 : 1)
+      : a[0].localeCompare(b[0], 'fr'))
+  })
+  const mlTotal = $derived(masterList())
+  const mlCategories = $derived([...new Set([...CATEGORIES_SUGGEREES,
+    ...store.refs.map(r => r.category).filter(Boolean)])].toSorted((a, b) => a.localeCompare(b, 'fr')))
 </script>
 
 <section>
@@ -104,6 +127,38 @@
       {/each}
     </ul>
   {/if}
+
+  <div class="loc-item">
+    <button type="button" class="row rowbtn-full" onclick={() => mlOpen = !mlOpen} aria-expanded={mlOpen}>
+      <div class="info">
+        <span class="name">{mlOpen ? '▾' : '▸'} Master list des ingrédients</span>
+        <span class="note">{mlTotal.length} ingrédients · {mlTotal.filter(i => !i.category).length} non classés</span>
+      </div>
+    </button>
+    {#if mlOpen}
+      <div class="manage-panel">
+        <div class="manage-row">
+          <input bind:value={mlSearch} placeholder="Filtrer les ingrédients…" aria-label="Filtrer la master list">
+        </div>
+        {#each mlSections as [cat, items] (cat)}
+          <p class="group-title">{cat || 'Non classés'} <span class="n">· {items.length}</span></p>
+          <ul class="manage-items">
+            {#each items as ing (ing.name)}
+              <li class="row">
+                <span class="name" title={ing.name}>{ing.name}</span>
+                <input list="ml-categories" value={ing.category} placeholder="Catégorie…"
+                  onchange={e => setIngredientCategory(ing.name, e.target.value)}
+                  aria-label={'Catégorie de ' + ing.name}>
+              </li>
+            {/each}
+          </ul>
+        {/each}
+      </div>
+    {/if}
+  </div>
+  <datalist id="ml-categories">
+    {#each mlCategories as c (c)}<option value={c}></option>{/each}
+  </datalist>
 
   <p class="group-title">Emplacements <span class="n">· {locs.length}</span></p>
   <ul>

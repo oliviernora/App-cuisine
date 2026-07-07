@@ -51,10 +51,12 @@ chaque ligne). La recherche par lettres fonctionne dans les deux vues.
 
 ### Formulaire d'ajout
 
-Nom, nombre de pots, emplacement, où acheter, puis Ajouter. Si un emplacement
-est filtré (chip active), il préremplit le champ emplacement. Le champ nom
-**suggère les ingrédients déjà connus** (stock et recettes) pour éviter les
-orthographes différentes du même produit.
+Nom, nombre de pots, emplacement, où acheter, puis Ajouter. L'emplacement se
+choisit dans une **liste déroulante** des emplacements existants (avec
+« Nouvel emplacement… » pour en créer un). Si un emplacement est filtré
+(chip active), il préremplit le champ. Le champ nom **suggère les
+ingrédients déjà connus** (stock et recettes) pour éviter les orthographes
+différentes du même produit.
 
 Au micro : dire par exemple « trois oignons » — le nom et la quantité se
 préremplissent, vérifier puis toucher Ajouter. La dictée du clavier
@@ -76,8 +78,22 @@ pour une erreur de saisie, pas pour un pot vide (pour ça, − suffit).
 
 Liste des emplacements avec leur nombre de produits et la **date du dernier
 inventaire** (« jamais inventorié » sinon). Le bouton « Inventaire » de
-chaque ligne démarre le mode inventaire. Pendant l'inventaire, les onglets
-s'effacent.
+chaque ligne démarre le mode inventaire. **L'inventaire se met en pause tout
+seul** : les onglets restent accessibles, changer d'onglet suspend
+l'inventaire, revenir sur Inventaire reprend exactement où vous étiez
+(il survit aussi à un rechargement de la page).
+
+Pendant l'inventaire, si un nom dicté ou tapé correspond à **plusieurs
+produits** (« carvi » → carvi, carvi noir, carvi noir entier), un menu
+propose de choisir — ou de créer un nouveau produit. Jamais de pari.
+
+### Master list des ingrédients
+
+Une ligne dépliante « Master list des ingrédients » montre **tous** les
+ingrédients connus (stock + recettes), rangés par **catégorie** (Épices,
+Légumes, Viandes… — libres, avec suggestions), les **non classés en tête**.
+Taper une catégorie sur une ligne la range ; un filtre aide à naviguer.
+La catégorie vit sur l'ingrédient canonique : ses alias la partagent.
 
 ### Ingrédients à rapprocher (master list)
 
@@ -113,20 +129,34 @@ Un panneau se déplie sous l'emplacement :
 
 ## Onglet Courses
 
+La liste fait la **somme de trois origines** : le réapprovisionnement du
+stock (« auto », « réserve »), les **ingrédients des repas à venir**
+(« semaine »), et les achats libres ajoutés à la main.
+
+### Lignes « semaine » (automatiques)
+
+Calculées en direct depuis les événements à venir : dès qu'une recette est
+ajoutée, retirée ou ajustée, la liste se met à jour — quantités comprises.
+Elles n'ont pas de poubelle (elles disparaissent d'elles-mêmes quand le
+besoin disparaît) ; **toucher le nom** bascule « je l'ai déjà » (ligne barrée,
+pas à acheter) ↔ « à acheter ». Un ingrédient déjà couvert par le
+réapprovisionnement n'est pas doublonné.
+
 ### Case à cocher
 
 Cocher = acheté (la ligne se barre). La pastille de l'onglet compte ce qui
-reste à acheter. Décocher est possible tant que les achats ne sont pas rangés.
+reste à acheter (les « je l'ai » ne comptent pas). Décocher est possible
+tant que les achats ne sont pas rangés.
 
 ### Bouton « Ranger les achats »
 
-Apparaît dès qu'une ligne est cochée. Pour chaque ligne cochée liée à un
-ingrédient du stock : +1 pot au stock, puis la ligne disparaît.
+Pour chaque ligne cochée liée à un ingrédient du stock : +1 pot au stock,
+puis la ligne disparaît. Une ligne « semaine » achetée passe en « je l'ai ».
 
 ### Formulaire d'ajout
 
-Ajoute un produit à acheter sans fiche de stock (ex. « saumon entier » pour
-une recette). Il disparaît une fois rangé.
+Ajoute un produit à acheter sans fiche de stock (ex. « saumon entier »).
+Il disparaît une fois rangé.
 
 ## Onglet Recettes
 
@@ -134,11 +164,24 @@ une recette). Il disparaît une fois rangé.
   « jamais cuisinée », « cuisinée (date non notée) », ou la date. Si la
   recette a été faite il y a **moins d'un an**, la note passe en orange
   (règle « jamais deux fois la même recette dans l'année »).
-- Recherche par lettres (accents ignorés), tri alphabétique.
-- Toucher une ligne déplie la fiche : source, lien vers l'article, nom de la
-  vidéo locale, **ingrédients**, **texte de la recette**, historique des
-  réalisations, et « **J'ai fait cette recette** » (date du jour proposée,
-  commentaire facultatif).
+- **Recherche multicritère** (accents ignorés) : chaque mot tapé est cherché
+  dans le titre, les **ingrédients**, le **pays d'origine**, la **source** et
+  le texte de la recette — « safran » trouve la bouillabaisse, « inde
+  lentilles » trouve les dals. La même recherche sert dans l'onglet Semaine
+  pour associer une recette à un événement.
+- **Filtre par source** : un **menu déroulant** (« Toutes les sources »,
+  « Alain Passard »…), cumulable avec la recherche.
+- **Filtre par ingrédient** : un champ dédié qui **suggère les ingrédients
+  connus au fil de la frappe** et réduit la liste aux recettes qui le
+  contiennent. Présent aussi dans la « Recherche avancée » de la Semaine.
+- **Gérer les sources** : renommer (un nom existant **fusionne** les deux),
+  créer une source (livre, site) — la liste reste courte et maîtrisée. Le
+  choix de la source et le pays d'origine se règlent dans l'éditeur de la
+  fiche.
+- Toucher une ligne déplie la fiche : source, lien « Voir en ligne » (avec le
+  nom du site), nom de la vidéo locale, **ingrédients**, **texte de la
+  recette**, historique des réalisations, et « **J'ai fait cette recette** »
+  (date du jour proposée, commentaire facultatif).
 - « Ajouter/Modifier ingrédients et recette » : les ingrédients se saisissent
   un par ligne (« 500 g asperges vertes ») — quantité, unité et nom sont
   compris automatiquement ; le texte de la recette est libre. Le champ
@@ -153,9 +196,22 @@ une recette). Il disparaît une fois rangé.
 
 ## Onglet Semaine
 
-- Les événements groupés par jour : type (dîner maison, repas association,
+- **À venir** d'un côté (ordre chronologique), **Passés** de l'autre (du plus
+  récent au plus ancien). Chaque événement a un bouton « **Modifier** »
+  (date, type, convives, contraintes — les courses se recalculent) ; les
+  passés ont en plus « **Fait** » : la liste de leurs recettes s'affiche et,
+  pour chacune, « Oui, faite » consigne la réalisation à la date de
+  l'événement (« Non » écarte la question). Les recettes des événements à
+  venir n'ont plus de bouton « Marquer faite ».
+- Les événements portent : type (dîner maison, repas association,
   invitation, pique-nique — ou libre), nombre de convives, contraintes
   (halal, végétarien, pas épicé…).
+- **Recherche avancée** : sous le champ « Chercher une recette à ajouter »,
+  un déroulant ajoute des filtres par source, par pays et par ingrédient
+  (avec suggestions), cumulables avec les mots tapés.
+- À côté de chaque champ de date, la date choisie s'affiche **en toutes
+  lettres en français** (« vendredi 7 août ») — le format interne du champ
+  dépend de la langue du navigateur.
 - Toucher un événement le déplie : recettes associées (avec leur dernière
   réalisation, orange si moins d'un an — utile pour ne pas refaire deux fois
   la même dans l'année), ajout par recherche dans la bibliothèque, retrait,
@@ -164,23 +220,21 @@ une recette). Il disparaît une fois rangé.
 - « **Marquer faite** » sur une recette d'un événement enregistre la
   réalisation à la date de l'événement, avec le contexte en commentaire.
 - Suppression d'un événement confirmée en deux touches.
-- **Courses de la semaine** : dès qu'un événement à venir a des recettes avec
-  ingrédients, un bloc liste chaque ingrédient avec son état — « en stock »
-  (vert, avec l'emplacement), « déjà en liste », ou « à acheter » (orange).
-  « Ajouter les manquants aux courses (n) » les envoie en liste, sans
-  doublon. Le rapprochement se fait par nom (accents et casse ignorés) **et
-  par les liens confirmés dans « Ingrédients à rapprocher »** (onglet
-  Inventaire) : « citrons » retrouve « Citron » du stock une fois le lien
-  confirmé.
-- **Quantités calculées** : si la recette indique « pour N personnes », les
-  quantités sont mises à l'échelle des convives de l'événement (recette pour
-  4 servie à 8 = quantités doublées ; une même recette sur deux événements
-  compte deux fois). « Ajuster les quantités : % » modère tout d'un coup
-  (appétits, richesse des plats) ; chaque ligne « à acheter » se corrige
-  aussi à la main, et c'est la valeur corrigée qui part en courses. Les
-  unités compatibles s'additionnent (500 g + 1 kg = 1,5 kg) ; jamais de
-  conversion hasardeuse (« 1,5 kg + 2 gousses » reste tel quel). En liste de
-  courses, la quantité s'affiche devant le nom (« 1,5 kg asperges vertes »).
+- **Courses de la semaine (déroulant)** : une ligne discrète en haut de
+  l'onglet (« ▸ Courses de la semaine · n à acheter ») ; la toucher déplie le
+  détail en lecture : chaque ingrédient avec son état — « en stock » (vert,
+  avec l'emplacement), « je l'ai », « déjà en liste », ou « à acheter »
+  (orange). La liste de courses de l'onglet Courses est tenue à jour
+  **automatiquement** (plus de bouton). Le rapprochement se fait par nom
+  (accents et casse ignorés) **et par les liens confirmés dans « Ingrédients
+  à rapprocher »** (onglet Inventaire).
+- **Ajuster une recette pour un événement** : toucher la recette dans
+  l'événement déplie ses ingrédients aux quantités de l'événement (recette
+  « pour 4 » servie à 8 = doublées ; une même recette sur deux événements
+  compte deux fois). Le champ « Ajuster la recette : % » et les quantités
+  corrigées ligne à ligne ne valent que **pour cet événement** (0 = retour
+  au calcul). Les unités compatibles s'additionnent (500 g + 1 kg = 1,5 kg) ;
+  jamais de conversion hasardeuse.
 - À venir : planning des tournées selon vos créneaux.
 
 ## Foyer et comptes

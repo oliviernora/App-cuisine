@@ -1,5 +1,6 @@
 <script>
-  import { store, addEvent, removeEvent, attachRecipe, detachRecipe, addRealisation, lastMade, weekNeeds, addWeekMissing, displayPart, formatQty } from '../lib/store.svelte.js'
+  import { store, addEvent, removeEvent, updateEvent, attachRecipe, detachRecipe, addRealisation, lastMade,
+    weekNeeds, formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride, searchRecipes, knownNames } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { TRASH } from '../lib/icons.js'
 
@@ -14,14 +15,39 @@
   let busy = $state(false)
   let confirmDelete = $state(null)
 
-  function fold(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
-
-  const days = $derived.by(() => {
-    const sorted = store.events.toSorted((a, b) => a.day.localeCompare(b.day) || a.created_at.localeCompare(b.created_at))
+  /* Les événements à venir d'un côté (chrono croissant), les passés de
+   * l'autre (du plus récent au plus ancien) — demande d'Olivier 07/07. */
+  const futurs = $derived.by(() => {
+    const t = new Date().toISOString().slice(0, 10)
+    const sorted = store.events.filter(e => e.day >= t)
+      .toSorted((a, b) => a.day.localeCompare(b.day) || a.created_at.localeCompare(b.created_at))
     return [...Map.groupBy(sorted, e => e.day)]
   })
+  const passes = $derived.by(() => {
+    const t = new Date().toISOString().slice(0, 10)
+    const sorted = store.events.filter(e => e.day < t)
+      .toSorted((a, b) => b.day.localeCompare(a.day) || a.created_at.localeCompare(b.created_at))
+    return [...Map.groupBy(sorted, e => e.day)]
+  })
+
+  let editEvent = $state(null)
+  let editFields = $state({})
+  function startEditEvent(event) {
+    editEvent = editEvent === event.id ? null : event.id
+    editFields = { day: event.day, title: event.title, guests: event.guests, contraintes: event.contraintes }
+  }
+  async function saveEventEdit(event) {
+    busy = true
+    await updateEvent(event, { ...editFields, guests: Number(editFields.guests) || 1 })
+    busy = false
+    editEvent = null
+  }
+
+  let faitOpen = $state(null)
+  let faitNon = $state([]) // « non, pas faite » répondu (le temps de la session)
+  function consignee(event, recipe) {
+    return store.realisations.some(r => r.recipe_id === recipe.id && r.made_on === event.day)
+  }
 
   function dayLabel(d) {
     return new Date(d + 'T00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -32,10 +58,10 @@
       .map(er => store.recipes.find(r => r.id === er.recipe_id)).filter(Boolean)
   }
 
-  let pct = $state(100)
-  let overrides = $state({})
-  const needs = $derived(weekNeeds(pct))
-  const missing = $derived(needs.filter(n => !n.match && !n.inShopping))
+  let coursesOpen = $state(false)
+  let openRecipe = $state(null) // 'eventId|recipeId' : panneau d'ajustement déplié
+  const needs = $derived(weekNeeds())
+  const toBuy = $derived(needs.filter(n => !n.match && !n.entry?.available && !(n.entry && n.entry.origin !== 'semaine')).length)
 
   /** « 1,5 kg + 2 gousses ail » ; sans quantité, « ail (×2) ». */
   function needLabel(need) {
@@ -44,16 +70,31 @@
     return (parts ? parts + ' ' : '') + need.name + times
   }
 
-  function setOverride(need, value) {
-    const qty = Number(value)
-    if (qty > 0) overrides[need.key] = { qty, unit: displayPart(need.parts[0]).unit }
-    else delete overrides[need.key]
+  function erOf(event, recipe) {
+    return store.eventRecipes.find(x => x.event_id === event.id && x.recipe_id === recipe.id)
+  }
+
+  /* Recherche multicritère (titre, ingrédient, pays, source, mot du texte)
+   * + recherche avancée en déroulant : filtres source et pays. */
+  let advOpen = $state(false)
+  let advSource = $state('')
+  let advPays = $state('')
+  let advIng = $state('')
+  const paysConnus = $derived([...new Set(store.recipes.map(r => r.country).filter(Boolean))]
+    .toSorted((a, b) => a.localeCompare(b, 'fr')))
+
+  function foldw(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   }
 
   const pickResults = $derived.by(() => {
-    if (!pick.trim()) return []
-    return store.recipes.filter(r => fold(r.title).includes(fold(pick)))
-      .toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
+    if (!pick.trim() && !advSource && !advPays && !advIng.trim()) return []
+    let list = searchRecipes(pick)
+    if (advSource) list = list.filter(r => r.source_id === advSource)
+    if (advPays) list = list.filter(r => (r.country ?? '') === advPays)
+    if (advIng.trim()) list = list.filter(r =>
+      store.ingredients.some(i => i.recipe_id === r.id && foldw(i.name).includes(foldw(advIng))))
+    return list.toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
       .slice(0, 8)
   })
 
@@ -97,48 +138,53 @@
   {/if}
 
   {#if needs.length}
-    <p class="group-title">Courses de la semaine <span class="n">· {needs.length} ingrédients</span></p>
-    {#if needs.some(n => n.parts.length)}
-      <div class="toolbar" style="justify-content: flex-start">
-        <label class="note">Ajuster les quantités&nbsp;:
-          <input class="f-qty" type="number" inputmode="numeric" min="10" max="500" step="10"
-            bind:value={pct} aria-label="Pourcentage d'ajustement"> %
-        </label>
-      </div>
-    {/if}
-    <ul>
-      {#each needs as need (need.key)}
-        <li class="row">
-          {#if !need.match && !need.inShopping && need.parts.length === 1}
-            <input class="f-qty" type="number" min="0" step="any"
-              value={overrides[need.key]?.qty ?? displayPart(need.parts[0]).qty}
-              onchange={e => setOverride(need, e.target.value)}
-              aria-label={'Quantité de ' + need.name}>
-            <span class="name">{overrides[need.key]?.unit ?? displayPart(need.parts[0]).unit} {need.name}</span>
-          {:else}
-            <span class="name">{needLabel(need)}</span>
-          {/if}
-          {#if need.match}
-            <span class="note ok-note">en stock — {need.match.loc}</span>
-          {:else if need.inShopping}
-            <span class="note">déjà en liste</span>
-          {:else}
-            <span class="note recent-warn">à acheter</span>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-    {#if missing.length}
-      <div class="toolbar" style="justify-content: flex-start">
-        <button type="button" disabled={busy}
-          onclick={async () => { busy = true; await addWeekMissing(pct, overrides); overrides = {}; busy = false }}>
-          Ajouter les manquants aux courses ({missing.length})
-        </button>
-      </div>
-    {/if}
+    <div class="loc-item">
+      <button type="button" class="row rowbtn-full" onclick={() => coursesOpen = !coursesOpen}
+        aria-expanded={coursesOpen}>
+        <div class="info">
+          <span class="name">{coursesOpen ? '▾' : '▸'} Courses de la semaine</span>
+          <span class="note" class:recent-warn={toBuy > 0}>{toBuy > 0 ? toBuy + ' à acheter' : 'tout est couvert'} · {needs.length} ingrédients</span>
+        </div>
+      </button>
+      {#if coursesOpen}
+        <ul>
+          {#each needs as need (need.key)}
+            <li class="row">
+              <span class="name">{needLabel(need)}</span>
+              {#if need.match}
+                <span class="note ok-note">en stock — {need.match.loc}</span>
+              {:else if need.entry?.available}
+                <span class="note ok-note">je l'ai</span>
+              {:else if need.entry && need.entry.origin !== 'semaine'}
+                <span class="note">déjà en liste</span>
+              {:else}
+                <span class="note recent-warn">à acheter</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+        <p class="note">La liste complète (réapprovisionnement + repas) est dans l'onglet Courses,
+          mise à jour automatiquement.</p>
+      {/if}
+    </div>
   {/if}
 
-  {#each days as [d, group] (d)}
+  {#snippet editPanel(event)}
+    <div class="manage-block">
+      <div class="manage-row">
+        <input type="date" bind:value={editFields.day} aria-label="Jour" class="f-qty" style="flex: 0 1 140px">
+        <span class="note" style="align-self: center">{dayLabel(editFields.day)}</span>
+        <input bind:value={editFields.title} list="event-types" placeholder="Type d'événement" aria-label="Type">
+        <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={editFields.guests} aria-label="Convives">
+        <input bind:value={editFields.contraintes} placeholder="Contraintes" aria-label="Contraintes">
+        <button type="button" class="inv-start" disabled={busy} onclick={() => saveEventEdit(event)}>Enregistrer</button>
+        <button type="button" class="inv-manage" onclick={() => editEvent = null}>Annuler</button>
+      </div>
+    </div>
+  {/snippet}
+
+  {#if futurs.length}<p class="group-title">À venir</p>{/if}
+  {#each futurs as [d, group] (d)}
     <p class="group-title">{dayLabel(d)}</p>
     <ul>
       {#each group as event (event.id)}
@@ -149,6 +195,7 @@
               <span class="note">{event.guests} pers.{event.contraintes ? ' · ' + event.contraintes : ''}
                 · {recipesOf(event).length} recette(s)</span>
             </button>
+            <button type="button" class="inv-manage" onclick={() => startEditEvent(event)}>Modifier</button>
             {#if confirmDelete === event.id}
               <button type="button" class="inv-start danger-btn" onclick={() => removeEvent(event)}>Confirmer</button>
               <button type="button" class="inv-manage" onclick={() => confirmDelete = null}>Non</button>
@@ -157,21 +204,54 @@
                 onclick={() => confirmDelete = event.id}><Icon d={TRASH} /></button>
             {/if}
           </div>
+          {#if editEvent === event.id}{@render editPanel(event)}{/if}
           {#if open === event.id}
             <div class="manage-panel">
               {#if recipesOf(event).length}
                 <ul>
                   {#each recipesOf(event) as recipe (recipe.id)}
-                    <li class="row">
-                      <div class="info">
-                        <span class="name" title={recipe.title}>{recipe.title}</span>
-                        {#if madeNote(recipe)}<span class="note" class:recent-warn={recent(recipe)}>{madeNote(recipe)}</span>{/if}
+                    {@const er = erOf(event, recipe)}
+                    {@const rkey = event.id + '|' + recipe.id}
+                    <li class="loc-item">
+                      <div class="row">
+                        <button type="button" class="rowbtn-full info"
+                          title="Voir et ajuster les ingrédients pour cet événement"
+                          onclick={() => openRecipe = openRecipe === rkey ? null : rkey}>
+                          <span class="name" title={recipe.title}>{recipe.title}</span>
+                          <span class="note" class:recent-warn={recent(recipe)}>
+                            {er?.scale_pct !== 100 ? er.scale_pct + ' % · ' : ''}{madeNote(recipe) || 'jamais cuisinée'}</span>
+                        </button>
+                        <button class="icon-btn danger" type="button" aria-label="Retirer la recette"
+                          onclick={() => detachRecipe(event, recipe)}><Icon d={TRASH} /></button>
                       </div>
-                      <button type="button" class="inv-manage" disabled={busy}
-                        title="Enregistrer que cette recette a été faite, à la date de l'événement"
-                        onclick={() => consigner(event, recipe)}>Marquer faite</button>
-                      <button class="icon-btn danger" type="button" aria-label="Retirer la recette"
-                        onclick={() => detachRecipe(event, recipe)}><Icon d={TRASH} /></button>
+                      {#if openRecipe === rkey && er}
+                        <div class="manage-block">
+                          <p class="note">Ingrédients pour cet événement ({event.guests} pers.{recipe.servings ? ', recette pour ' + recipe.servings : ''}) —
+                            corriger une quantité ne vaut que pour cet événement (0 = retour au calcul) :</p>
+                          <div class="manage-row">
+                            <label class="note">Ajuster la recette :
+                              <input class="f-qty" type="number" inputmode="numeric" min="10" max="500" step="10"
+                                value={er.scale_pct} onchange={e => setEventRecipeScale(er, e.target.value)}
+                                aria-label="Pourcentage pour cette recette"> %
+                            </label>
+                          </div>
+                          <ul class="manage-items">
+                            {#each eventIngredients(event, er) as ing (ing.id)}
+                              <li class="row">
+                                {#if ing.qty != null}
+                                  <input class="f-qty" type="number" min="0" step="any" value={ing.qty}
+                                    onchange={e => setEventQtyOverride(er, ing.name, e.target.value)}
+                                    aria-label={'Quantité de ' + ing.name}>
+                                  <span class="name">{ing.unit} {ing.name}</span>
+                                  {#if ing.overridden}<span class="note">corrigé</span>{/if}
+                                {:else}
+                                  <span class="name">{ing.name}</span>
+                                {/if}
+                              </li>
+                            {/each}
+                          </ul>
+                        </div>
+                      {/if}
                     </li>
                   {/each}
                 </ul>
@@ -180,7 +260,25 @@
               {/if}
               <div class="manage-row">
                 <input bind:value={pick} placeholder="Chercher une recette à ajouter…" aria-label="Chercher une recette">
+                <button type="button" class="inv-manage" onclick={() => advOpen = !advOpen}>
+                  Recherche avancée {advOpen ? '▴' : '▾'}</button>
               </div>
+              {#if advOpen}
+                <div class="manage-row">
+                  <select bind:value={advSource} aria-label="Filtrer par source">
+                    <option value="">Toutes les sources</option>
+                    {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
+                      <option value={s.id}>{s.title}</option>
+                    {/each}
+                  </select>
+                  <select bind:value={advPays} aria-label="Filtrer par pays">
+                    <option value="">Tous les pays</option>
+                    {#each paysConnus as p (p)}<option value={p}>{p}</option>{/each}
+                  </select>
+                  <input bind:value={advIng} list="known-ingredients-sem" placeholder="Par ingrédient…"
+                    aria-label="Filtrer par ingrédient">
+                </div>
+              {/if}
               {#if pickResults.length}
                 <ul class="manage-items">
                   {#each pickResults as recipe (recipe.id)}
@@ -199,11 +297,66 @@
       {/each}
     </ul>
   {/each}
+
+  {#if passes.length}<p class="group-title">Passés</p>{/if}
+  {#each passes as [d, group] (d)}
+    <p class="group-title">{dayLabel(d)}</p>
+    <ul>
+      {#each group as event (event.id)}
+        <li class="loc-item">
+          <div class="row">
+            <div class="info">
+              <span class="name">{event.title}</span>
+              <span class="note">{event.guests} pers.{event.contraintes ? ' · ' + event.contraintes : ''}
+                · {recipesOf(event).length} recette(s)</span>
+            </div>
+            <button type="button" class="inv-manage" onclick={() => startEditEvent(event)}>Modifier</button>
+            <button type="button" class="inv-start" onclick={() => { faitOpen = faitOpen === event.id ? null : event.id }}>Fait</button>
+            {#if confirmDelete === event.id}
+              <button type="button" class="inv-start danger-btn" onclick={() => removeEvent(event)}>Confirmer</button>
+              <button type="button" class="inv-manage" onclick={() => confirmDelete = null}>Non</button>
+            {:else}
+              <button class="icon-btn danger" type="button" aria-label="Supprimer l'événement"
+                onclick={() => confirmDelete = event.id}><Icon d={TRASH} /></button>
+            {/if}
+          </div>
+          {#if editEvent === event.id}{@render editPanel(event)}{/if}
+          {#if faitOpen === event.id}
+            <div class="manage-block">
+              {#if recipesOf(event).length === 0}
+                <p>Aucune recette n'était associée à cet événement.</p>
+              {/if}
+              <ul class="manage-items">
+                {#each recipesOf(event) as recipe (recipe.id)}
+                  {@const rkey = event.id + '|' + recipe.id}
+                  <li class="row">
+                    <span class="name" title={recipe.title}>{recipe.title}</span>
+                    {#if consignee(event, recipe)}
+                      <span class="note ok-note">consignée le {new Date(event.day + 'T00:00').toLocaleDateString('fr-FR')}</span>
+                    {:else if faitNon.includes(rkey)}
+                      <span class="note">non faite</span>
+                    {:else}
+                      <span class="note">faite ?</span>
+                      <button type="button" class="inv-start" disabled={busy}
+                        onclick={() => consigner(event, recipe)}>Oui, faite</button>
+                      <button type="button" class="inv-manage"
+                        onclick={() => faitNon = [...faitNon, rkey]}>Non</button>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
+        </li>
+      {/each}
+    </ul>
+  {/each}
 </section>
 
 <div class="addbar">
   <form onsubmit={submit} autocomplete="off">
     <input type="date" bind:value={day} aria-label="Jour" class="f-qty" style="flex: 0 1 140px">
+    <span class="note" style="align-self: center">{dayLabel(day)}</span>
     <input class="f-name" bind:value={title} list="event-types" placeholder="Type d'événement">
     <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={guests} aria-label="Convives" title="Nombre de convives">
     <input class="f-loc" bind:value={contraintes} placeholder="Contraintes (halal, végétarien…)">
@@ -213,4 +366,7 @@
 
 <datalist id="event-types">
   {#each TYPES as t (t)}<option value={t}></option>{/each}
+</datalist>
+<datalist id="known-ingredients-sem">
+  {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
 </datalist>

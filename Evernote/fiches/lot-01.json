@@ -1,0 +1,194 @@
+[
+ {
+  "id": "001-recette-salade-de-poulet-aux-herbes-marie-claire",
+  "title": "Salade de poulet aux herbes",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 1, "unit": "", "name": "poulet déjà cuit" },
+   { "qty": 0.5, "unit": "botte", "name": "oignons nouveaux" },
+   { "qty": 1, "unit": "", "name": "citron vert" },
+   { "qty": 1, "unit": "botte", "name": "persil plat" },
+   { "qty": 1, "unit": "botte", "name": "coriandre" },
+   { "qty": 4, "unit": "c. à s.", "name": "huile de tournesol ou d'arachide" },
+   { "qty": 3, "unit": "c. à s.", "name": "vinaigre blanc" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Réchauffer le poulet cuit 15 min au four à 180 °C. Pendant ce temps, peler les oignons nouveaux, les rincer et sécher avec le persil et la coriandre, ciseler finement le tout ; mettre dans un saladier avec l'huile, le jus du citron vert et le vinaigre. Le poulet encore chaud : ôter la peau, émietter grossièrement la chair, mélanger au saladier. Servir tiède ou froid. (Suzy Palatin — recette créole ; en saison, ajouter tomates, aubergines ou courgettes. Préparation 15 min, cuisson 15 min.)"
+ },
+ {
+  "id": "006-maquereaux-a-la-plancha",
+  "title": "Maquereaux à la plancha",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 8, "unit": "", "name": "petits maquereaux" },
+   { "qty": 1, "unit": "", "name": "poignée de gros sel gris de Guérande" },
+   { "qty": 10, "unit": "cl", "name": "vin blanc" },
+   { "qty": 10, "unit": "cl", "name": "huile d'olive" },
+   { "qty": 1, "unit": "c. à c.", "name": "graines de fenouil" },
+   { "qty": 1, "unit": "feuille", "name": "laurier" },
+   { "qty": 5, "unit": "", "name": "baies de genièvre" },
+   { "qty": 1, "unit": "", "name": "zeste de citron" },
+   { "qty": 1, "unit": "pincée", "name": "piment d'Espelette" }
+  ],
+  "steps": "Vider les maquereaux et faire 4 incisions parallèles dans la partie charnue de chaque poisson. Les mariner 45 min au frais dans huile d'olive + vin blanc + fenouil + genièvre + laurier + citron. Sur la plancha chaude, étaler une poignée de gros sel (il tempère la chaleur), y dorer les maquereaux 4-5 min par face. Piment d'Espelette et servir aussitôt. Attention : ne pas retourner dans le gros sel (avis lecteur). (Papilles et Pupilles — préparation 15 min, cuisson 10 min.)"
+ },
+ {
+  "id": "008-pate-a-crepes-traditionnelle",
+  "title": "Pâte à crêpes traditionnelle",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 250, "unit": "g", "name": "farine tamisée" },
+   { "qty": 3, "unit": "", "name": "œufs" },
+   { "qty": 50, "unit": "cl", "name": "lait" },
+   { "qty": 2, "unit": "c. à s.", "name": "beurre fondu" },
+   { "qty": null, "unit": "", "name": "huile pour la cuisson" },
+   { "qty": null, "unit": "", "name": "sel" }
+  ],
+  "steps": "Pour une vingtaine de crêpes fines. Tamiser la farine en puits, délayer avec la moitié du lait. Ajouter les œufs battus, puis le beurre fondu et une pincée de sel ; verser le reste du lait en remuant jusqu'à pâte lisse. Repos 2 h (ou lait chaud / robot pour diviser par deux). Cuire à la poêle à fond épais graissée, petite louche inclinée pour étaler. Sucre glace en empilant. (Marie Claire — préparation 15 min, cuisson 40 min, repos 2 h.)"
+ },
+ {
+  "id": "009-crepe-sarrazin",
+  "title": "Crêpes de sarrasin (recette perso)",
+  "servings": null,
+  "ingredients": [
+   { "qty": 350, "unit": "g", "name": "farine de sarrasin" },
+   { "qty": 70, "unit": "g", "name": "farine de froment" },
+   { "qty": 1, "unit": "", "name": "œuf" },
+   { "qty": 25, "unit": "cl", "name": "lait" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "eau" }
+  ],
+  "steps": "Bilic pas trop liquide. Version sucrée : 350 g froment, 70 g blé noir, 4 œufs, sel, 70 g sucre. (Note perso Evernote du 17/10/2024, transcrite telle quelle.)"
+ },
+ {
+  "id": "010-dal-indien",
+  "title": "Dal indien",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 200, "unit": "g", "name": "lentilles jaunes" },
+   { "qty": 1, "unit": "", "name": "grosse tomate" },
+   { "qty": 2, "unit": "", "name": "petits piments verts" },
+   { "qty": 3, "unit": "gousses", "name": "ail" },
+   { "qty": 2, "unit": "", "name": "échalotes" },
+   { "qty": 1, "unit": "c. à s.", "name": "feuilles de coriandre ciselées" },
+   { "qty": 0.5, "unit": "c. à c.", "name": "curcuma moulu" },
+   { "qty": 1, "unit": "c. à c.", "name": "cumin" },
+   { "qty": 0.5, "unit": "c. à c.", "name": "graines de moutarde" },
+   { "qty": 8, "unit": "feuilles", "name": "cari (curry)" },
+   { "qty": 15, "unit": "g", "name": "beurre" },
+   { "qty": null, "unit": "", "name": "sel" }
+  ],
+  "steps": "Monder et couper la tomate en dés ; épépiner et hacher finement les piments ; émincer échalotes et ail. Rincer les lentilles, les tremper 30 min, égoutter. Bouillir 1 l d'eau avec curcuma, cumin et échalotes ; y cuire les lentilles 30 min à frémissement, puis ajouter tomate et piments et poursuivre 45 min jusqu'à ce qu'elles s'écrasent (rallonger d'eau au besoin). Remuer hors du feu en soupe épaisse. Tempérage final : graines de moutarde, ail et feuilles de cari revenus au beurre à feu vif, versés sur les lentilles ; saler, servir chaud parsemé de coriandre — avec riz basmati ou naan. (Marie Claire — préparation 30 min, cuisson 1 h 15.)"
+ },
+ {
+  "id": "011-veloute-glace-a-la-courgette-8211-1-base-2-recettes",
+  "title": "Velouté glacé à la courgette et au lait de coco",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 500, "unit": "g", "name": "courgettes (2 moyennes ou 3 petites)" },
+   { "qty": 1, "unit": "", "name": "oignon" },
+   { "qty": 1, "unit": "gousse", "name": "ail (facultatif)" },
+   { "qty": 15, "unit": "cl", "name": "lait de coco ou lait ribot" },
+   { "qty": 1, "unit": "c. à s.", "name": "huile d'olive" },
+   { "qty": 1, "unit": "", "name": "poignée de basilic, menthe ou coriandre" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Faire revenir l'oignon émincé 5-8 min à l'huile d'olive, ajouter l'ail écrasé. Ajouter les courgettes en tronçons, couvrir d'eau bouillante, saler, cuire 10-12 min à couvert. Retirer 2-3 louches de bouillon (pour ajuster ensuite), ajouter le lait de coco (ou ribot) et mixer finement — un peu plus liquide que voulu, la soupe épaissit en refroidissant. Mixer avec les herbes, réfrigérer au moins 1 h. La version coco se mange aussi chaude ; pas la version ribot. (Au four au moulin — 28 min en tout.)"
+ },
+ {
+  "id": "012-dal-de-lentilles-corail-a-l-indienne",
+  "title": "Dal de lentilles corail à l'indienne",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 300, "unit": "g", "name": "lentilles corail" },
+   { "qty": 400, "unit": "g", "name": "jeunes pousses d'épinards" },
+   { "qty": 1, "unit": "", "name": "petit oignon" },
+   { "qty": 1, "unit": "", "name": "tomate moyenne" },
+   { "qty": 1, "unit": "", "name": "petit morceau de gingembre râpé" },
+   { "qty": 2, "unit": "c. à s.", "name": "huile végétale" },
+   { "qty": 0.5, "unit": "c. à c.", "name": "curcuma moulu" },
+   { "qty": 0.5, "unit": "c. à c.", "name": "graines de cumin entières" },
+   { "qty": 1, "unit": "gousse", "name": "ail écrasée" },
+   { "qty": 1, "unit": "pincée", "name": "sel" }
+  ],
+  "steps": "Cuire les lentilles couvertes d'eau : ébullition, écumer, puis 20 min à petit feu jusqu'à consistance crémeuse. À côté, faire revenir l'oignon en dés 5 min dans 1 c. à s. d'huile, ajouter tomate en dés et gingembre 3 min, puis le curcuma, puis les épinards 5 min ; verser le tout dans le dal et mijoter quelques minutes, saler. Finition : chauffer 1 c. à s. d'huile avec cumin et ail 30 s jusqu'au crépitement, verser sur le dal, couvrir et laisser infuser. Servir bien chaud, avec naans. (Marie Claire — préparation 15 min, cuisson 30 min.)"
+ },
+ {
+  "id": "013-recette-la-bouillabaisse-marseillaise-traditionnelle",
+  "title": "La bouillabaisse marseillaise traditionnelle",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 1, "unit": "kg", "name": "poissons de roche" },
+   { "qty": 2, "unit": "", "name": "poireaux" },
+   { "qty": 1, "unit": "", "name": "oignon" },
+   { "qty": 4, "unit": "", "name": "tomates" },
+   { "qty": 2, "unit": "", "name": "têtes d'ail" },
+   { "qty": 2, "unit": "feuilles", "name": "laurier" },
+   { "qty": 10, "unit": "cl", "name": "huile d'olive (soupe)" },
+   { "qty": 1, "unit": "", "name": "branche de fenouil séché" },
+   { "qty": 1, "unit": "", "name": "écorce d'orange" },
+   { "qty": 2, "unit": "pincées", "name": "pistils de safran" },
+   { "qty": 1, "unit": "g", "name": "piment de Cayenne" },
+   { "qty": 25, "unit": "cl", "name": "huile d'olive (rouille)" },
+   { "qty": 2, "unit": "", "name": "jaunes d'œuf" },
+   { "qty": 1, "unit": "c. à s.", "name": "moutarde forte" },
+   { "qty": 2, "unit": "gousses", "name": "ail (rouille)" },
+   { "qty": 6, "unit": "", "name": "pommes de terre à chair fondante" },
+   { "qty": 1, "unit": "", "name": "saint-pierre (1,2 kg)" },
+   { "qty": 4, "unit": "", "name": "vives" },
+   { "qty": 1, "unit": "", "name": "rascasse (800 g)" },
+   { "qty": 800, "unit": "g", "name": "congre" },
+   { "qty": 1, "unit": "", "name": "pain (croûtons)" },
+   { "qty": null, "unit": "", "name": "sel, gros sel, poivre" }
+  ],
+  "steps": "Soupe : faire revenir doucement poireaux, oignon, ail écrasé et tomates concassées dans l'huile avec laurier, écorce d'orange et piment, 15 min ; ajouter les poissons de roche (non écaillés, rincés), colorer 15 min ; couvrir de 3 l d'eau bouillante, frémir 10 min ; retirer fenouil et écorce, passer au presse-purée puis au chinois ; safran, assaisonner. Rouille : moutarde + jaunes, ail haché, monter avec 25 cl d'huile d'olive ; croûtons grillés frottés d'ail. Service : cuire les pommes de terre en gros dés 30 min dans moitié fond de poisson moitié eau ; pocher les poissons en tronçons dans le fond bouillant, 6-10 min à feu doux en commençant par les chairs fermes. Poissons sur pommes de terre, bouillon versé sur les croûtons en soupière. « Quand ça boue, on baisse ! » (L'Atelier des Chefs — préparation 1 h, cuisson 1 h 30.)"
+ },
+ {
+  "id": "016-gaufres-saines-sans-sucre-sans-matieres-grasses-recette-heal",
+  "title": "Gaufres saines sans sucre ni matières grasses",
+  "servings": null,
+  "ingredients": [
+   { "qty": 2, "unit": "", "name": "œufs" },
+   { "qty": 40, "unit": "g", "name": "compote de pommes ou banane écrasée" },
+   { "qty": 25, "unit": "cl", "name": "lait (végétal ou non)" },
+   { "qty": 140, "unit": "g", "name": "farine T65 ou épeautre" },
+   { "qty": 3, "unit": "g", "name": "levure chimique" },
+   { "qty": 1, "unit": "pincée", "name": "sel" }
+  ],
+  "steps": "Préchauffer le gaufrier. Mélanger œufs, compote et la moitié du lait ; ajouter farine, levure, sel, puis le reste du lait. Plaques chaudes légèrement huilées si besoin, cuire 2-3 min. Se congèle. (healthyfoodcreation — préparation 5 min ; la compote peut être remplacée par une petite banane bien mûre.)"
+ },
+ {
+  "id": "020-paves-de-cabillaud-aux-lentilles",
+  "title": "Pavés de cabillaud aux lentilles",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 6, "unit": "", "name": "pavés de cabillaud (130 g pièce)" },
+   { "qty": 500, "unit": "g", "name": "lentilles vertes du Puy" },
+   { "qty": 6, "unit": "tranches", "name": "bacon ou pancetta (très fines)" },
+   { "qty": 1, "unit": "", "name": "carotte" },
+   { "qty": 1, "unit": "", "name": "oignon" },
+   { "qty": 4, "unit": "c. à s.", "name": "huile d'olive" },
+   { "qty": 1, "unit": "c. à s.", "name": "vinaigre de Xérès" },
+   { "qty": 1, "unit": "", "name": "bouquet garni" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre du moulin" }
+  ],
+  "steps": "Cuire les lentilles avec oignon émincé, carotte en dés et bouquet garni, largement couvertes d'eau froide peu calcaire : ébullition puis 45 min à frémissement. 10 min avant la fin, dorer le bacon à sec, égoutter. Dans la même poêle, saisir les pavés 2 min par face dans 1 c. d'huile, puis 5 min à feu doux, sel, poivre. Vinaigrette (sel, poivre, Xérès, reste d'huile) sur les lentilles égouttées ; poser cabillaud et bacon dessus, servir aussitôt. Astuce : chair plus ferme si les pavés dégorgent 1 h au gros sel puis rincés. (Marie Claire — préparation 20 min, cuisson 45 min.)"
+ },
+ {
+  "id": "022-gaufres-de-pomme-de-terre-recettes-de-clairette",
+  "title": "Gaufres de pomme de terre",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 800, "unit": "g", "name": "pommes de terre à chair ferme" },
+   { "qty": 50, "unit": "g", "name": "farine" },
+   { "qty": 1, "unit": "", "name": "œuf" },
+   { "qty": 3, "unit": "gousses", "name": "ail" },
+   { "qty": 1, "unit": "", "name": "poignée de persil plat" },
+   { "qty": null, "unit": "", "name": "sel, poivre, huile d'olive" }
+  ],
+  "steps": "Éplucher et râper finement les pommes de terre ; hacher l'ail dégermé, ciseler le persil. Tout mélanger avec farine et œuf, bien saler, poivrer. Gaufrier chaud huilé : cuire jusqu'à belle dorure (5 min et plus), réserver au chaud. Servir avec salade verte ou poêlée de champignons. Se prépare la veille : réchauffer 10 min au four à 200 °C. Environ 8 petites gaufres. (Recettes de Clairette.)"
+ }
+]

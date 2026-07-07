@@ -1,0 +1,88 @@
+# Tri de l'export Evernote — à valider par Olivier
+
+371 notes : 309 captures web, 13 notes perso, 49 scans (photos seules).
+
+## Douteuses — 21 notes à trancher
+Cocher ce qui doit quand même être importé ; le reste sera écarté.
+
+- [ ] REGARDEZ - Les tomates n'ont pas de pépins — lepoint.fr (web, 20260616)
+- [ ] Poulpe "alla luciana" : saveurs napolitaines — gaycultes.blogspot.com (web, 20260223)
+- [ ] La table gourmande (perso, 20251001)
+- [ ] Pois chiches de ma cherie (perso, 20250813)
+- [ ] Couscous (perso, 20250719)
+- [ ] JUS (perso, 20231124)
+- [ ] Taiwanese Food - Din Tai Fung — dintaifungusa.com (web, 20221030)
+- [ ] Cuisine : la gaufre de pommes de terre d'Alain Passard - Le Point — lepoint.fr (web, 20220830)
+- [ ] Temps cuisson (perso, 20201124)
+- [ ] Recette véritables spaghettis à la carbonara - Marie Claire (perso, 20211231)
+- [ ] Filet de Bœuf en croûte (perso, 20190518)
+- [ ] Note sans titre — marieclaire.fr (web, 20210801)
+- [ ] Note sans titre (perso, 20210801)
+- [ ] Cuisine Indienne — chalindia.blogspot.com (web, 20210411)
+- [ ] Jette un œil à ceci... 👀 — pin.it (web, 20210221)
+- [ ] Écrasé de patate douce, rougail de crabe aux épices douces, volute sablée - Marie Claire — marieclaire.fr (web, 20210221)
+- [ ] Quand on n’aime pas un dessin | DTBLOG — didierterrassonblog.wordpress.com (web, 20210106)
+- [ ] Note sans titre (perso, 20201220)
+- [ ] Note sans titre (perso, 20201213)
+- [ ] Note sans titre (perso, 20201208)
+- [ ] Note sans titre (perso, 20150905)
+
+## Captures web incomplètes — 4 (rechargées depuis leur URL à l'extraction, rien à faire)
+- Recette magret de canard au jus de pomme et au miel - Marie Claire — marieclaire.fr
+- Recette magret de canard rôti, chou rouge façon alsacienne - Marie Claire — marieclaire.fr
+- Recette Brioche De Menton Lenotre — fr.calameo.com
+- Recette végétarienne indienne Dal Makhani - Blog de cuisine indienne/végétarienne en vidéo — pankaj-blog.com
+
+## Recettes perso retenues — 1
+- Crêpe Sarrazin (20241017)
+
+## Scans (photos seules) — 49 : passeront par l'extraction photo (OCR), photos déjà dans Evernote/photos/
+- Scanner 23 juil. 2022 à 20.48 (20220723, 1 photo)
+- Note sans titre (20220723, 1 photo)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- 1196945.pdf (20201208, 1 photo)
+- Scanner 3 juin 2021 à 21.54 (20210603, 1 photo)
+- Scanner 3 juin 2021 à 21.49 (20210603, 1 photo)
+- Scanner 3 juin 2021 à 21.46 (20210603, 1 photo)
+- Scanner 16 mai 2021 à 17.47 (20210603, 1 photo)
+- 1193089 (20210501, 1 photo)
+- Saumon fumé, asperges blanches (20210501, 1 photo)
+- Note sans titre (20201029, 3 photos)
+- Note sans titre (20201029, 3 photos)
+- Eight-Treasure Duckling (20201029, 3 photos)
+- Poulet aux noix de cajou (20201029, 3 photos)
+- Poulet en feuilles de lotus (20201029, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Soupe garbure aux choux (20180421, 1 photo)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 2 photos)
+- Note (20200601, 3 photos)
+- Note (20200601, 1 photo)
+- A ras de roussette (20191127, 2 photos)
+- Soupe garbure aux choux (20180421, 2 photos)

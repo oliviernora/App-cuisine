@@ -36,6 +36,8 @@ create table shopping (
   manual boolean not null default false,
   qty numeric, -- quantité à acheter (null = non précisée)
   unit text not null default '',
+  origin text not null default 'reappro', -- 'reappro' ou 'semaine' (synchronisé depuis les repas)
+  available boolean not null default false, -- « je l'ai déjà » : à ne pas acheter
   created_at timestamptz not null default now()
 );
 
@@ -111,6 +113,7 @@ create table recipes (
   notes text not null default '',
   steps text not null default '', -- texte de la recette (étapes)
   servings int, -- « pour N personnes » (null = inconnu, pas de mise à l'échelle)
+  country text not null default '', -- pays d'origine (recherche)
   created_at timestamptz not null default now()
 );
 create table recipe_ingredients (
@@ -157,6 +160,8 @@ create table event_recipes (
   household_id uuid not null references households(id) on delete cascade,
   event_id uuid not null references events(id) on delete cascade,
   recipe_id uuid not null references recipes(id) on delete cascade,
+  scale_pct int not null default 100, -- ajustement % pour cet événement
+  qty_overrides jsonb not null default '{}', -- quantités corrigées à la main { nom: qty }
   primary key (event_id, recipe_id)
 );
 alter table events enable row level security;
@@ -175,6 +180,7 @@ create table ingredient_refs (
   name text not null,
   aliases text[] not null default '{}',
   rejected text[] not null default '{}',
+  category text not null default '', -- catégorie de rangement (master list)
   created_at timestamptz not null default now(),
   unique (household_id, name)
 );

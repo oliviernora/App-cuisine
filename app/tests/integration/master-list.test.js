@@ -14,7 +14,7 @@ import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, addEvent, attachRecipe, importPassard, saveRecipeDetails,
   weekNeeds, sameIngredient, canonicalName, pendingMerges, confirmMerge,
-  rejectMerge, knownNames
+  rejectMerge, knownNames, masterList, setIngredientCategory
 } from '../../src/lib/store.svelte.js'
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -87,6 +87,20 @@ describe('Master list — doublons proposés puis confirmés', () => {
     const needs = weekNeeds()
     expect(needs).toHaveLength(1)
     expect(needs[0].count).toBe(2)
+  })
+
+  test('catégories : ranger un ingrédient, les non classés restent visibles', async () => {
+    await addItem({ name: 'Citron', qty: 1, min: 0, loc: 'Cuisine', store: '' })
+    await addItem({ name: 'Cumin', qty: 1, min: 0, loc: 'Cuisine', store: '' })
+
+    await setIngredientCategory('Cumin', 'Épices')
+
+    const liste = masterList()
+    expect(liste.find(i => i.name === 'Cumin').category).toBe('Épices')
+    expect(liste.find(i => i.name === 'Citron').category).toBe('') // non classé, toujours listé
+    // la catégorie vit sur l'entrée canonique : un alias la partage
+    await confirmMerge('Cumin', 'cumins')
+    expect(masterList().find(i => i.name === 'Cumin').category).toBe('Épices')
   })
 
   test('la liste des noms connus sert l\'autocomplétion sans doublon de graphie', async () => {
