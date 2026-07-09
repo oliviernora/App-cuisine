@@ -36,6 +36,10 @@
 }
 
 * { box-sizing: border-box; }
+/* Rien ne dépasse jamais de l'écran à droite ou à gauche (iPhone : pas de
+ * balayage horizontal de la page) : les débordements se replient ou défilent
+ * DANS leur bloc, jamais au niveau de la page. */
+html, body { overflow-x: hidden; }
 body {
   margin: 0;
   background: var(--bg);
@@ -59,21 +63,66 @@ h1 small { font-weight: 400; color: var(--muted); font-size: 0.72em; }
 
 .tabs { display: flex; gap: 6px; }
 .tabs button {
-  flex: 1; padding: 7px 6px; font-size: 0.92rem;
+  flex: 1; min-width: 0; padding: 7px 6px; font-size: 0.92rem;
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--muted);
   font: inherit; font-weight: 600; cursor: pointer;
 }
 .tabs button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tabs button svg { display: none; }
 .tabs button .count {
   display: inline-block; min-width: 1.4em; margin-left: 6px; padding: 0 4px;
   border-radius: 999px; background: var(--warn); color: #fff;
   font-size: 0.75rem; line-height: 1.4;
 }
+/* Écrans étroits (iPhone) : les onglets collapsent en MENU DÉROULANT
+ * (décision Olivier 07/07/2026), avec « Foyer et compte » dans le menu.
+ * La rangée tient toujours sur la largeur de l'écran. */
+.tabmenu { display: none; position: relative; }
+.tabmenu-btn {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; font: inherit; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink);
+}
+.tabmenu-btn svg, .tabmenu-list svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.tabmenu-btn .chev { margin-left: auto; color: var(--muted); }
+.tabmenu-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  overflow: hidden;
+}
+.tabmenu-list button {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  padding: 11px 14px; font: inherit; font-weight: 600; cursor: pointer;
+  border: none; border-bottom: 1px solid var(--line);
+  background: none; color: var(--muted);
+}
+.tabmenu-list button:last-child { border-bottom: none; }
+.tabmenu-list button.active { color: var(--accent-ink); background: var(--accent); }
+.tabmenu-list .tabmenu-foyer { border-top: 2px solid var(--line); }
+.tabmenu .count {
+  display: inline-block; min-width: 1.4em; padding: 0 4px;
+  border-radius: 999px; background: var(--warn); color: #fff;
+  font-size: 0.75rem; line-height: 1.4; text-align: center;
+}
+@media (max-width: 560px) {
+  .tabs { display: none; }
+  .titlebar .account-btn { display: none; }
+  .tabmenu { display: block; }
+}
 
 .filters { display: flex; flex-direction: column; gap: 8px; padding: 12px 0 4px; }
-.searchrow { display: flex; gap: 6px; }
+.searchrow { display: flex; flex-wrap: wrap; gap: 6px; }
 .sortsel { display: flex; flex: 0 0 auto; }
+/* filtre par genre d'ingrédient (Stock) : borné, replie sous la recherche si étroit */
+.genre-filter {
+  flex: 0 1 140px; min-width: 0; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 0.83rem;
+}
 .sortsel button {
   padding: 8px 10px; font-size: 0.83rem; cursor: pointer;
   border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-family: inherit;
@@ -82,7 +131,7 @@ h1 small { font-weight: 400; color: var(--muted); font-size: 0.72em; }
 .sortsel button:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
 .sortsel button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 #search {
-  flex: 1; padding: 8px 12px;
+  flex: 1; min-width: 0; padding: 8px 12px;
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--ink); font: inherit;
 }
@@ -170,7 +219,7 @@ li.row, .loc-item .row {
 .mic.listening { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
 .hint { width: 100%; margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
 
-.toolbar { display: flex; justify-content: flex-end; margin-top: 16px; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; margin-top: 16px; }
 .toolbar button {
   padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--accent);
@@ -251,19 +300,64 @@ li.row, .loc-item .row {
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); color: var(--muted); font: inherit; font-weight: 600;
 }
+/* bouton-fichier (photos de recettes) : un label qui ouvre l'appareil photo / le sélecteur */
+.file-btn {
+  display: inline-block; padding: 7px 14px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--muted); font-weight: 600;
+}
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-thumb { position: relative; margin: 0; }
+.photo-thumb img {
+  height: 110px; max-width: 160px; object-fit: cover;
+  border-radius: var(--radius); display: block;
+}
+.photo-thumb figcaption { font-size: 12px; color: var(--muted); text-align: center; }
+.photo-del {
+  position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;
+  border: none; border-radius: 50%; cursor: pointer;
+  background: rgba(0, 0, 0, .55); color: #fff; font-size: 15px; line-height: 1;
+}
+/* emplacements datés (N7) : détail des lots sous la ligne du produit */
+.lot-panel {
+  padding: 8px 12px; margin: 0 0 6px;
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  background: var(--surface);
+}
+.lot-panel .manage-row { margin-top: 6px; }
+/* wish list (N11) */
+.chip-on { border-color: var(--accent); color: var(--accent); }
+.wish-star { color: var(--accent); }
+.hard-note { color: var(--accent); font-size: 13px; }
 .manage-panel {
   display: flex; flex-direction: column; gap: 14px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 12px 14px; margin: 6px 0 10px;
 }
 .manage-panel p { margin: 0 0 6px; font-size: 0.85rem; color: var(--muted); }
-.manage-row { display: flex; gap: 6px; }
-.manage-row input {
+.manage-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.manage-row input, .manage-row select {
   flex: 1; min-width: 0; padding: 8px 10px;
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--bg); color: var(--ink); font: inherit;
 }
+.filters-toggle { flex: 0 0 auto; white-space: nowrap; }
 .manage-items { max-height: 40vh; overflow-y: auto; margin-bottom: 8px; }
+/* rappel de sauvegarde (> 7 jours) : point orange sur le bouton Foyer */
+.account-btn { position: relative; }
+.backup-dot {
+  position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
+  border-radius: 999px; background: var(--warn); border: 2px solid var(--bg);
+}
+.manage-items li.manage-row { padding: 5px 4px; border-bottom: 1px solid var(--line); }
+/* master list : ligne ingrédient = bouton-nom dépliant + genre (jamais plus large que 45 %) */
+.ml-name { flex: 1; min-width: 0; width: auto; }
+.ml-name .name { display: block; }
+.ml-genre {
+  flex: 0 1 45%; min-width: 0; max-width: 45%;
+  padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--bg); color: var(--ink); font: inherit; font-size: 0.85rem;
+}
 .manage-msg { display: block; padding: 6px 2px; }
 .manage-panel .danger-btn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
 

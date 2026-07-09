@@ -3,6 +3,12 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // Horodatage de construction, affiché dans le panneau Foyer : permet de
+  // vérifier d'un coup d'œil quelle version tourne sur un appareil.
+  define: {
+    __BUILD__: JSON.stringify(new Intl.DateTimeFormat('fr-FR',
+      { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' }).format(new Date()))
+  },
   plugins: [
     svelte(),
     VitePWA({

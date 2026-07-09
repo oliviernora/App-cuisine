@@ -7,11 +7,15 @@ let counter = 0
 export const tables = {
   items: [], shopping: [], households: [], household_members: [], locations: [],
   sources: [], recipes: [], realisations: [], events: [], event_recipes: [],
-  recipe_ingredients: [], ingredient_refs: []
+  recipe_ingredients: [], ingredient_refs: [], ingredient_categories: [], recipe_photos: [], item_lots: []
 }
+
+/** Fichiers du bucket « photos » : chemin → contenu envoyé. */
+export const storageFiles = new Map()
 
 export function resetFake() {
   for (const key of Object.keys(tables)) tables[key].length = 0
+  storageFiles.clear()
   counter = 0
 }
 
@@ -38,7 +42,9 @@ function from(table) {
     insert(payload) {
       const defaults = table === 'shopping' ? { done: false, manual: false, origin: 'reappro', available: false, qty: null, unit: '' }
         : table === 'items' ? { dismissed: false }
-        : table === 'event_recipes' ? { scale_pct: 100, qty_overrides: {} } : {}
+        : table === 'event_recipes' ? { scale_pct: 100, qty_overrides: {} }
+        : table === 'ingredient_categories' ? { sourcing: '', sourcing_note: '' }
+        : table === 'ingredient_refs' ? { sourcing: '', sourcing_note: '', category: '' } : {}
       const inserted = (Array.isArray(payload) ? payload : [payload])
         .map(r => ({ id: 'row-' + ++counter, created_at: 'T' + counter, ...defaults, ...r }))
       rows.push(...inserted)
@@ -56,6 +62,7 @@ function from(table) {
       const filters = []
       const chain = {
         eq(col, val) { filters.push(r => r[col] === val); return chain },
+        in(col, vals) { filters.push(r => vals.includes(r[col])); return chain },
         then(resolve, reject) {
           rows.filter(r => filters.every(f => f(r))).forEach(r => Object.assign(r, values))
           return Promise.resolve({ data: null, error: null }).then(resolve, reject)
@@ -86,6 +93,19 @@ export const fakeSupabase = {
   from,
   channel: () => channel,
   removeChannel() {},
+  storage: {
+    from: () => ({
+      upload: (path, blob) => {
+        storageFiles.set(path, blob)
+        return Promise.resolve({ data: { path }, error: null })
+      },
+      createSignedUrl: path => Promise.resolve({ data: { signedUrl: 'signed://' + path }, error: null }),
+      remove: paths => {
+        for (const p of paths) storageFiles.delete(p)
+        return Promise.resolve({ data: null, error: null })
+      }
+    })
+  },
   auth: {
     getSession: () => Promise.resolve({ data: { session: { user: { id: 'user-test' } } } }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),

@@ -42,6 +42,7 @@ for (const f of readdirSync(join(OUT, 'fiches')).filter(f => f.endsWith('.json')
       source: SOURCES[dom] ?? dom,
       capturedOn: `${n.created.slice(0, 4)}-${n.created.slice(4, 6)}-${n.created.slice(6, 8)}`,
       servings: fiche.servings ?? null,
+      category: fiche.category ?? '',
       ingredients: fiche.ingredients,
       steps: fiche.steps,
       photos: existsSync(join(OUT, 'photos', fiche.id))
@@ -69,8 +70,8 @@ for (const f of fiches) {
   lignes.push(
     `-- ${f.title}`,
     'with h as (select id from households limit 1),',
-    `r as (insert into recipes (household_id, source_id, title, url, servings, steps)`,
-    `  select h.id, (select id from sources where title = ${q(f.source)}), ${q(f.title)}, ${q(f.url)}, ${f.servings ?? 'null'}, ${q(f.steps)}`,
+    `r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)`,
+    `  select h.id, (select id from sources where title = ${q(f.source)}), ${q(f.title)}, ${q(f.url)}, ${f.servings ?? 'null'}, ${q(f.steps)}, ${q(f.category)}`,
     `  from h where not exists (select 1 from recipes where ${clefUrl})`,
     '  returning id, household_id)',
     'insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)',

@@ -84,10 +84,27 @@ create table locations (
   household_id uuid not null references households(id) on delete cascade,
   name text not null,
   last_inventory_at timestamptz,
+  dated boolean not null default false, -- « à dates » : chaque entrée forme un lot daté (N7)
+  stale_months int not null default 6, -- ancienneté (mois) déclenchant le rappel des lots dans la Semaine (N10)
   unique (household_id, name)
 );
 alter table locations enable row level security;
 create policy "emplacements du foyer" on locations
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Lots datés (N7) : dans un emplacement « à dates », le stock d'un produit
+-- est fait de lots (n produits identiques entrés à la même date).
+-- items.qty reste le total ; les lots portent le détail des dates.
+create table item_lots (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  item_id uuid not null references items(id) on delete cascade,
+  qty int not null default 1,
+  entered_on date not null default current_date,
+  created_at timestamptz not null default now()
+);
+alter table item_lots enable row level security;
+create policy "lots du foyer" on item_lots
   for all using (is_member(household_id)) with check (is_member(household_id));
 
 -- Recettes (étape 4, incrément 1) : sources, recettes, réalisations.
@@ -114,6 +131,8 @@ create table recipes (
   steps text not null default '', -- texte de la recette (étapes)
   servings int, -- « pour N personnes » (null = inconnu, pas de mise à l'échelle)
   country text not null default '', -- pays d'origine (recherche)
+  category text not null default '', -- catégorie (« Boissons »… ; vide = plat)
+  wishlist boolean not null default false, -- wish list « à faire un jour » (N11)
   created_at timestamptz not null default now()
 );
 create table recipe_ingredients (
@@ -123,7 +142,11 @@ create table recipe_ingredients (
   position int not null default 0,
   qty numeric,
   unit text not null default '',
-  name text not null
+  name text not null, -- l'ingrédient générique (« beurre salé »), sans qualificatif
+  hard boolean not null default false, -- difficile à sourcer, à commander à l'avance (N11)
+  note text not null default '', -- descriptif de la recette (« fondu », « pommade »…)
+  optional boolean not null default false, -- ingrédient facultatif
+  qty_raw text not null default '' -- saisie d'origine de la quantité (« ½ ») pour l'affichage
 );
 alter table recipe_ingredients enable row level security;
 create policy "ingredients de recettes du foyer" on recipe_ingredients
@@ -180,13 +203,56 @@ create table ingredient_refs (
   name text not null,
   aliases text[] not null default '{}',
   rejected text[] not null default '{}',
-  category text not null default '', -- catégorie de rangement (master list)
+  category text not null default '', -- genre de rangement (master list)
+  sourcing text not null default '', -- marché | internet | boutique ('' = hérite du genre)
+  sourcing_note text not null default '', -- URL, nom du marché…
   created_at timestamptz not null default now(),
   unique (household_id, name)
 );
 alter table ingredient_refs enable row level security;
 create policy "référentiel du foyer" on ingredient_refs
   for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Genres d'ingrédients (master list des genres, commentaires Olivier 08/07) :
+-- une entrée par genre, avec le sourcing par défaut du genre.
+create table ingredient_categories (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  name text not null,
+  sourcing text not null default '', -- marché | internet | boutique | '' (non précisé)
+  sourcing_note text not null default '', -- URL, nom du marché…
+  created_at timestamptz not null default now(),
+  unique (household_id, name)
+);
+alter table ingredient_categories enable row level security;
+create policy "genres du foyer" on ingredient_categories
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Photos de recettes (N8, étape 4 incrément 2) : plat (liée à une
+-- réalisation si consignée avec) ou page du livre (copie privée du foyer).
+-- Le fichier vit dans le bucket privé « photos », chemin <foyer>/<recette>/<uuid>.jpg.
+create table recipe_photos (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  recipe_id uuid not null references recipes(id) on delete cascade,
+  realisation_id uuid references realisations(id) on delete set null,
+  kind text not null default 'plat', -- plat | page
+  path text not null, -- chemin dans le bucket « photos »
+  created_at timestamptz not null default now()
+);
+alter table recipe_photos enable row level security;
+create policy "photos de recettes du foyer" on recipe_photos
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Bucket privé « photos » : accès réservé au foyer dont l'id ouvre le chemin.
+insert into storage.buckets (id, name, public) values ('photos', 'photos', false)
+on conflict (id) do nothing;
+create policy "photos du foyer — lecture" on storage.objects for select to authenticated
+  using (bucket_id = 'photos' and is_member(((storage.foldername(name))[1])::uuid));
+create policy "photos du foyer — ajout" on storage.objects for insert to authenticated
+  with check (bucket_id = 'photos' and is_member(((storage.foldername(name))[1])::uuid));
+create policy "photos du foyer — suppression" on storage.objects for delete to authenticated
+  using (bucket_id = 'photos' and is_member(((storage.foldername(name))[1])::uuid));
 
 -- Synchronisation temps réel entre appareils.
 alter publication supabase_realtime add table items;

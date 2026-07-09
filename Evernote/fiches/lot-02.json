@@ -1,0 +1,693 @@
+[
+ {
+  "id": "024-recette-salade-de-pates-aux-asperges-saumon-laque-au-sirop-d",
+  "title": "Salade de pâtes aux asperges, saumon laqué au sirop d'érable et pain d'épices",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "botte",
+    "name": "asperges vertes"
+   },
+   {
+    "qty": 100,
+    "unit": "g",
+    "name": "pâtes « avoines »"
+   },
+   {
+    "qty": 400,
+    "unit": "g",
+    "name": "pavés de saumon"
+   },
+   {
+    "qty": 20,
+    "unit": "g",
+    "name": "beurre"
+   },
+   {
+    "qty": 4,
+    "unit": "c. à s.",
+    "name": "sirop d'érable"
+   },
+   {
+    "qty": 2,
+    "unit": "tranches",
+    "name": "pain d'épices"
+   },
+   {
+    "qty": 4,
+    "unit": "c. à s.",
+    "name": "huile d'olive"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "vinaigre de xérès"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   }
+  ],
+  "steps": "Retirer le pied des asperges, les cuire 7-8 min à la vapeur puis les plonger dans l'eau glacée pour stopper la cuisson. Cuire les pâtes al dente selon le paquet, égoutter. Rincer et sécher les pavés de saumon, les couper en cubes. Faire fondre le beurre en poêle, ajouter le sirop d'érable et les cubes de saumon, cuire 3-4 min à feu vif (dorés dehors, rosés dedans). Couper le pain d'épices en dés, le dorer 4-5 min sous le gril du four. Émulsionner huile d'olive, vinaigre de xérès, sel et poivre pour la vinaigrette. Mélanger tous les ingrédients de la salade, arroser de vinaigrette, servir aussitôt. Astuce : quelques copeaux de parmesan en plus pour la gourmandise. (Marie Claire, recette de Sophie Dupuis-Gaulier — préparation 10 min, cuisson 18 min.)"
+ },
+ {
+  "id": "029-recette-magret-de-canard-au-jus-de-pomme-et-au-miel-marie-cl",
+  "title": "Magret de canard au jus de pomme et au miel",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "magrets de canard"
+   },
+   {
+    "qty": 65,
+    "unit": "cl",
+    "name": "pur jus de pomme"
+   },
+   {
+    "qty": 1,
+    "unit": "c. à s.",
+    "name": "miel de châtaignier"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "fleur de sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre du moulin"
+   }
+  ],
+  "steps": "12 h avant, chauffer le jus de pomme avec le miel, 1 c. à c. de fleur de sel, du poivre et 45 cl d'eau, sans atteindre l'ébullition. Inciser la peau des magrets, les colorer côté peau 3 min en poêle, puis les mettre dans la sauteuse et cuire à feu doux 10 min en les retournant une fois. Réserver les magrets, laisser tiédir le jus de cuisson, y remettre les magrets, couvrir de film et mariner 12 h au réfrigérateur. Sortir les magrets, faire réduire leur jus des 2/3 à feu vif en écumant pour obtenir une sauce onctueuse. Pendant ce temps, remettre les magrets côté peau en poêle 3 min à feu vif (peau croustillante), puis retourner 3 min à feu moyen. Trancher, napper de sauce, servir aussitôt avec du riz rouge (ou des quartiers de pomme citronnés revenus au beurre pour une version sans féculent). Sur une idée de Fumiko Kono. (Marie Claire, recette d'Irène Karsenty — préparation 15 min, cuisson 30 min, marinade 12 h ; ingrédients récupérés sur la page d'origine, la capture Evernote étant incomplète.)"
+ },
+ {
+  "id": "030-recette-magret-de-canard-roti-chou-rouge-facon-alsacienne-ma",
+  "title": "Magret de canard rôti, chou rouge façon alsacienne",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "magrets de canard"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "chou rouge"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "pommes"
+   },
+   {
+    "qty": 100,
+    "unit": "g",
+    "name": "lardons"
+   },
+   {
+    "qty": 200,
+    "unit": "g",
+    "name": "cassis (surgelés ou au sirop)"
+   },
+   {
+    "qty": 300,
+    "unit": "g",
+    "name": "marrons (sous vide ou en boîte)"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "gelée de cassis"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "gros oignon"
+   },
+   {
+    "qty": 10,
+    "unit": "cl",
+    "name": "vinaigre de vin"
+   },
+   {
+    "qty": 1,
+    "unit": "c. à s.",
+    "name": "sucre"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   }
+  ],
+  "steps": "Émincer le chou rouge en fines lanières, le mélanger avec le sucre, le vinaigre et un peu de sel, réserver. Émincer l'oignon, couper les pommes en quartiers. Dorer les lardons à feu doux en cocotte, ajouter pommes et oignon, cuire 5 min. Ajouter le chou, saler, poivrer, mouiller de 75 cl d'eau bouillante et laisser mijoter 1 h. Quadriller le gras des magrets, les saisir côté peau 8 min en poêle, jeter le gras rendu, retourner et poursuivre 4 min, saler, poivrer, réserver au chaud sous papier alu. Ajouter dans la cocotte le cassis, la gelée et les marrons égouttés, cuire encore 10 min à feu moyen. Trancher les magrets, dresser avec le chou, napper de sauce au cassis. Astuce : laisser reposer le magret sous papier alu quelques minutes après cuisson pour plus de tendreté. (Marie Claire, recette d'Irène Karsenty et Pascale Mosnier — préparation 20 min, cuisson 1 h 20 ; ingrédients récupérés sur la page d'origine, la capture Evernote étant incomplète.)"
+ },
+ {
+  "id": "031-recette-magrets-de-canard-aux-echalotes-marie-claire",
+  "title": "Magrets de canard aux échalotes",
+  "servings": 6,
+  "ingredients": [
+   {
+    "qty": 3,
+    "unit": "",
+    "name": "magrets de canard"
+   },
+   {
+    "qty": 12,
+    "unit": "",
+    "name": "échalotes"
+   },
+   {
+    "qty": 6,
+    "unit": "c. à s.",
+    "name": "vinaigre balsamique"
+   },
+   {
+    "qty": 1,
+    "unit": "kg",
+    "name": "pommes de terre bintje"
+   },
+   {
+    "qty": 3,
+    "unit": "c. à s.",
+    "name": "huile d'olive"
+   },
+   {
+    "qty": 6,
+    "unit": "brins",
+    "name": "ciboulette"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   }
+  ],
+  "steps": "Éplucher et cuire les pommes de terre en gros morceaux 20 min à la vapeur. Chauffer une poêle à fond épais, entailler le gras des magrets en croisillons, saler, poivrer, saisir côté peau 10 min à feu vif. Couper les échalotes en deux dans la longueur ; sortir la viande, vider l'excès de graisse, reposer les magrets côté chair, ajouter les échalotes et poursuivre 10 min. Écraser les pommes de terre avec l'huile et la ciboulette ciselée, réserver au chaud. Réserver les magrets couverts de papier alu ; déglacer la poêle avec 3 c. à s. d'eau et le vinaigre en grattant les sucs, réduire 5 min. Trancher les magrets, napper de sauce aux échalotes, servir avec l'écrasée de pomme de terre façonnée en quenelles. Astuce : peut aussi se servir avec du riz pour gagner du temps. (Marie Claire, recette de Solveig Darrigo-Dartinet et Pascale Mosnier — préparation 25 min, cuisson 20 min.)"
+ },
+ {
+  "id": "032-recette-magret-de-canard-facon-mendiants-marie-claire",
+  "title": "Magret de canard façon mendiants",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "magrets de canard"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "poires"
+   },
+   {
+    "qty": null,
+    "unit": "brins",
+    "name": "cerfeuil"
+   },
+   {
+    "qty": 30,
+    "unit": "g",
+    "name": "beurre"
+   },
+   {
+    "qty": 50,
+    "unit": "g",
+    "name": "raisins secs"
+   },
+   {
+    "qty": 50,
+    "unit": "g",
+    "name": "abricots secs"
+   },
+   {
+    "qty": 50,
+    "unit": "g",
+    "name": "pruneaux"
+   },
+   {
+    "qty": 30,
+    "unit": "g",
+    "name": "noisettes"
+   },
+   {
+    "qty": 30,
+    "unit": "g",
+    "name": "amandes non mondées"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "sucre en poudre"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "miel liquide"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "sauce Worcestershire"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   }
+  ],
+  "steps": "Faire gonfler pruneaux et raisins secs 5 min dans l'eau chaude, égoutter ; couper pruneaux et abricots en dés. Griller amandes et noisettes à sec 3 min en remuant, saupoudrer de sucre et caraméliser 1 min ; mélanger tous les fruits secs. Quadriller la peau des magrets, les saisir côté peau 5 min à feu vif, jeter la graisse, retourner et poursuivre 4 min selon la cuisson désirée. Réserver sous papier alu 5 min. Dans la même poêle, faire revenir au beurre à feu doux les quartiers de poire, déglacer avec la sauce Worcestershire et le miel, laisser épaissir 3 min. Trancher un demi-magret par personne, saler, poivrer, couvrir de fruits secs, servir avec la sauce et les poires poêlées, décorer de cerfeuil. (Marie Claire, recette de Sophie Menut-Yovanovitch — préparation 20 min, cuisson 20 min.)"
+ },
+ {
+  "id": "033-recette-rougail-de-saucisses-aux-lentilles-marie-claire",
+  "title": "Rougail de saucisses aux lentilles",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 8,
+    "unit": "",
+    "name": "chipolatas aux herbes"
+   },
+   {
+    "qty": 350,
+    "unit": "g",
+    "name": "lentilles vertes du Puy"
+   },
+   {
+    "qty": 4,
+    "unit": "",
+    "name": "oignons"
+   },
+   {
+    "qty": 2,
+    "unit": "gousses",
+    "name": "ail"
+   },
+   {
+    "qty": 1,
+    "unit": "boîte",
+    "name": "tomates concassées (1/2 format)"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "huile d'olive"
+   },
+   {
+    "qty": 1,
+    "unit": "c. à c.",
+    "name": "gingembre en poudre"
+   },
+   {
+    "qty": 1,
+    "unit": "feuille",
+    "name": "laurier"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "piment oiseau"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "clou de girofle"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   }
+  ],
+  "steps": "Mettre les lentilles dans une grande casserole avec un oignon coupé en 8, la moitié du gingembre, le laurier et le clou de girofle ; couvrir largement d'eau froide, porter à ébullition. Baisser pour un frémissement, ajouter les saucisses et cuire 10 min. Égoutter les saucisses, poursuivre la cuisson des lentilles 25 min ; hacher les autres oignons et l'ail, couper les saucisses en tronçons. Chauffer l'huile en cocotte, fondre l'ail et l'oignon, ajouter les saucisses et dorer. Verser les tomates, assaisonner avec le reste de gingembre et le piment, laisser sur feu doux. Une fois les lentilles cuites, les égoutter et les ajouter à la cocotte, saler, mouiller d'une louche de bouillon de cuisson, mijoter 5 min et servir bien chaud. Astuce : le piment oiseau se trouve en grande surface ou sur internet. (Marie Claire, recette de Pascale Mosnier — préparation 15 min, cuisson 40 min.)"
+ },
+ {
+  "id": "034-recette-quiche-aux-lardons-a-la-choucroute-et-au-comte-marie",
+  "title": "Quiche aux lardons, à la choucroute et au comté",
+  "servings": 6,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "rouleau",
+    "name": "pâte brisée"
+   },
+   {
+    "qty": 250,
+    "unit": "g",
+    "name": "choucroute cuite"
+   },
+   {
+    "qty": 200,
+    "unit": "g",
+    "name": "comté"
+   },
+   {
+    "qty": 150,
+    "unit": "g",
+    "name": "lardons fumés"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "œufs"
+   },
+   {
+    "qty": 20,
+    "unit": "cl",
+    "name": "crème liquide"
+   },
+   {
+    "qty": 10,
+    "unit": "cl",
+    "name": "lait"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   }
+  ],
+  "steps": "Préchauffer le four à 180 °C (th. 6). Dérouler la pâte dans un moule à tarte, tapisser le fond de choucroute. Faire sauter les lardons à sec quelques minutes, égoutter, répartir sur la choucroute. Émincer finement le comté (au robot idéalement). Fouetter les œufs avec la crème et le lait, saler légèrement (le lard sale déjà), poivrer généreusement. Verser sur la quiche, incliner le moule pour bien répartir le liquide. Couvrir de comté, cuire environ 35 min au four jusqu'à belle coloration et pâte croustillante ; servir très chaud. (Marie Claire, recette de Pascale Mosnier — préparation 20 min, cuisson 40 min.)"
+ },
+ {
+  "id": "035-coco-de-paimpol-a-la-tomate-herbes-et-curcuma",
+  "title": "Coco de Paimpol à la tomate, herbes et curcuma",
+  "servings": null,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "kg",
+    "name": "haricots coco de Paimpol à écosser (480 g écossés)"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "huile d'olive"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "oignon"
+   },
+   {
+    "qty": 2,
+    "unit": "gousses",
+    "name": "ail"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "tomates"
+   },
+   {
+    "qty": 1,
+    "unit": "brin",
+    "name": "céleri branche"
+   },
+   {
+    "qty": 1,
+    "unit": "pincée",
+    "name": "curcuma"
+   },
+   {
+    "qty": 3,
+    "unit": "brins",
+    "name": "thym"
+   },
+   {
+    "qty": 2,
+    "unit": "feuilles",
+    "name": "laurier"
+   },
+   {
+    "qty": 70,
+    "unit": "cl",
+    "name": "eau"
+   },
+   {
+    "qty": 1,
+    "unit": "pincée",
+    "name": "sel"
+   }
+  ],
+  "steps": "Écosser et rincer les haricots coco de Paimpol. Peler et couper en dés oignon et ail ; peler et couper en dés les tomates ; éplucher et ciseler le céleri branche. Chauffer l'huile d'olive en cocotte, faire revenir ail, oignon et céleri 5 min, ajouter tomates, thym, laurier et curcuma, laisser compoter 5 min. Ajouter les cocos égouttés et mouiller avec 70 cl d'eau. Porter à ébullition et cuire 30 min à frémissement (décompte à partir de l'ébullition), puis saler et poursuivre 10 min. Servir par exemple avec un filet de cabillaud vapeur. Variante suggérée par des lecteurs : ajouter poivron vert et rouge, mouiller en partie avec un bouillon de poule, remplacer le curcuma par du piment d'Espelette ; se fait aussi avec des haricots tarbais, soissons ou coco selon la région. (Papilles et Pupilles, recette d'Anne — pour 3 à 4 personnes selon l'appétit, cuisson environ 40 min.)"
+ },
+ {
+  "id": "037-chacun-son-assiette-trois-recettes-special-distanciation-phy",
+  "title": "Saint-Jacques présentées dans leur coquille (Bruno Verjus)",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 8,
+    "unit": "",
+    "name": "grosses coquilles Saint-Jacques"
+   },
+   {
+    "qty": 8,
+    "unit": "",
+    "name": "noix de beurre cru demi-sel"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "orange"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "aromates au choix (laurier, thym, verveine, sauge)"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "ficelle à lier"
+   }
+  ],
+  "steps": "Faire ouvrir et nettoyer les grosses Saint-Jacques bien vivantes chez le poissonnier, en conservant les deux valves, la noix et le corail éventuel. Glisser la noix (et son corail) dans la valve creuse, ajouter une noix de beurre, quelques gouttes de jus d'orange et une feuille d'aromate au choix. Refermer la coquille en réunissant les deux valves et les lier avec de la ficelle. Enfourner 4 min à 200 °C et servir aussitôt, avec du bon pain pour saucer le beurre. (Le Monde, recette de Bruno Verjus — cuisson 4 min.)"
+ },
+ {
+  "id": "037-chacun-son-assiette-trois-recettes-special-distanciation-phy",
+  "title": "Œuf poché à la truffe en croûte de sel (Fred Ménager)",
+  "servings": 4,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "potimarron de taille moyenne"
+   },
+   {
+    "qty": 4,
+    "unit": "",
+    "name": "œufs bio"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "truffe fraîche"
+   },
+   {
+    "qty": 100,
+    "unit": "g",
+    "name": "beurre"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sauge"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "fleurs de souci ou autres (déco)"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "échalotes"
+   },
+   {
+    "qty": 2,
+    "unit": "gousses",
+    "name": "ail"
+   },
+   {
+    "qty": 2,
+    "unit": "c. à s.",
+    "name": "vinaigre blanc"
+   },
+   {
+    "qty": 1,
+    "unit": "l",
+    "name": "eau"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "fleur de sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "huile d'olive"
+   }
+  ],
+  "steps": "Couper le potimarron en dés de 2 cm avec la peau. Émincer ail et échalote épluchés, les suer au beurre, ajouter le potimarron et remuer 5 min. Mouiller à hauteur d'eau, cuire 30 min à feu doux (rajouter de l'eau si besoin), puis mixer avec une feuille de sauge, saler et poivrer. Porter à ébullition 1 l d'eau avec le vinaigre, retirer du feu, casser les œufs un à un et laisser pocher 4 min hors du feu. Déposer un peu de crème de potimarron chaude au fond de l'assiette, égoutter les œufs et les poser dessus. Couper la truffe, la rouler dans l'huile d'olive et la fleur de sel, la poser sur l'œuf, ajouter pétales de fleurs et feuilles de sauge fraîche. (Le Monde, recette de Fred Ménager — cuisson environ 45 min au total.)"
+ },
+ {
+  "id": "037-chacun-son-assiette-trois-recettes-special-distanciation-phy",
+  "title": "Foie gras aux coques et au citron (Jonathan Schweizer)",
+  "servings": null,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "foie gras cru"
+   },
+   {
+    "qty": 500,
+    "unit": "g",
+    "name": "coques (pêche à pied si possible)"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "citron cédrat"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "pomme"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "oignon"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "huile d'olive"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "vinaigre de cidre"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "fleur de sel"
+   }
+  ],
+  "steps": "Éveiner le foie gras et reconstituer le lobe, assaisonner de fleur de sel (un peu de calvados en option). Poser sur une plaque et cuire 45 min à 60 °C. Une fois cuit, dégager le foie de son gras, l'envelopper serré dans du papier film, laisser refroidir et réserver. (Le Monde, recette de Jonathan Schweizer — cuisson 45 min à 60 °C ; suite de la recette — coques, pomme, oignon, assemblage — non capturée, article réservé aux abonnés.)"
+ },
+ {
+  "id": "054-recette-filet-de-b-uf-et-champignons-en-croute-briochee-mari",
+  "title": "Filet de bœuf et champignons en croûte briochée",
+  "servings": 6,
+  "ingredients": [
+   {
+    "qty": 1,
+    "unit": "kg",
+    "name": "filet de bœuf non bardé non ficelé"
+   },
+   {
+    "qty": 1,
+    "unit": "c. à s.",
+    "name": "huile"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "sel"
+   },
+   {
+    "qty": null,
+    "unit": "",
+    "name": "poivre"
+   },
+   {
+    "qty": 2,
+    "unit": "",
+    "name": "œufs"
+   },
+   {
+    "qty": 1,
+    "unit": "",
+    "name": "jaune d'œuf"
+   },
+   {
+    "qty": 250,
+    "unit": "g",
+    "name": "farine"
+   },
+   {
+    "qty": 0.5,
+    "unit": "sachet",
+    "name": "levure de boulanger"
+   },
+   {
+    "qty": 50,
+    "unit": "g",
+    "name": "beurre fondu"
+   },
+   {
+    "qty": 15,
+    "unit": "g",
+    "name": "sucre"
+   },
+   {
+    "qty": 10,
+    "unit": "cl",
+    "name": "lait"
+   },
+   {
+    "qty": 750,
+    "unit": "g",
+    "name": "champignons de Paris"
+   },
+   {
+    "qty": 3,
+    "unit": "",
+    "name": "échalotes"
+   },
+   {
+    "qty": 20,
+    "unit": "g",
+    "name": "beurre"
+   }
+  ],
+  "steps": "Émietter la levure dans le lait tiédi. Dans une jatte, verser la farine, faire un puits avec les œufs entiers, la levure délayée, le sucre, le beurre fondu et une pincée de sel ; travailler jusqu'à obtenir une pâte élastique, la fariner et la laisser lever 2 h à température ambiante (idéalement vers 40 °C, sur un radiateur en hiver). Retirer les pieds des champignons, couper les têtes en tout petits dés. Peler et hacher les échalotes, les fondre 2 min au beurre, ajouter les champignons, saler, poivrer et cuire 15 min à feu doux (duxelles). Colorer le filet de bœuf à l'huile à feu vif en cocotte, égoutter et laisser refroidir. Préchauffer le four à 210 °C (th. 7). Étaler la pâte en rectangle sur une plaque, la tartiner de duxelles, poser la viande au centre, saler, poivrer, rabattre la pâte sur la viande et souder les bords en pinçant. Badigeonner de jaune d'œuf, percer quelques petits trous pour laisser échapper la vapeur. Enfourner 30 min, laisser reposer 10 min four éteint porte ouverte avant de servir. (Marie Claire, recette d'Irène Karsenty avec Mathilde Joannès — préparation 35 min, cuisson 45 min, repos 2 h 10.)"
+ }
+]

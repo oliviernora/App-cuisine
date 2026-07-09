@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory } from '../lib/store.svelte.js'
+  import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory, lotAdjustments } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { MINUS, PLUS, MIC } from '../lib/icons.js'
 
@@ -22,6 +22,8 @@
     .filter(i => !search || fold(i.name).includes(fold(search))))
   const seenItems = $derived(locItems.filter(i => store.inv.seen[i.id] !== undefined))
   const notFound = $derived(locItems.filter(i => store.inv.seen[i.id] === undefined))
+  /* Emplacement « à dates » : ajustements de lots à confirmer au bilan (N2 × N7). */
+  const lotAdjs = $derived(lotAdjustments())
 
   /* Ambiguïté (demande Olivier 07/07) : « carvi » peut correspondre à carvi,
    * carvi noir, carvi noir entier… → un menu de choix, jamais de pari. */
@@ -109,6 +111,19 @@
         </ul>
       {:else}
         <p>Tout a été trouvé.</p>
+      {/if}
+      {#if lotAdjs.length}
+        <p>Emplacement « à dates » — ajustement des lots au comptage :</p>
+        <ul>
+          {#each lotAdjs as adj (adj.name)}
+            <li class="row">
+              <span class="name">{adj.name}</span>
+              <span class="note">{adj.sortis
+                ? `− ${adj.sortis} des lots les plus anciens`
+                : `+ ${adj.sansDate} « sans date » (à dater dans le détail du stock)`}</span>
+            </li>
+          {/each}
+        </ul>
       {/if}
       <button class="submit" disabled={busy} onclick={terminer}>C'est exact — appliquer l'inventaire</button>
       <button class="submit secondary" disabled={busy} onclick={() => bilan = false}>Continuer l'inventaire</button>

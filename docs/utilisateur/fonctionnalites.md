@@ -15,6 +15,10 @@ bout en bout) : voir `cas-utilisation.md`.
   automatiquement dans la liste de courses.
 - Tout est partagé en temps réel entre les appareils du foyer : un pot décompté
   sur l'iPhone apparaît aussitôt sur l'iPad et le PC.
+- **Sur petit écran (iPhone)**, les onglets du haut collapsent en **menu
+  déroulant** : le bouton montre la section courante, l'ouvrir liste Stock,
+  Courses (avec la pastille), Recettes, Semaine, Inventaire et « Foyer et
+  compte ». Rien ne dépasse jamais de l'écran à droite ou à gauche.
 
 ## Onglet Stock
 
@@ -43,6 +47,28 @@ y a été ajoutée volontairement (panier) ou déjà cochée.
 Supprimer un produit lié depuis la liste de courses a le même effet qu'un
 retrait par le panier.
 
+### Emplacements « à dates » (congélateur, cave…)
+
+Si l'emplacement du produit est marqué « à dates » (réglage dans le panneau
+« Gérer » de l'onglet Inventaire), chaque entrée forme un **lot daté** :
+- **+** entre un lot d'un produit daté du jour ; **−** sort du **lot le plus
+  ancien** (proposé d'abord).
+- Une **flèche ▸** sur la ligne déplie le détail : les lots avec leur date en
+  toutes lettres (« 2 × entrés le 1 mai 2026 »), un bouton « Sortir 1 » par
+  lot (pour désigner un autre lot que le proposé), et un petit formulaire
+  **quantité + date** pour entrer un lot à une autre date (la caisse de 6
+  bouteilles, la côte congelée la semaine dernière).
+- Au quotidien la ligne montre le **total simple** (« 3 »), comme partout.
+- Les produits présents avant le suivi apparaissent « n sans date » dans le
+  détail.
+- **L'inventaire ajuste les lots** : compter moins que les lots sort du plus
+  ancien d'abord ; compter plus laisse l'excédent « sans date », à dater
+  ensuite dans le détail. Le bilan de fin d'inventaire annonce ces
+  ajustements **avant** application.
+- Les lots plus vieux que le **seuil de l'emplacement** (6 mois par défaut,
+  réglable dans « Gérer ») sont rappelés dans l'onglet Semaine, bloc
+  « **À utiliser** ».
+
 ### Tri du stock
 
 Deux vues, au choix à droite de la recherche : **Emplacement** (groupes par
@@ -65,6 +91,9 @@ iPhone/iPad fonctionne aussi dans chaque champ.
 ### Recherche et filtres
 
 - La recherche ignore les accents (« epice » trouve « Épices »).
+- Un déroulant « **Tous genres** » (dès qu'un genre existe) restreint la
+  liste au **genre d'ingrédient** choisi (Épices, Légumes… — les genres de
+  la master list).
 - Les chips filtrent par emplacement, chacune a sa couleur.
 - Tri alphabétique dans chaque emplacement, emplacements dans un ordre fixe.
   Une ligne modifiée ne change jamais de place.
@@ -90,10 +119,24 @@ propose de choisir — ou de créer un nouveau produit. Jamais de pari.
 ### Master list des ingrédients
 
 Une ligne dépliante « Master list des ingrédients » montre **tous** les
-ingrédients connus (stock + recettes), rangés par **catégorie** (Épices,
-Légumes, Viandes… — libres, avec suggestions), les **non classés en tête**.
-Taper une catégorie sur une ligne la range ; un filtre aide à naviguer.
-La catégorie vit sur l'ingrédient canonique : ses alias la partagent.
+ingrédients connus (stock + recettes), rangés par **genre** (Épices,
+Légumes, Viandes…), les **non classés en tête**. Pendant qu'elle est
+ouverte, la section Emplacements s'efface (elle revient en refermant).
+- Le genre de chaque ligne se choisit dans un **menu déroulant** ; il vit
+  sur l'ingrédient canonique (ses alias le partagent).
+- « **Gérer les genres** » ouvre la master list des genres : créer,
+  **renommer** (un nom existant fusionne et reclasse les ingrédients),
+  supprimer (les ingrédients redeviennent non classés), et régler le
+  **sourcing par défaut** du genre — type (marché / internet / boutique) et
+  commentaire (nom du marché, site…).
+- **Toucher le nom d'un ingrédient** ouvre sa fiche : le **renommer**
+  (« beurre demi-sel » → « beurre salé » : le stock et les courses suivent,
+  l'ancien nom devient un alias, un nom déjà connu **fusionne** — confirmé
+  en deux touches), régler son **sourcing** propre (vide = celui du genre),
+  et voir la **liste des recettes** qui l'utilisent.
+- Le **sourcing alimente les courses** : quand un produit part en liste,
+  son magasin est prérempli (commentaire du sourcing, sinon le type) — sans
+  écraser un magasin déjà choisi sur le produit.
 
 ### Ingrédients à rapprocher (master list)
 
@@ -107,6 +150,11 @@ jamais. Rien n'est jamais fusionné sans votre accord.
 ### Gérer un emplacement (bouton « Gérer »)
 
 Un panneau se déplie sous l'emplacement :
+- **Emplacement « à dates »** : une case à cocher active le suivi par lots
+  datés (congélateur, cave…) — voir « Emplacements à dates » de l'onglet
+  Stock. La mention « à dates » apparaît sur la ligne de l'emplacement.
+  En dessous, le **seuil de rappel** (« n mois avant rappel “à utiliser”
+  dans la Semaine », 6 par défaut) se règle par emplacement.
 - **Renommer** : nouveau nom libre ; un nom déjà existant **fusionne** les
   deux emplacements (confirmation en deux touches) — les produits se
   réunissent, les doublons regroupent leurs pots, la date d'inventaire de la
@@ -169,11 +217,24 @@ Il disparaît une fois rangé.
   le texte de la recette — « safran » trouve la bouillabaisse, « inde
   lentilles » trouve les dals. La même recherche sert dans l'onglet Semaine
   pour associer une recette à un événement.
-- **Filtre par source** : un **menu déroulant** (« Toutes les sources »,
-  « Alain Passard »…), cumulable avec la recherche.
-- **Filtre par ingrédient** : un champ dédié qui **suggère les ingrédients
-  connus au fil de la frappe** et réduit la liste aux recettes qui le
-  contiennent. Présent aussi dans la « Recherche avancée » de la Semaine.
+- **Bouton « ▸ Filtres (n) »** à côté de la recherche : les filtres
+  particuliers vivent dans un **panneau dépliant** refermable (bouton
+  « Refermer — voir les recettes ») ; « (n) » rappelle combien de filtres
+  sont actifs même panneau fermé. Dedans :
+  - **Filtre par source** : un menu déroulant (« Toutes les sources »,
+    « Alain Passard »…), cumulable avec la recherche.
+  - **Filtre par catégorie** : un déroulant « Toutes les catégories »
+    apparaît dès qu'au moins une recette a une catégorie (« Boissons » pour
+    les jus…). La catégorie se règle dans l'éditeur de la fiche (vide =
+    plat) et compte dans la recherche multicritère.
+  - **★ Wish list** : montre les recettes « à faire un jour » (étoile sur
+    la ligne). Sur la fiche, « ☆ Ajouter à la wish list » / « ★ Dans la
+    wish list — retirer ». Le beau produit du marché se retrouve en
+    cumulant ★ Wish list et « Par ingrédient » (« turbot »).
+  - **Filtre par ingrédient** : un champ qui **suggère les ingrédients
+    connus au fil de la frappe** et réduit la liste aux recettes qui le
+    contiennent. Présent aussi dans la « Recherche avancée » de la Semaine.
+  - **Gérer les sources** (voir plus bas).
 - **Gérer les sources** : renommer (un nom existant **fusionne** les deux),
   créer une source (livre, site) — la liste reste courte et maîtrisée. Le
   choix de la source et le pays d'origine se règlent dans l'éditeur de la
@@ -184,9 +245,23 @@ Il disparaît une fois rangé.
   (date du jour proposée, commentaire facultatif).
 - « Ajouter/Modifier ingrédients et recette » : les ingrédients se saisissent
   un par ligne (« 500 g asperges vertes ») — quantité, unité et nom sont
-  compris automatiquement ; le texte de la recette est libre. Le champ
+  compris automatiquement ; un « **!** » en tête de ligne marque l'ingrédient
+  **difficile à sourcer** (« ! 20 g morilles ») : la fiche l'affiche « à
+  commander à l'avance ». Les **fractions** sont comprises (« ½ canard »,
+  « 1/2 poulet », « 1 ½ l de lait ») : les calculs utilisent la valeur
+  décimale, la fiche réaffiche **comme saisi**. Après une **virgule**, le
+  descriptif propre à la recette (« 20 g beurre, fondu » — l'ingrédient
+  générique reste « beurre ») ; « **(facultatif)** » en fin de ligne marque
+  l'ingrédient facultatif. Le texte de la recette est libre. Le champ
   « **Pour N personnes** » sert au calcul des quantités de la semaine.
-  (La photo viendra dans un prochain incrément.)
+- **Photos** : sur la fiche, « Ajouter la photo du plat » et « Photo de la
+  recette (page du livre) » ouvrent l'appareil photo (ou le sélecteur de
+  fichier). Les vignettes s'affichent sur la fiche (× pour supprimer, avec
+  confirmation). Le formulaire « J'ai fait cette recette » accepte aussi une
+  **photo du plat**, liée à cette réalisation. Les images sont compressées
+  sur l'appareil avant l'envoi et stockées dans un espace **privé du foyer**
+  (copie privée — jamais public). Limite actuelle : les photos ne sont pas
+  encore consultables hors ligne.
 - État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
   (série Le Point, dont 91 avec article et 5 déjà cuisinées).
 - Limite actuelle : les recettes ne se synchronisent pas en temps réel entre
@@ -235,6 +310,11 @@ Il disparaît une fois rangé.
   corrigées ligne à ligne ne valent que **pour cet événement** (0 = retour
   au calcul). Les unités compatibles s'additionnent (500 g + 1 kg = 1,5 kg) ;
   jamais de conversion hasardeuse.
+- **À utiliser (déroulant)** : sous les courses de la semaine, un bloc
+  rappelle les **lots anciens** des emplacements « à dates » (congélateur,
+  cave…) — produit, quantité, date d'entrée (année comprise) et emplacement.
+  Un lot y figure passé le seuil de son emplacement (6 mois par défaut,
+  réglable dans Inventaire → Gérer).
 - À venir : planning des tournées selon vos créneaux.
 
 ## Foyer et comptes
@@ -243,8 +323,19 @@ Il disparaît une fois rangé.
   stock et courses.
 - L'icône silhouettes en haut à droite ouvre le **panneau Foyer** : code
   d'invitation à transmettre (l'invité crée son compte puis « Rejoindre ce
-  foyer ») et déconnexion. Principe : les écrans quotidiens restent libres
-  des actions exceptionnelles.
+  foyer »), **sauvegarde des données** et déconnexion. Principe : les écrans
+  quotidiens restent libres des actions exceptionnelles.
+- **Sauvegarde** : « Exporter les données (fichier JSON) » télécharge
+  l'ensemble des données du foyer (stock, courses, recettes, semaine,
+  master list… — hors fichiers photos), à ranger sur OneDrive. Quand la
+  dernière sauvegarde de l'appareil date de **plus de 7 jours**, un point
+  orange sur l'icône Foyer le rappelle discrètement.
+- **Restauration** : « Restaurer une sauvegarde » recharge un fichier
+  exporté et **remplace toutes les données du foyer** (décision Olivier
+  09/07/2026 : remplacement complet, pas de fusion). Garde-fous : l'état
+  actuel est d'abord exporté automatiquement, puis une confirmation
+  récapitule la date de la sauvegarde et son contenu. Un fichier étranger,
+  tronqué ou d'une autre version est refusé sans rien toucher.
 
 ## Application installable (PWA) et hors ligne
 

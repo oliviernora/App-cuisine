@@ -1,6 +1,7 @@
 <script>
   import { store, addEvent, removeEvent, updateEvent, attachRecipe, detachRecipe, addRealisation, lastMade,
-    weekNeeds, formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride, searchRecipes, knownNames } from '../lib/store.svelte.js'
+    weekNeeds, formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride, searchRecipes, knownNames,
+    staleLots } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { TRASH } from '../lib/icons.js'
 
@@ -29,6 +30,13 @@
       .toSorted((a, b) => b.day.localeCompare(a.day) || a.created_at.localeCompare(b.created_at))
     return [...Map.groupBy(sorted, e => e.day)]
   })
+
+  /* Rappel des lots anciens à utiliser (N7 → N10, décision Olivier 08/07). */
+  let vieuxOpen = $state(false)
+  const vieux = $derived(staleLots())
+  function lotDate(d) {
+    return new Date(d + 'T00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
 
   let editEvent = $state(null)
   let editFields = $state({})
@@ -169,14 +177,45 @@
     </div>
   {/if}
 
+  {#if vieux.length}
+    <div class="loc-item">
+      <button type="button" class="row rowbtn-full" onclick={() => vieuxOpen = !vieuxOpen}
+        aria-expanded={vieuxOpen}>
+        <div class="info">
+          <span class="name">{vieuxOpen ? '▾' : '▸'} À utiliser</span>
+          <span class="note recent-warn">{vieux.length} lot(s) ancien(s) au congélateur ou en réserve</span>
+        </div>
+      </button>
+      {#if vieuxOpen}
+        <ul>
+          {#each vieux as v (v.lot.id)}
+            <li class="row">
+              <span class="name">{v.item.name}</span>
+              <span class="note">{v.lot.qty} × entré le {lotDate(v.lot.entered_on)} · {v.loc}</span>
+            </li>
+          {/each}
+        </ul>
+        <p class="note">Le seuil se règle par emplacement, dans l'onglet Inventaire → Gérer.</p>
+      {/if}
+    </div>
+  {/if}
+
   {#snippet editPanel(event)}
-    <div class="manage-block">
+    <div class="manage-panel">
       <div class="manage-row">
         <input type="date" bind:value={editFields.day} aria-label="Jour" class="f-qty" style="flex: 0 1 140px">
         <span class="note" style="align-self: center">{dayLabel(editFields.day)}</span>
+      </div>
+      <div class="manage-row">
         <input bind:value={editFields.title} list="event-types" placeholder="Type d'événement" aria-label="Type">
-        <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={editFields.guests} aria-label="Convives">
+      </div>
+      <div class="manage-row">
+        <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={editFields.guests}
+          aria-label="Convives" style="flex: 0 1 90px">
+        <span class="note" style="align-self: center">convives</span>
         <input bind:value={editFields.contraintes} placeholder="Contraintes" aria-label="Contraintes">
+      </div>
+      <div class="manage-row">
         <button type="button" class="inv-start" disabled={busy} onclick={() => saveEventEdit(event)}>Enregistrer</button>
         <button type="button" class="inv-manage" onclick={() => editEvent = null}>Annuler</button>
       </div>

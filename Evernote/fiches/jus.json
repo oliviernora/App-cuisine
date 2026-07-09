@@ -1,0 +1,116 @@
+[
+ {
+  "id": "014-jus",
+  "title": "Jus céleri, laitue, épinards, pomme verte",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "céleri" },
+   { "qty": null, "unit": "", "name": "laitue" },
+   { "qty": null, "unit": "", "name": "épinards" },
+   { "qty": null, "unit": "", "name": "pomme verte" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus céleri, haricots verts, poire, persil",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "céleri" },
+   { "qty": null, "unit": "", "name": "haricots verts" },
+   { "qty": null, "unit": "", "name": "poire" },
+   { "qty": null, "unit": "", "name": "persil" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus chou de Bruxelles, laitue, pomme",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "chou de Bruxelles" },
+   { "qty": null, "unit": "", "name": "laitue" },
+   { "qty": null, "unit": "", "name": "pomme" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus fenouil, pomme verte, citron, coriandre",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "fenouil" },
+   { "qty": null, "unit": "", "name": "pomme verte" },
+   { "qty": null, "unit": "", "name": "citron" },
+   { "qty": null, "unit": "", "name": "coriandre" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus fenouil, concombre, céleri, orange, muscade",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "fenouil" },
+   { "qty": null, "unit": "", "name": "concombre" },
+   { "qty": null, "unit": "", "name": "céleri" },
+   { "qty": null, "unit": "", "name": "orange" },
+   { "qty": null, "unit": "", "name": "muscade" }
+  ],
+  "steps": "Passer fenouil, concombre, céleri et orange à l'extracteur de jus. Râper un peu de muscade au moment de servir."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus concombre, céleri, laitue, pomme verte",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "concombre" },
+   { "qty": null, "unit": "", "name": "céleri" },
+   { "qty": null, "unit": "", "name": "laitue" },
+   { "qty": null, "unit": "", "name": "pomme verte" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus kiwi, pomme, sauge",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "kiwi" },
+   { "qty": null, "unit": "", "name": "pomme" },
+   { "qty": null, "unit": "", "name": "sauge" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus. Boire frais."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus de dattes fraîches",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "dattes fraîches" }
+  ],
+  "steps": "Passer les dattes fraîches dénoyautées à l'extracteur de jus."
+ },
+ {
+  "id": "014-jus",
+  "title": "Jus betterave, pomme, citron vert, carotte, gingembre",
+  "servings": null,
+  "category": "Boissons",
+  "ingredients": [
+   { "qty": null, "unit": "", "name": "betterave" },
+   { "qty": null, "unit": "", "name": "pomme" },
+   { "qty": null, "unit": "", "name": "citron vert" },
+   { "qty": null, "unit": "", "name": "carotte" },
+   { "qty": null, "unit": "", "name": "gingembre" }
+  ],
+  "steps": "Passer tous les ingrédients à l'extracteur de jus (la note d'origine indique « pomme/citron vert/carotte » : doser au goût, éventuellement l'un des trois seulement). Boire frais."
+ }
+]

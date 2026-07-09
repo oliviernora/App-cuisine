@@ -107,7 +107,7 @@ Règles métier centrales (implémentées dans `store.svelte.js`) :
 | Accessibilité | focus visible, contrastes 4.5:1, aria-labels, reduced motion | fait |
 | Langue | interface 100 % français | fait |
 | Coût de fonctionnement | 0 €/mois (offres gratuites) ; quelques €/mois acceptés à terme | fait |
-| Sauvegarde | sauvegarde régulière des données (spécification) | **à faire** — voir exploitation.md |
+| Sauvegarde | sauvegarde régulière des données (spécification) | **livré 09/07/2026** : export JSON (panneau Foyer) + rappel à 7 jours + restauration (remplacement complet du foyer, export auto préalable) — voir exploitation.md |
 | Réversibilité hébergement | migration possible vers un VPS OVH (Supabase auto-hébergé) | prévu, sans réécriture |
 
 ## Décisions techniques (résumé)

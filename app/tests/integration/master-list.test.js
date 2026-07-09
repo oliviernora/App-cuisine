@@ -25,7 +25,7 @@ beforeEach(async () => {
   store.items = []; store.shop = []
   store.sources = []; store.recipes = []; store.realisations = []
   store.events = []; store.eventRecipes = []; store.ingredients = []
-  store.refs = []
+  store.refs = []; store.categories = []
   store.schemaWarning = false
   await importPassard()
 })
@@ -101,6 +101,22 @@ describe('Master list — doublons proposés puis confirmés', () => {
     // la catégorie vit sur l'entrée canonique : un alias la partage
     await confirmMerge('Cumin', 'cumins')
     expect(masterList().find(i => i.name === 'Cumin').category).toBe('Épices')
+  })
+
+  test('fusion de deux noms ayant CHACUN leur fiche : une seule fiche survit', async () => {
+    await addItem({ name: 'épinard', qty: 1, min: 0, loc: 'Cuisine', store: '' })
+    await addItem({ name: 'épinards', qty: 1, min: 0, loc: 'Frigo', store: '' })
+    await setIngredientCategory('épinard', 'Légumes')
+    await setIngredientCategory('épinards', '')
+    expect(store.refs).toHaveLength(2)
+
+    await confirmMerge('épinards', 'épinard')
+
+    expect(store.refs).toHaveLength(1)
+    expect(tables.ingredient_refs).toHaveLength(1)
+    expect(sameIngredient('épinard', 'épinards')).toBe(true)
+    // la catégorie survit à l'absorption, quel que soit le sens de la fusion
+    expect(masterList().find(i => i.name.startsWith('épinard')).category).toBe('Légumes')
   })
 
   test('la liste des noms connus sert l\'autocomplétion sans doublon de graphie', async () => {

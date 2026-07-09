@@ -38,6 +38,22 @@ test('recherche par ingrédient, pays, mot du texte et source', () => {
   expect(searchRecipes('')).toHaveLength(store.recipes.length)
 })
 
+test('catégorie de recette (« Boissons ») : enregistrée, cherchable, filtrable', async () => {
+  const { tables } = await import('../helpers/fake-supabase.js')
+  const recipe = store.recipes[1]
+  await saveRecipeDetails(recipe, 'céleri\npomme verte', 'Passer à l\'extracteur de jus.',
+    null, '', 'Boissons')
+
+  expect(recipe.category).toBe('Boissons')
+  expect(tables.recipes.find(r => r.id === recipe.id).category).toBe('Boissons')
+  expect(searchRecipes('boissons')).toContain(recipe)          // la catégorie est cherchable
+  expect(searchRecipes('boissons')).not.toContain(store.recipes[2])
+
+  // le filtre de l'onglet Recettes repose sur r.category : une recette sans
+  // catégorie reste un plat (catégorie vide)
+  expect(store.recipes[2].category ?? '').toBe('')
+})
+
 test('sources gérées : renommer, fusionner, créer', async () => {
   const src = store.sources[0]
   await renameSource(src, 'Passard (Le Point)')

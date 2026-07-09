@@ -9,6 +9,7 @@
 | [`utilisateur/design-guide.md`](utilisateur/design-guide.md) | L'identité visuelle « Marché » et les règles UX | **valider** les évolutions |
 | [`utilisateur/creneaux-courses.md`](utilisateur/creneaux-courses.md) | Vos marchés, magasins et délais de commande | **à remplir par vous** |
 | [`utilisateur/exploitation.md`](utilisateur/exploitation.md) | Lancer l'application, comptes, sauvegardes, dépannage | consulter au besoin |
+| [`utilisateur/mise-en-ligne.md`](utilisateur/mise-en-ligne.md) | L'app en ligne : adresse, installation iPhone/iPad, publier une mise à jour | **installer sur vos appareils** |
 | [`../claude.md`](../claude.md) | Spécification générale (vos objectifs) | la source de tout |
 | [`../plan.md`](../plan.md) | Plan d'action, avancement, décisions | suivre l'avancement |
 

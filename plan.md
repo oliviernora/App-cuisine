@@ -1,21 +1,122 @@
 # Plan d'action — App cuisine
 
-## Reprise rapide (état au 07/07/2026 au soir)
+## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
+### L'essentiel
+- **L'app est EN LIGNE : https://garde-manger-chi.vercel.app** (étape 7
+  faite le 07/07 au soir, avancée à la demande d'Olivier). Dernière version
+  publiée : « 7 juil. 2026, 20:35 » — l'horodatage est visible dans
+  l'app, menu → Foyer et compte. Publication et dépannage :
+  `docs/utilisateur/exploitation.md` (section « Publier une mise à jour »).
 - L'app (Vite+Svelte 5+Supabase, dossier `app/`, `npm run dev` ou
-  `demarrer.cmd`) couvre : stock+voix, courses automatiques (réappro + repas
-  de la semaine + achats libres, bascule « je l'ai »), 118 recettes
-  (recherche multicritère, sources gérées, « pour N personnes », pays),
-  semaine À venir/Passés (Modifier, Fait, ajustements % et quantités PAR
-  recette et PAR événement), inventaires pausables, master list des
-  ingrédients (alias + catégories).
-- Vérifs avant toute livraison : `npm test` (63 verts) + `npm run
-  check:schema` (13 tables) + parcours réel navigateur (cahier M1-M25).
-- EN ATTENTE d'Olivier : pays d'origine (proposition faite), tri Evernote
-  (21 douteuses dans `Evernote/tri.md`), décision NP4, créneaux courses.
-- Chantier de fond : import Evernote lots 2-24 (~290 fiches) — pipeline et
-  état dans `Evernote/README.md` et la section « Import Evernote » ci-dessous.
-- Prochaine étape suggérée : photos (étape 4, incrément 2, Supabase Storage).
+  `demarrer.cmd` — attention un serveur peut déjà tourner sur 5173) couvre :
+  stock+voix, courses automatiques (réappro + repas + achats libres,
+  bascule « je l'ai »), 127 recettes (recherche multicritère, filtres en
+  dépliant, sources gérées, « pour N personnes », pays, catégorie
+  « Boissons », wish list ★, photos plat/page, ingrédients « ! » difficiles
+  à sourcer), semaine À venir/Passés (ajustements % et quantités PAR
+  recette et PAR événement), inventaires pausables, master list (493/500
+  ingrédients catégorisés), emplacements « à dates » (lots, sortie du plus
+  ancien), responsive iPhone (menu déroulant des onglets).
+- **Méthode IMPÉRATIVE** : charger le skill `principes-dev` avant tout
+  développement. Vérifs avant livraison : `npm test` (96 verts + 1 todo
+  NP4) + `npm run check:schema` (14 tables OK) + parcours réel navigateur
+  (cahier M1-M38). Documentation À CHAQUE livraison (index docs/README.md).
+
+### Points chauds à vérifier en début de session
+- **Confirmation d'Olivier attendue** : le correctif responsive iPhone
+  (menu déroulant) est en production mais son iPhone montrait encore
+  l'ancienne version (cache du service worker). S'il voit encore l'ancienne
+  interface : suivre le dépannage iOS dans exploitation.md, et contrôler la
+  ligne « Version publiée le … ».
+- Installation iPhone/iPad écran d'accueil + tests M5 complet (mode avion)
+  et M6 : à faire par Olivier (guide `docs/utilisateur/mise-en-ligne.md`).
+
+### Comment travailler avec la vraie base et la prod (leçons du 07/07)
+- Migrations et données : SQL collé dans le SQL Editor du dashboard Supabase
+  (navigateur, session d'Olivier). TOUJOURS re-remplir le presse-papier
+  juste avant chaque collage (deux incidents de presse-papier écrasé) et
+  vérifier visuellement avant Ctrl+Entrée. Le dashboard gèle souvent :
+  ouvrir un onglet neuf.
+- Les actions de PRODUCTION (deploy Vercel `--prod`, premier collage d'une
+  migration) sont bloquées par le garde-fou : les faire lancer par Olivier
+  via `! commande` (déploiement : voir exploitation.md).
+- Le port 5173 est l'origine où la session navigateur d'Olivier est
+  connectée ; un vieux serveur de dev peut l'occuper (le tuer et relancer).
+- Onglet en arrière-plan : les setTimeout sont throttlés (~1/min) — piloter
+  le DOM en boucle synchrone pour les opérations en masse.
+
+### État de la base (réelle, PAS à jour — action Olivier)
+- **MIGRATION DU 08/07 EN ATTENTE** (`supabase/migration-en-attente.sql`) :
+  table ingredient_categories (genres + sourcing), sourcing sur
+  ingredient_refs, note/optional/qty_raw sur recipe_ingredients,
+  stale_months sur locations, réparation des « /2 … » Passard + SELECT de
+  contrôle des noms douteux. **À coller avant tout déploiement** : sans
+  elle, l'app livrée le 08/07 tourne en mode dégradé (bandeau migration,
+  recettes non chargées). Ensuite : check:schema attendu 15/15, passe
+  navigateur M30-M38 (M38 = restauration, à ne PAS tester avant la
+  migration), puis déploiement.
+- Migration du 07/07 soir appliquée (category/wishlist/hard, recipe_photos
+  + bucket privé « photos », locations.dated + item_lots).
+- 127 recettes (118 plats + 9 jus « Boissons ») ; pays : France 110,
+  Inde 2, Antilles 1, 5 sans pays ; 682+ lignes d'ingrédients ; master
+  list : 493 catégorisés, 7 artefacts non classés (« /2 … », « Aïe »,
+  « eau », « ficelle de cuisine »).
+
+### EN ATTENTE d'Olivier (relancer poliment)
+- Tri Evernote : 12 douteuses restantes — preview
+  `Evernote/preview-douteuses.html` (double-clic), cocher dans
+  `Evernote/tri.md`.
+- Décision NP4 (acheter plusieurs pots d'un coup) : (a) compteur sur la
+  ligne de courses, (b) question au « Ranger », ou (c) correction au stock.
+- Connecteur Google Calendar à réautoriser sur claude.ai (le calendrier
+  « marchés » est la référence des créneaux — décision 07/07).
+- « épinards ≈ épinard » à trancher dans Ingrédients à rapprocher
+  (la fusion absorbe maintenant proprement les deux fiches).
+
+### Livré le 08/07 (session commentaires + points 2, 3, 5) — EN ATTENTE DE MIGRATION + PASSE NAVIGATEUR
+- Commentaires d'Olivier (docs/utilisateur/Commentaires sur l'appli
+  actuelle.md) intégrés : master list sans la section Emplacements, genres
+  en menu déroulant + « Gérer les genres », fiche ingrédient (renommage
+  avec fusion, sourcing, recettes associées), descriptif « , fondu » +
+  « (facultatif) » sur les lignes de recette, fractions (½, 1/2, 1 ½)
+  réaffichées comme saisies, panneau Modifier d'un événement refait
+  (tenait pas sur iPhone), filtre par genre dans le Stock, sourcing
+  marché/internet/boutique (défaut par genre, affiné par ingrédient) qui
+  préremplit le magasin des courses, règle de largeur renforcée au design
+  guide. « Gérer les sources » existait déjà (Recettes → Filtres).
+- N7 terminé : inventaire des lots datés (ajustement auto + bilan, décision
+  Olivier), bloc « À utiliser » dans la Semaine (seuil 6 mois réglable par
+  emplacement, décision Olivier).
+- Sauvegardes : export JSON (panneau Foyer) + rappel 7 jours (point
+  orange). 90 tests + 1 todo, build OK. Docs à jour (fonctionnalités,
+  design guide, cahier M30-M37, suivi, architecture, exploitation).
+
+### Livré le 09/07 — EN ATTENTE DE MIGRATION + PASSE NAVIGATEUR
+- **Restauration des sauvegardes** (panneau Foyer → « Restaurer une
+  sauvegarde ») : remplacement complet des données du foyer, export
+  automatique de l'état actuel + confirmation avant d'écraser, fichier
+  étranger/tronqué refusé sans rien toucher (décisions Olivier 09/07).
+  M38 au cahier — à tester en réel APRÈS la migration du 08/07 seulement.
+  96 tests + 1 todo, build OK. Docs à jour.
+- **Evernote lot 2 extrait** (agent Sonnet) : 12 fiches
+  (`fiches/lot-02.json`), merge OK → 32 fiches dans import.sql. 3 notes
+  sans fiche (article conseils, liste d'idées sans quantités, capture
+  vide en 404) ; fiche « Foie gras aux coques » partielle (paywall
+  Le Monde, signalé dans la fiche). Lots 3-24 restants, même méthode.
+
+### Travail des prochaines sessions (ordre suggéré)
+1. **Import Evernote lots 3-24** — le chantier de fond ;
+   pipeline et état : `Evernote/README.md` + section « Import Evernote »
+   ci-dessous. Lot 1 et les 9 jus déjà en base ; lot 2 extrait le 09/07
+   (12 fiches, pas encore importé en base — l'import.sql regénéré contient
+   les 32 fiches). Dédoublonnage par URL, perso par titre+source ;
+   `category` traverse le pipeline. Instructions d'extraction pour un
+   agent Sonnet : `Evernote/instructions-extraction-lot.md` (validées par
+   Olivier — un agent par lot, plusieurs lots en parallèle possibles).
+2. **Extraction IA** (étape 4, incr. 3) : photo/PDF/URL → fiche à relire ;
+   demande la clé API Claude d'Olivier, de préférence via Edge Function.
+3. Quantités à l'ajout (N3/NP4 — décision toujours en attente).
 
 ## Décisions prises (06/07/2026)
 
@@ -67,11 +168,10 @@ Validé en cours de route :
 - Documentation tenue à jour à chaque livraison
 
 ### Actions en attente
-- (Plus aucune migration en attente : `recipe_ingredients` + `recipes.steps`
-  appliquée le 07/07/2026 au matin via le SQL Editor — `check:schema` 11/11.
-  La grande migration du 06/07 avait été appliquée le 06/07 au soir, tests
-  M11-M12 déroulés. La date de dernier inventaire s'enregistrera au prochain
-  inventaire réel.)
+- (Plus aucune migration en attente : la migration du 07/07 soir —
+  category/wishlist/hard, recipe_photos + bucket, locations.dated +
+  item_lots — a été appliquée le 07/07 au soir en session, avec
+  pays-prefill.sql et Evernote/import.sql ; check:schema 14/14.)
 - Incident du 06/07 découvert et réglé le 07/07 : l'import Passard avait tourné
   deux fois (onglet resté sur l'état « aucune recette »), 210 recettes au lieu de
   105. Doublon supprimé avec l'accord d'Olivier (aucune donnée saisie dessus),
@@ -108,8 +208,10 @@ Validé en cours de route :
   à partir de, à consommer avant) — probablement une extension des lots datés
 
 ### Étape 3 — Courses et planning (REPORTÉE après les étapes 4 et 5, décision Olivier 06/07/2026)
-- Fait : listes par magasin, réapprovisionnement automatique ; créneaux des marchés et
-  magasins consignés dans `docs/creneaux-courses.md`, fichier à enrichir par Olivier
+- Fait : listes par magasin, réapprovisionnement automatique ; créneaux :
+  la référence des marchés est le calendrier Google « marchés » d'Olivier
+  (décision 07/07) — à lire quand le connecteur Google Calendar sera
+  réautorisé ; magasins et commandes Internet dans `docs/creneaux-courses.md`
 - Décisions : planning déclenché à la demande d'Olivier ; Google Calendar branché plus tard
 - Ordre décidé par Olivier : d'abord les recettes (étape 4), puis le planning des recettes
   de la semaine (étape 5), et ENSUITE la planification des courses (N8/NP8, toujours en
@@ -193,6 +295,12 @@ Validé en cours de route :
   (19 doublons réels détectés du premier coup), rapprochement de la semaine
   (stock et courses) via le référentiel, autocomplétion des noms connus à la
   saisie du stock ; 5 tests d'intégration, vérifié en réel
+- Fait (07/07 soir, demande Olivier) : catégorisation en masse de la master
+  list — 491 ingrédients classés dans les 9 catégories suggérées (audit :
+  0 écart), 7 artefacts laissés non classés (« /2 … », « Aïe », « eau »,
+  « ficelle de cuisine » — à résorber avec le parseur de fractions) ;
+  correction `answerMerge` : fusionner deux noms ayant CHACUN leur fiche
+  absorbe la seconde (alias, refus, catégorie) au lieu de laisser un doublon
 - Fait (07/07, incrément 2) : « pour N personnes » sur la fiche recette ;
   besoin = quantité × convives ÷ N (facteur 1 si l'un des deux est inconnu),
   une même recette servie à deux événements compte deux fois ; ajustement
@@ -246,9 +354,11 @@ Validé en cours de route :
   les lignes semaine achetées en « je l'ai »
 - Ajustement des quantités PAR RECETTE ET PAR ÉVÉNEMENT (% + corrections
   ligne à ligne, mémorisés sur event_recipes)
-- EN ATTENTE (pays d'origine) : proposition de pré-remplissage soumise à
-  Olivier — France par défaut pour Passard et les recettes françaises,
-  Inde pour les dals, Antilles pour la salade de poulet créole
+- Pays d'origine : proposition VALIDÉE par Olivier le 07/07 (France par
+  défaut pour Passard et les recettes françaises, Inde pour les dals,
+  Antilles pour la salade de poulet créole) → `supabase/pays-prefill.sql`
+  (rejouable, ne touche que les recettes sans pays), à appliquer avec la
+  migration
 - Remarques d'Olivier (07/07 après-midi), livrées le jour même :
   bug du « clignotement » corrigé à la racine (quantités numeric renvoyées
   en texte → boucle de réécritures ; + verrou de réentrance + rechargement
@@ -271,6 +381,34 @@ Validé en cours de route :
   mal découpés (« /2 canard » : fractions ½ non gérées par
   parseIngredientLine) — corriger le parseur et re-remplir ces fiches
 
+### Lot du 07/07/2026 au soir (livré — code et tests ; parcours réels M26-M29 après migration)
+- **Catégorie de recette** : champ « Catégorie » sur la fiche (vide = plat),
+  déroulant de filtre dans Recettes, comptée dans la recherche multicritère.
+  Créée pour les Boissons (demande Olivier : les jus)
+- **Jus Evernote** : la fiche JUS (note perso 2023) → 9 recettes de jus à
+  l'extracteur (une par ligne, catégorie « Boissons », `Evernote/fiches/jus.json`),
+  fusionnées dans recettes-data.json et import.sql (pipeline : une note peut
+  produire plusieurs fiches ; le champ `category` traverse tout le pipeline).
+  La note du 05/09/2015 (cocktail gingembre-betterave) s'y ajoutera si cochée
+- **Preview des douteuses** : `Evernote/preview-douteuses.html` — les 12 notes
+  non tranchées avec texte, photos et suggestion (écarter / importer / jus)
+- **Photos (étape 4, incrément 2)** : photo du plat (seule ou consignée avec
+  une réalisation) et page du livre ; bucket privé « photos » (RLS par foyer,
+  chemin <foyer>/<recette>/), compression côté client (1600 px, JPEG),
+  vignettes avec suppression confirmée, URL signées. Reste : hors ligne
+- **Wish list (N11)** : ★ sur la fiche et en filtre, « ! » en tête de ligne
+  d'ingrédient = difficile à sourcer (« à commander à l'avance ») ; beau
+  produit = filtre ★ + « Par ingrédient »
+- **Emplacements datés (N7, incrément 1)** : case « à dates » dans Gérer
+  (Inventaire), lots datés (+ = lot du jour, formulaire quantité+date), sortie
+  du plus ancien proposée, total simple + détail dépliable, « n sans date »
+  pour l'existant. Reste : inventaire des lots, rappel congélateur dans la
+  Semaine (N10), alerte d'ancienneté
+- **Marchés (décision Olivier)** : le calendrier Google « marchés » est la
+  référence des créneaux ; lecture impossible le 07/07 (connecteur Google
+  Calendar à réautoriser sur claude.ai), consigné dans `creneaux-courses.md`
+- Tests : 75 verts + 1 todo ; 5 vérifications de schéma ajoutées (14 tables)
+
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),
   recettes associées avec alerte « déjà cuisinée il y a moins d'un an », consignation à
@@ -289,11 +427,27 @@ Validé en cours de route :
 - Produits de santé et d'entretien
 - Export/sauvegarde régulière des données
 
-### Étape 7 — Mise en ligne (en fin de projet, décision Olivier)
-- Hébergement (Vercel recommandé, compte à créer par Olivier ; OVH possible à terme)
-- Réglage de l'adresse dans Supabase (Site URL pour les emails)
-- Installation sur iPhone/iPad (écran d'accueil), premiers usages en mobilité
-  (inventaire à la voix, courses au marché), tests manuels M5 complet et M6
+### Étape 7 — Mise en ligne (FAITE le 07/07/2026, avancée à la demande d'Olivier)
+- EN LIGNE : **https://garde-manger-chi.vercel.app** (Vercel, projet
+  « garde-manger », compte créé et connecté par Olivier, offre gratuite)
+- Publication SANS build distant : `app/mettre-en-ligne.cmd` construit en
+  local puis publie `dist` (ce qui est testé = ce qui part) ; l'adresse ne
+  change pas d'une publication à l'autre
+- Supabase réglé : Site URL = production, `http://localhost:5173` en
+  redirection autorisée (les emails de confirmation/invitation pointent
+  vers la production ; l'ancienne valeur était le défaut localhost:3000)
+- Vérifié en ligne le 07/07 : page de connexion, service worker (PWA
+  installable), manifest, aucune erreur console ; clé embarquée =
+  publiable (RLS)
+- Responsive iPhone corrigé (07/07 soir, remarques Olivier) : sur écran
+  étroit les onglets **collapsent en menu déroulant** (avec « Foyer et
+  compte » dedans) et les filtres de recettes vivent dans un **dépliant
+  « Filtres (n) »** refermable ; plus aucun débordement horizontal
+  (balayage vérifié à 389 px sur les 5 onglets) — règles consignées dans le
+  design guide ; republication à faire
+- RESTE (Olivier, sur appareils) : installation écran d'accueil
+  iPhone/iPad et tests M5 complet (mode avion) et M6 — guide :
+  `docs/utilisateur/mise-en-ligne.md`
 
 ## Contraintes identifiées
 

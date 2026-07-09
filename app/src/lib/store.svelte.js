@@ -14,6 +14,7 @@ export const store = $state({
   items: [],
   shop: [],
   locations: [],
+  lots: [], // lots datés des emplacements « à dates » (N7)
   sources: [],
   recipes: [],
   realisations: [],
@@ -21,6 +22,8 @@ export const store = $state({
   eventRecipes: [],
   ingredients: [],
   refs: [],
+  categories: [], // genres d'ingrédients (master list des genres + sourcing par défaut)
+  photos: [],
   inv: null,
   recipesLoaded: false, // avant le chargement, la synchro des courses de la semaine ne tourne pas
   schemaWarning: false,
@@ -29,6 +32,7 @@ export const store = $state({
 
 let channel = null
 let refreshTimer = null
+let restoring = false
 
 const CACHE_KEY = 'gm-cache-v1'
 
@@ -107,20 +111,23 @@ async function startData() {
 }
 
 function scheduleRefresh() {
+  if (restoring) return // pas de synchro pendant qu'une restauration réécrit les tables
   clearTimeout(refreshTimer)
   refreshTimer = setTimeout(() => refresh().then(syncShop), 300)
 }
 
 async function refresh() {
   const hid = store.household.id
-  const [i, s, l] = await Promise.all([
+  const [i, s, l, lt] = await Promise.all([
     supabase.from('items').select().eq('household_id', hid).order('created_at'),
     supabase.from('shopping').select().eq('household_id', hid).order('created_at'),
-    supabase.from('locations').select().eq('household_id', hid)
+    supabase.from('locations').select().eq('household_id', hid),
+    supabase.from('item_lots').select().eq('household_id', hid)
   ])
   if (i.data) store.items = i.data
   if (s.data) store.shop = s.data
   if (l.data) store.locations = l.data
+  if (lt.data) store.lots = lt.data
   if (i.data && s.data) saveCache()
 }
 
@@ -155,7 +162,7 @@ export async function syncShop() {
   for (const it of store.items) {
     const entry = store.shop.find(s => s.item_id === it.id)
     if (it.qty <= it.min && !entry && !it.dismissed) {
-      inserts.push({ household_id: store.household.id, item_id: it.id, name: it.name, store: it.store || '', manual: false })
+      inserts.push({ household_id: store.household.id, item_id: it.id, name: it.name, store: it.store || sourcingStore(it.name), manual: false })
     } else if (it.qty > it.min && entry && !entry.done && !entry.manual) {
       store.shop = store.shop.filter(s => s !== entry)
       await supabase.from('shopping').delete().eq('id', entry.id)
@@ -192,6 +199,7 @@ export async function changeQty(item, delta) {
 export async function removeItem(item) {
   store.items = store.items.filter(i => i.id !== item.id)
   store.shop = store.shop.filter(s => s.item_id !== item.id)
+  store.lots = store.lots.filter(l => l.item_id !== item.id)
   await supabase.from('items').delete().eq('id', item.id)
 }
 
@@ -266,22 +274,96 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+/** Toutes les données du foyer, pour la sauvegarde en fichier JSON
+ * (exigence NFR — les fichiers photos, volumineux, ne sont pas inclus). */
+export function exportPayload() {
+  return {
+    app: 'garde-manger',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    household: store.household,
+    items: store.items,
+    shopping: store.shop,
+    locations: store.locations,
+    item_lots: store.lots,
+    sources: store.sources,
+    recipes: store.recipes,
+    recipe_ingredients: store.ingredients,
+    realisations: store.realisations,
+    events: store.events,
+    event_recipes: store.eventRecipes,
+    ingredient_refs: store.refs,
+    ingredient_categories: store.categories,
+    recipe_photos: store.photos
+  }
+}
+
+/* Restauration d'une sauvegarde (décision Olivier 09/07/2026) : remplacement
+ * complet des données du foyer par le contenu du fichier. Les identifiants du
+ * fichier sont conservés (les liens entre tables restent valides) ; seul
+ * household_id est réécrit vers le foyer courant. Le foyer lui-même (nom,
+ * membres) et les fichiers photos du bucket ne sont pas touchés. */
+
+// Ordre d'insertion : parents avant enfants (suppression en ordre inverse).
+const RESTORE_TABLES = ['locations', 'items', 'shopping', 'item_lots',
+  'sources', 'recipes', 'recipe_ingredients', 'realisations', 'events',
+  'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos']
+
+/** Vérifie qu'un fichier est bien une sauvegarde exploitable (sinon lève). */
+export function checkBackup(data) {
+  if (!data || data.app !== 'garde-manger' || data.version !== 1) {
+    throw new Error('ce fichier n’est pas une sauvegarde garde-manger (version 1 attendue).')
+  }
+  for (const table of RESTORE_TABLES) {
+    if (!Array.isArray(data[table])) throw new Error(`sauvegarde incomplète (« ${table} » absent).`)
+  }
+}
+
+/** Remplace toutes les données du foyer par celles de la sauvegarde.
+ * Rejouable : en cas d'échec en cours de route, relancer avec le même
+ * fichier repart d'un état propre (les suppressions viennent en premier). */
+export async function restoreBackup(data) {
+  checkBackup(data)
+  const hid = store.household.id
+  restoring = true
+  try {
+    for (const table of [...RESTORE_TABLES].reverse()) {
+      const { error } = await supabase.from(table).delete().eq('household_id', hid)
+      if (error) throw new Error(`restauration interrompue (${table}) : ${error.message}`)
+    }
+    for (const table of RESTORE_TABLES) {
+      const rows = data[table].map(r => ({ ...r, household_id: hid }))
+      for (let i = 0; i < rows.length; i += 500) {
+        const { error } = await supabase.from(table).insert(rows.slice(i, i + 500))
+        if (error) throw new Error(`restauration interrompue (${table}) : ${error.message}`)
+      }
+    }
+  } finally {
+    restoring = false
+  }
+  await refresh()
+  await loadRecipes()
+  await syncShop()
+}
+
 /* ----- Recettes (cas N8, N9 — incrément 1) -----
  * Pas de synchronisation temps réel pour l'instant : chargées au démarrage
  * et tenues à jour localement après chaque action. */
 
 async function loadRecipes() {
   const hid = store.household.id
-  const [s, r, re, ev, er, ing, rf] = await Promise.all([
+  const [s, r, re, ev, er, ing, rf, ic, ph] = await Promise.all([
     supabase.from('sources').select().eq('household_id', hid),
     supabase.from('recipes').select().eq('household_id', hid),
     supabase.from('realisations').select().eq('household_id', hid),
     supabase.from('events').select().eq('household_id', hid),
     supabase.from('event_recipes').select().eq('household_id', hid),
     supabase.from('recipe_ingredients').select().eq('household_id', hid),
-    supabase.from('ingredient_refs').select().eq('household_id', hid)
+    supabase.from('ingredient_refs').select().eq('household_id', hid),
+    supabase.from('ingredient_categories').select().eq('household_id', hid),
+    supabase.from('recipe_photos').select().eq('household_id', hid)
   ])
-  if (s.error || r.error || re.error || ev.error || er.error || ing.error || rf.error) { store.schemaWarning = true; return }
+  if (s.error || r.error || re.error || ev.error || er.error || ing.error || rf.error || ic.error || ph.error) { store.schemaWarning = true; return }
   store.sources = s.data
   store.recipes = r.data
   store.realisations = re.data
@@ -289,6 +371,8 @@ async function loadRecipes() {
   store.eventRecipes = er.data
   store.ingredients = ing.data
   store.refs = rf.data
+  store.categories = ic.data
+  store.photos = ph.data
   store.recipesLoaded = true
   await syncWeekShopping()
 }
@@ -298,25 +382,57 @@ const UNITS = ['cuillères à soupe', 'cuillère à soupe', 'cuillères à café
   'tranches', 'tranche', 'pièces', 'pièce', 'brins', 'brin', 'feuilles', 'feuille',
   'kg', 'mg', 'g', 'cl', 'ml', 'l', 'cs', 'cc']
 
-/** « 500 g d'asperges vertes » → { qty: 500, unit: 'g', name: 'asperges vertes' }. */
+const FRACTIONS = { '½': 1 / 2, '⅓': 1 / 3, '⅔': 2 / 3, '¼': 1 / 4, '¾': 3 / 4 }
+
+/** « 500 g d'asperges vertes » → { qty: 500, qty_raw: '500', unit: 'g', name: 'asperges vertes' }.
+ * Un « ! » en tête marque l'ingrédient difficile à sourcer (N11) : « ! 20 g morilles ».
+ * Fractions acceptées (« ½ canard », « 1/2 poulet », « 1 ½ l ») : qty décimal,
+ * qty_raw garde la saisie pour l'affichage. Après une virgule, le descriptif
+ * (« beurre, fondu ») ; « (facultatif) » en fin de ligne marque l'ingrédient facultatif. */
 export function parseIngredientLine(line) {
   let rest = line.trim().replace(/\s+/g, ' ')
   if (!rest) return null
-  let qty = null
-  const m = rest.match(/^(\d+(?:[.,]\d+)?)\s*/)
-  if (m) { qty = Number(m[1].replace(',', '.')); rest = rest.slice(m[0].length) }
+  let hard = false
+  if (rest.startsWith('!')) { hard = true; rest = rest.slice(1).trim() }
+  let qty = null, qty_raw = ''
+  let m
+  if ((m = rest.match(/^(?:(\d+) )?([½⅓⅔¼¾])\s*/))) {
+    qty = Number(m[1] ?? 0) + FRACTIONS[m[2]]
+  } else if ((m = rest.match(/^(?:(\d+) )?(\d+)\s*\/\s*([1-9]\d*)\s*/))) {
+    qty = Number(m[1] ?? 0) + Number(m[2]) / Number(m[3])
+  } else if ((m = rest.match(/^(\d+(?:[.,]\d+)?)\s*/))) {
+    qty = Number(m[1].replace(',', '.'))
+  }
+  if (m) { qty_raw = m[0].trim(); rest = rest.slice(m[0].length) }
   let unit = ''
   const lower = rest.toLowerCase()
   for (const u of UNITS) {
     if (lower === u || lower.startsWith(u + ' ')) { unit = u; rest = rest.slice(u.length).trim(); break }
   }
   rest = rest.replace(/^d(?:e |')\s*/i, '').trim()
+  let optional = false
+  rest = rest.replace(/[, ]*\(?\bfacultatif\b\)?\s*$/i, () => { optional = true; return '' }).trim()
+  let note = ''
+  const ci = rest.indexOf(',')
+  if (ci !== -1) { note = rest.slice(ci + 1).trim(); rest = rest.slice(0, ci).trim() }
   if (!rest) return null
-  return { qty, unit, name: rest }
+  return { qty, qty_raw, unit, name: rest, note, optional, hard }
 }
 
-/** Remplace les ingrédients (un par ligne), le texte, « pour N personnes » et le pays. */
-export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null, country = recipe.country ?? '') {
+/** Reconstruit la ligne d'édition d'un ingrédient (réciproque du parseur). */
+export function ingredientLine(i) {
+  return (i.hard ? '! ' : '') + [i.qty_raw || i.qty, i.unit, i.name].filter(v => v !== null && v !== undefined && v !== '').join(' ')
+    + (i.note ? ', ' + i.note : '') + (i.optional ? ' (facultatif)' : '')
+}
+
+/** Wish list (N11) : recette « à faire un jour ». */
+export async function setWishlist(recipe, flag) {
+  recipe.wishlist = flag
+  await supabase.from('recipes').update({ wishlist: flag }).eq('id', recipe.id)
+}
+
+/** Remplace les ingrédients (un par ligne), le texte, « pour N personnes », le pays et la catégorie. */
+export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null, country = recipe.country ?? '', category = recipe.category ?? '') {
   const hid = store.household.id
   const rows = ingredientsText.split('\n').map(parseIngredientLine).filter(Boolean)
     .map((r, i) => ({ ...r, position: i, household_id: hid, recipe_id: recipe.id }))
@@ -331,7 +447,8 @@ export async function saveRecipeDetails(recipe, ingredientsText, steps, servings
   recipe.steps = steps
   recipe.servings = servings
   recipe.country = country.trim()
-  await supabase.from('recipes').update({ steps, servings, country: recipe.country }).eq('id', recipe.id)
+  recipe.category = category.trim()
+  await supabase.from('recipes').update({ steps, servings, country: recipe.country, category: recipe.category }).eq('id', recipe.id)
   await syncWeekShopping()
 }
 
@@ -345,7 +462,7 @@ export function searchRecipes(query) {
   if (!words.length) return store.recipes
   return store.recipes.filter(r => {
     const source = store.sources.find(s => s.id === r.source_id)
-    const hay = fold([r.title, r.country ?? '', source?.title ?? '', r.steps ?? '',
+    const hay = fold([r.title, r.country ?? '', r.category ?? '', source?.title ?? '', r.steps ?? '',
       ...store.ingredients.filter(i => i.recipe_id === r.id).map(i => i.name)].join('\n'))
     return words.every(w => hay.includes(w))
   })
@@ -461,6 +578,20 @@ async function answerMerge(a, b, field) {
     ref = store.refs[store.refs.length - 1]
   }
   const other = refKeys(ref).includes(fold(a)) ? b : a
+  const otherRef = refOf(other)
+  if (field === 'aliases' && otherRef && otherRef !== ref) {
+    // L'autre nom a déjà sa fiche : on l'absorbe (alias, refus, catégorie si
+    // la nôtre est vide) au lieu de laisser une fiche orpheline en doublon.
+    ref.aliases = [...ref.aliases, otherRef.name, ...otherRef.aliases]
+    ref.rejected = [...new Set([...ref.rejected, ...otherRef.rejected])]
+    if (!ref.category && otherRef.category) ref.category = otherRef.category
+    store.refs = store.refs.filter(r => r !== otherRef)
+    await supabase.from('ingredient_refs').delete().eq('id', otherRef.id)
+    const { error } = await supabase.from('ingredient_refs')
+      .update({ aliases: ref.aliases, rejected: ref.rejected, category: ref.category }).eq('id', ref.id)
+    if (error) store.schemaWarning = true
+    return
+  }
   ref[field] = [...ref[field], other]
   const { error } = await supabase.from('ingredient_refs')
     .update({ [field]: ref[field] }).eq('id', ref.id)
@@ -483,9 +614,10 @@ export function masterList() {
   return [...byKey.values()].toSorted((a, b) => a.name.localeCompare(b.name, 'fr'))
 }
 
-/** Range un ingrédient dans une catégorie (créée l'entrée du référentiel au besoin). */
+/** Range un ingrédient dans un genre (crée l'entrée du référentiel et le genre au besoin). */
 export async function setIngredientCategory(name, category) {
   const cat = category.trim()
+  if (cat) await addCategory(cat)
   const ref = refOf(name)
   if (!ref) {
     const { data, error } = await supabase.from('ingredient_refs')
@@ -497,6 +629,153 @@ export async function setIngredientCategory(name, category) {
     ref.category = cat
     await supabase.from('ingredient_refs').update({ category: cat }).eq('id', ref.id)
   }
+}
+
+/* ----- Genres d'ingrédients et sourcing (commentaires Olivier, 08/07/2026) -----
+ * Les genres vivent dans ingredient_categories (master list des genres) et
+ * portent le sourcing par défaut (marché | internet | boutique + commentaire),
+ * affiné ingrédient par ingrédient sur ingredient_refs. Le sourcing alimente
+ * la liste de courses : il préremplit le magasin des lignes créées
+ * automatiquement (décision Olivier 08/07/2026). */
+
+export const SOURCING_TYPES = ['marché', 'internet', 'boutique']
+
+/** Crée un genre s'il n'existe pas déjà (casse et accents ignorés). */
+export async function addCategory(name) {
+  const n = name.trim()
+  if (!n || store.categories.some(c => fold(c.name) === fold(n))) return
+  const { data, error } = await supabase.from('ingredient_categories')
+    .insert({ household_id: store.household.id, name: n }).select().single()
+  if (error || !data) { store.schemaWarning = true; return }
+  store.categories.push(data)
+}
+
+/** Renomme un genre partout (ingrédients compris) ; un nom déjà existant fusionne. */
+export async function renameCategory(oldName, newName) {
+  const n = newName.trim()
+  const cat = store.categories.find(c => c.name === oldName)
+  if (!cat || !n || n === oldName) return
+  const target = store.categories.find(c => c !== cat && fold(c.name) === fold(n))
+  if (target) {
+    store.categories = store.categories.filter(c => c !== cat)
+    await supabase.from('ingredient_categories').delete().eq('id', cat.id)
+  } else {
+    cat.name = n
+    await supabase.from('ingredient_categories').update({ name: n }).eq('id', cat.id)
+  }
+  const dest = target?.name ?? n
+  for (const ref of store.refs.filter(r => r.category === oldName)) ref.category = dest
+  const { error } = await supabase.from('ingredient_refs').update({ category: dest })
+    .eq('household_id', store.household.id).eq('category', oldName)
+  if (error) store.schemaWarning = true
+}
+
+/** Supprime un genre : ses ingrédients redeviennent « non classés ». */
+export async function removeCategory(name) {
+  const cat = store.categories.find(c => c.name === name)
+  if (!cat) return
+  store.categories = store.categories.filter(c => c !== cat)
+  await supabase.from('ingredient_categories').delete().eq('id', cat.id)
+  for (const ref of store.refs.filter(r => r.category === name)) ref.category = ''
+  await supabase.from('ingredient_refs').update({ category: '' })
+    .eq('household_id', store.household.id).eq('category', name)
+}
+
+/** Sourcing par défaut d'un genre. */
+export async function setCategorySourcing(name, sourcing, note) {
+  const cat = store.categories.find(c => c.name === name)
+  if (!cat) return
+  cat.sourcing = sourcing; cat.sourcing_note = note.trim()
+  const { error } = await supabase.from('ingredient_categories')
+    .update({ sourcing: cat.sourcing, sourcing_note: cat.sourcing_note }).eq('id', cat.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Sourcing affiné d'un ingrédient (vide = hérite du genre). */
+export async function setIngredientSourcing(name, sourcing, note) {
+  const ref = refOf(name)
+  if (!ref) {
+    const { data, error } = await supabase.from('ingredient_refs')
+      .insert({ household_id: store.household.id, name, sourcing, sourcing_note: note.trim() }).select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    data.aliases ??= []; data.rejected ??= []
+    store.refs.push(data)
+    return
+  }
+  ref.sourcing = sourcing; ref.sourcing_note = note.trim()
+  const { error } = await supabase.from('ingredient_refs')
+    .update({ sourcing: ref.sourcing, sourcing_note: ref.sourcing_note }).eq('id', ref.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Genre d'un ingrédient (via sa fiche du référentiel, alias compris). */
+export function categoryOf(name) {
+  return refOf(name)?.category ?? ''
+}
+
+/** Sourcing effectif d'un ingrédient : sa fiche, sinon le défaut de son genre. */
+export function sourcingOf(name) {
+  const ref = refOf(name)
+  if (ref?.sourcing || ref?.sourcing_note) return { sourcing: ref.sourcing, note: ref.sourcing_note ?? '' }
+  const cat = store.categories.find(c => c.name === (ref?.category || ''))
+  return { sourcing: cat?.sourcing ?? '', note: cat?.sourcing_note ?? '' }
+}
+
+/** Magasin prérempli d'une ligne de courses : commentaire du sourcing (nom du marché, site…), sinon le type. */
+function sourcingStore(name) {
+  const s = sourcingOf(name)
+  return s.note || s.sourcing
+}
+
+/** Renomme un ingrédient de la master list : l'ancien nom devient un alias
+ * (les recettes le retrouvent), le stock et les courses sont renommés ;
+ * un nom déjà connu fusionne les deux fiches. */
+export async function renameIngredient(oldName, newName) {
+  const n = newName.trim()
+  if (!n || fold(n) === fold(oldName)) return
+  const affected = store.items.filter(i => sameIngredient(i.name, oldName))
+  let ref = refOf(oldName)
+  const target = store.refs.find(r => r !== ref && refKeys(r).includes(fold(n)))
+  if (!ref && !target) {
+    const { data, error } = await supabase.from('ingredient_refs')
+      .insert({ household_id: store.household.id, name: n, aliases: [oldName] }).select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    data.aliases ??= []; data.rejected ??= []
+    store.refs.push(data)
+  } else if (target) {
+    // Le nouveau nom a déjà sa fiche : elle absorbe l'ancienne.
+    if (ref) {
+      target.aliases = [...new Set([...target.aliases, ref.name, ...ref.aliases])]
+      target.rejected = [...new Set([...target.rejected, ...ref.rejected])]
+      if (!target.category && ref.category) target.category = ref.category
+      store.refs = store.refs.filter(r => r !== ref)
+      await supabase.from('ingredient_refs').delete().eq('id', ref.id)
+    } else if (!target.aliases.map(fold).includes(fold(oldName))) {
+      target.aliases = [...target.aliases, oldName]
+    }
+    const { error } = await supabase.from('ingredient_refs')
+      .update({ aliases: target.aliases, rejected: target.rejected, category: target.category }).eq('id', target.id)
+    if (error) { store.schemaWarning = true; return }
+  } else {
+    const aliases = [...new Set([...ref.aliases, ref.name])].filter(a => fold(a) !== fold(n))
+    ref.name = n; ref.aliases = aliases
+    const { error } = await supabase.from('ingredient_refs')
+      .update({ name: n, aliases }).eq('id', ref.id)
+    if (error) { store.schemaWarning = true; return }
+  }
+  if (affected.length) {
+    for (const it of affected) it.name = n
+    await supabase.from('items').update({ name: n }).in('id', affected.map(i => i.id))
+    const shopRows = store.shop.filter(s => affected.some(i => i.id === s.item_id))
+    for (const s of shopRows) s.name = n
+    if (shopRows.length) await supabase.from('shopping').update({ name: n }).in('id', shopRows.map(s => s.id))
+  }
+}
+
+/** Recettes utilisant un ingrédient (alias compris), pour la fenêtre d'édition. */
+export function recipesUsing(name) {
+  const ids = new Set(store.ingredients.filter(i => sameIngredient(i.name, name)).map(i => i.recipe_id))
+  return store.recipes.filter(r => ids.has(r.id)).toSorted((a, b) => a.title.localeCompare(b.title, 'fr'))
 }
 
 /* ----- Quantités de la semaine (cas N10, décisions Olivier 07/07/2026) -----
@@ -635,7 +914,7 @@ export async function syncWeekShopping() {
       const row = store.shop.find(s => s.origin === 'semaine' && sameIngredient(s.name, need.name))
       if (!row) {
         const { data, error } = await supabase.from('shopping')
-          .insert({ household_id: store.household.id, name: need.name, store: '',
+          .insert({ household_id: store.household.id, name: need.name, store: sourcingStore(need.name),
             origin: 'semaine', qty: part?.qty ?? null, unit: part?.unit ?? '' })
           .select().single()
         if (error) { store.schemaWarning = true; return }
@@ -730,6 +1009,59 @@ export async function addRealisation(recipe, madeOn, comment) {
     .select().single()
   if (error) { store.schemaWarning = true; return }
   store.realisations.push(data)
+  return data
+}
+
+/* ----- Photos de recettes (N8, étape 4 incrément 2) -----
+ * Bucket privé « photos », chemin <foyer>/<recette>/<uuid>.jpg : la photo du
+ * plat (liée à une réalisation si consignée avec) ou la page du livre
+ * (copie privée, réservée au foyer). */
+
+/** Réduit l'image côté client (max 1600 px, JPEG) avant l'envoi.
+ * Hors navigateur (tests), le fichier part tel quel. */
+async function compressImage(file) {
+  if (typeof createImageBitmap === 'undefined' || typeof OffscreenCanvas === 'undefined') return file
+  const bmp = await createImageBitmap(file)
+  const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height))
+  const canvas = new OffscreenCanvas(Math.round(bmp.width * scale), Math.round(bmp.height * scale))
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height)
+  return canvas.convertToBlob({ type: 'image/jpeg', quality: 0.82 })
+}
+
+export function photosOf(recipeId) {
+  return store.photos.filter(p => p.recipe_id === recipeId)
+}
+
+export async function addRecipePhoto(recipe, file, kind, realisationId = null) {
+  const hid = store.household.id
+  const path = `${hid}/${recipe.id}/${crypto.randomUUID()}.jpg`
+  const blob = await compressImage(file)
+  const up = await supabase.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' })
+  if (up.error) { store.schemaWarning = true; return }
+  const { data, error } = await supabase.from('recipe_photos')
+    .insert({ household_id: hid, recipe_id: recipe.id, realisation_id: realisationId, kind, path })
+    .select().single()
+  if (error) { store.schemaWarning = true; return }
+  store.photos.push(data)
+  return data
+}
+
+const signedUrls = new Map()
+
+/** URL signée pour afficher une photo du bucket privé (mémorisée 50 min). */
+export async function photoUrl(photo) {
+  const hit = signedUrls.get(photo.path)
+  if (hit && hit.until > Date.now()) return hit.url
+  const { data } = await supabase.storage.from('photos').createSignedUrl(photo.path, 3600)
+  const url = data?.signedUrl ?? ''
+  signedUrls.set(photo.path, { url, until: Date.now() + 50 * 60 * 1000 })
+  return url
+}
+
+export async function deletePhoto(photo) {
+  await supabase.storage.from('photos').remove([photo.path])
+  await supabase.from('recipe_photos').delete().eq('id', photo.id)
+  store.photos = store.photos.filter(p => p.id !== photo.id)
 }
 
 /** Amorce la bibliothèque avec les 105 recettes vidéo d'Alain Passard. */
@@ -834,6 +1166,90 @@ export async function renameLocation(oldName, newName) {
   }
 }
 
+/* ----- Emplacements datés (cas N7) -----
+ * Un emplacement « à dates » (congélateur, cave…) suit chaque entrée comme un
+ * lot : n produits identiques entrés à la même date. item.qty reste le total
+ * (les autres écrans ne changent pas) ; les lots sont le détail des dates. */
+
+export function isDatedLoc(name) {
+  return !!store.locations.find(l => l.name === name && l.dated)
+}
+
+/** Marque un emplacement « à dates » (crée sa ligne si besoin). */
+export async function setLocationDated(name, flag) {
+  const hid = store.household.id
+  const row = store.locations.find(l => l.name === name)
+  if (row) {
+    row.dated = flag
+    await supabase.from('locations').update({ dated: flag }).eq('id', row.id)
+    return
+  }
+  const { data, error } = await supabase.from('locations')
+    .insert({ household_id: hid, name, dated: flag }).select().single()
+  if (error) { store.schemaWarning = true; return }
+  store.locations.push(data)
+}
+
+/** Seuil d'ancienneté (mois) d'un emplacement « à dates », pour le rappel des lots (N10). */
+export async function setLocationStaleMonths(name, months) {
+  const m = Math.max(1, Math.round(Number(months) || 6))
+  const row = store.locations.find(l => l.name === name)
+  if (!row) return
+  row.stale_months = m
+  const { error } = await supabase.from('locations').update({ stale_months: m }).eq('id', row.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Lots anciens à utiliser (N10) : lots des emplacements « à dates » entrés
+ * il y a plus que le seuil de l'emplacement (stale_months, 6 mois par défaut). */
+export function staleLots(today = new Date()) {
+  const out = []
+  for (const lot of store.lots) {
+    const item = store.items.find(i => i.id === lot.item_id)
+    if (!item) continue
+    const loc = store.locations.find(l => l.name === item.loc)
+    if (!loc?.dated) continue
+    const limit = new Date(today)
+    limit.setMonth(limit.getMonth() - (loc.stale_months ?? 6))
+    if (new Date(lot.entered_on + 'T00:00') <= limit) out.push({ lot, item, loc: loc.name })
+  }
+  return out.toSorted((a, b) => a.lot.entered_on.localeCompare(b.lot.entered_on))
+}
+
+/** Les lots d'un produit, du plus ancien au plus récent (le premier est proposé en sortie). */
+export function lotsOf(itemId) {
+  return store.lots.filter(l => l.item_id === itemId)
+    .toSorted((a, b) => a.entered_on < b.entered_on ? -1 : 1)
+}
+
+/** Quantité entrée avant le suivi par dates (total du produit moins les lots). */
+export function undatedCount(item) {
+  return Math.max(0, item.qty - lotsOf(item.id).reduce((n, l) => n + l.qty, 0))
+}
+
+/** Entrée : un lot de n produits à une date (défaut aujourd'hui), le total suit. */
+export async function enterLot(item, qty, enteredOn) {
+  const n = Math.max(1, Math.round(Number(qty) || 1))
+  const { data, error } = await supabase.from('item_lots')
+    .insert({ household_id: store.household.id, item_id: item.id, qty: n, entered_on: enteredOn })
+    .select().single()
+  if (error) { store.schemaWarning = true; return }
+  store.lots.push(data)
+  await changeQty(item, n)
+}
+
+/** Sortie : un produit du lot désigné (le plus ancien par défaut), le total suit. */
+export async function takeLot(item, lot) {
+  if (lot.qty <= 1) {
+    store.lots = store.lots.filter(l => l.id !== lot.id)
+    await supabase.from('item_lots').delete().eq('id', lot.id)
+  } else {
+    lot.qty -= 1
+    await supabase.from('item_lots').update({ qty: lot.qty }).eq('id', lot.id)
+  }
+  await changeQty(item, -1)
+}
+
 /* ----- Mode inventaire (cas N2, NP6) -----
  * Rien n'est écrit au stock avant la confirmation finale : l'inventaire en
  * cours vit en mémoire et dans localStorage (interruption sans risque). */
@@ -895,10 +1311,44 @@ export function abandonInventory() {
   saveInv()
 }
 
+/** Emplacement « à dates » : ramène les lots d'un produit au total constaté,
+ * en sortant du plus ancien d'abord (inventaire N2 × N7, décision Olivier 08/07).
+ * Un total supérieur aux lots laisse l'excédent « sans date », à dater dans le détail. */
+async function trimLotsTo(item, total) {
+  let excess = lotsOf(item.id).reduce((n, l) => n + l.qty, 0) - total
+  for (const lot of lotsOf(item.id)) {
+    if (excess <= 0) break
+    const take = Math.min(excess, lot.qty)
+    if (take >= lot.qty) {
+      store.lots = store.lots.filter(l => l.id !== lot.id)
+      await supabase.from('item_lots').delete().eq('id', lot.id)
+    } else {
+      lot.qty -= take
+      await supabase.from('item_lots').update({ qty: lot.qty }).eq('id', lot.id)
+    }
+    excess -= take
+  }
+}
+
+/** Ajustements de lots qu'appliquerait l'inventaire (pour le bilan avant confirmation). */
+export function lotAdjustments() {
+  const inv = store.inv
+  if (!inv || !isDatedLoc(inv.loc)) return []
+  const out = []
+  for (const item of store.items.filter(i => i.loc === inv.loc)) {
+    const dated = lotsOf(item.id).reduce((n, l) => n + l.qty, 0)
+    const count = inv.seen[item.id] ?? 0
+    if (count < dated) out.push({ name: item.name, sortis: dated - count })
+    else if (count > item.qty && count > dated) out.push({ name: item.name, sansDate: count - dated })
+  }
+  return out
+}
+
 /** Applique l'inventaire d'un bloc : vus, créés, non-trouvés à zéro, date d'inventaire. */
 export async function finishInventory() {
   const inv = store.inv
   const hid = store.household.id
+  const dated = isDatedLoc(inv.loc)
   for (const item of store.items.filter(i => i.loc === inv.loc)) {
     const count = inv.seen[item.id]
     if (count !== undefined) {
@@ -907,9 +1357,11 @@ export async function finishInventory() {
         item.dismissed = false
         await supabase.from('items').update({ qty: count, dismissed: false }).eq('id', item.id)
       }
+      if (dated) await trimLotsTo(item, count)
     } else if (item.qty !== 0) {
       item.qty = 0
       await supabase.from('items').update({ qty: 0 }).eq('id', item.id)
+      if (dated) await trimLotsTo(item, 0)
     }
   }
   for (const c of inv.created) {

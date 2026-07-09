@@ -6,9 +6,15 @@ Gmail / Google Calendar.
 
 ## Marchés
 
+Décision d'Olivier (07/07/2026) : la référence des créneaux de marché est le
+calendrier Google « marchés » de son agenda. Le planning des courses (étape 3)
+lira ce calendrier plutôt que ce tableau. Lecture tentée le 07/07/2026 :
+le connecteur Google Calendar doit être réautorisé (droits insuffisants) —
+à refaire une fois la connexion réparée, pour recopier ici les créneaux.
+
 | Marché | Jour(s) et horaire | Notes (saison, préféré pour…) |
 |---|---|---|
-| (à compléter) | samedi matin ? | |
+| (voir calendrier Google « marchés ») | | |
 
 ## Magasins
 

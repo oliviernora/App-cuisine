@@ -74,7 +74,27 @@ Règles :
 - **Chips d'emplacement** : filtre horizontal défilant, couleur du lieu,
   chip active = fond teinté à 14 %.
 - **Onglets** : segmentés pleine largeur sous le titre ; pastille orange =
-  nombre de courses restantes.
+  nombre de courses restantes. Sur écran étroit (≤ 560 px, iPhone), les
+  onglets **collapsent en menu déroulant** (pratique responsive classique,
+  décision Olivier 07/07/2026) : un bouton pleine largeur montre la section
+  courante (icône + nom + pastille + chevron) ; l'ouvrir liste les cinq
+  sections et, séparé en bas, « **Foyer et compte** » (le bouton compte du
+  titre disparaît, il vit dans le menu). Choisir referme le menu.
+- **Filtres de recherche en dépliant** (décision Olivier 07/07/2026) : la
+  recherche **plein texte reste toujours visible** ; les filtres
+  particuliers (source, catégorie, par ingrédient, wish list, gérer les
+  sources) vivent dans un panneau dépliant « ▸ Filtres (n) » — n = filtres
+  actifs — refermable par le même bouton ou « Refermer — voir les
+  recettes ». Même esprit que la « Recherche avancée » de la Semaine.
+- **Règle absolue (07/07/2026, remarque Olivier ; renforcée le 08/07)** :
+  rien ne dépasse jamais de l'écran à droite ou à gauche — la page ne
+  « balaie » pas horizontalement. Un contenu trop large **replie**
+  (`flex-wrap` des `manage-row`, toolbars) ou **défile dans son propre
+  bloc** (chips, textes de code) ; verrou global `overflow-x: hidden` sur
+  la page. **Toujours vérifier que les boutons et menus tiennent dans la
+  largeur de chaque écran** (PC, tablette, iPhone) avant livraison ; si un
+  bouton ou un menu ne tient pas, ne pas le comprimer : **choisir une autre
+  approche d'UX** (repli, panneau dédié, menu déroulant).
 - **Groupes** : titre en capitales + compteur (`Cuisine · 49`).
 - **Formulaires** : champs sur fond `--bg` dans une barre `--surface` ;
   bouton primaire tomate à droite.
@@ -150,6 +170,42 @@ Règles :
 - **Master list des ingrédients** (onglet Inventaire, 07/07/2026) : bloc
   dépliant listant tous les ingrédients connus par **catégorie**, non classés
   en tête, filtre texte, saisie de catégorie par ligne (suggestions).
+- **Photos de recettes** (07/07/2026 soir) : sur la fiche, un « bouton-
+  fichier » (label au style des boutons secondaires) ouvre l'appareil photo
+  ou le sélecteur — « Ajouter la photo du plat », « Photo de la recette
+  (page du livre) », et « Photo du plat » dans le formulaire de réalisation
+  (le nom du fichier choisi s'affiche sur le bouton). Vignettes 110 px à
+  coins arrondis, légende « Plat » / « Page », **×** rond sombre en coin pour
+  supprimer (avec confirmation). Jamais d'image pleine page imposée.
+- **Wish list** (07/07/2026 soir) : étoile `--accent` devant le titre des
+  recettes « à faire un jour » ; bouton-filtre « ★ Wish list » près des
+  filtres (état actif = liseré et texte accent, classe `chip-on`) ; sur la
+  fiche, « ☆ Ajouter à la wish list » / « ★ Dans la wish list — retirer ».
+  Les ingrédients marqués « ! » à la saisie portent la mention accent
+  « — à commander à l'avance ».
+- **Master list — genres et fiche ingrédient** (08/07/2026) : dans la master
+  list dépliée (qui **efface la section Emplacements** le temps de la
+  consultation), chaque ligne = bouton-nom dépliant « ▸ » + **select de
+  genre** borné à 45 % de largeur. Toucher le nom déplie la **fiche de
+  l'ingrédient** (panneau standard) : renommer (fusion en deux touches),
+  sourcing (select type + commentaire), recettes associées en liste. Le
+  panneau « Gérer les genres » suit le motif des emplacements : rangées
+  repliables, suppression en deux touches, création en bas.
+- **Bloc « À utiliser »** (08/07/2026, Semaine) : même motif que « Courses
+  de la semaine » (bloc dépliant, résumé orange « n lot(s) ancien(s) ») ;
+  chaque ligne : produit + « n × entré le date · emplacement », l'année
+  toujours affichée.
+- **Rappel de sauvegarde** (08/07/2026) : point orange `--warn` de 10 px en
+  coin du bouton Foyer quand la dernière sauvegarde de l'appareil date de
+  plus de 7 jours ; l'explication et le bouton d'export vivent dans le
+  panneau Foyer (action exceptionnelle).
+- **Détail des lots datés** (07/07/2026 soir, emplacements « à dates ») :
+  sur la ligne du produit, une flèche « ▸ / ▾ » (avant le panier) déplie un
+  panneau à liseré pointillé sous la ligne : un lot par ligne (« 2 × entrés
+  le 1 mai 2026 », le plus ancien annoté), bouton « Sortir 1 » par lot,
+  note « n sans date » si besoin, et formulaire quantité + date (+ date en
+  toutes lettres) pour entrer un lot. Les gestes rapides restent sur la
+  ligne : + entre un lot du jour, − sort du plus ancien.
 - **Sélecteur de tri** : deux segments à droite de la recherche —
   « Emplacement » (groupes par lieu, ordre fixe) et « A→Z » (liste unique
   alphabétique, le lieu s'affiche en note grise sur chaque ligne).

@@ -16,6 +16,7 @@ Un tableau JSON, une entrée par recette :
 | `source` | nom lisible de la source (« Marie Claire — Cuisine », « Recettes perso »…) |
 | `capturedOn` | date de capture dans Evernote (AAAA-MM-JJ) |
 | `servings` | « pour N personnes » (null si inconnu) |
+| `category` | catégorie de recette (« Boissons »… ; vide = plat) |
 | `ingredients` | liste ordonnée de `{ qty, unit, name }` (qty null = non précisée) |
 | `steps` | recette condensée et reformulée (copie privée — jamais le texte original) |
 | `photos` | chemins relatifs vers les images extraites (`photos/<id>/…`) |
@@ -28,6 +29,9 @@ Un tableau JSON, une entrée par recette :
 - `textes/` (hors git) — texte brut de chaque note.
 - `photos/` (hors git) — 914 images > 25 Ko, classées par note.
 - `lots/`, `fiches/` — fichiers de travail de l'extraction par lots.
+  Une même note peut produire plusieurs fiches (ex. la note JUS →
+  9 recettes de jus, `fiches/jus.json`) : le dédoublonnage des recettes
+  sans URL se fait par titre + source.
 - `import.sql` — import idempotent dans la base Supabase de l'application
   (rejouable, dédoublonnage par URL). Généré par `app/scripts/enex-merge.mjs`.
 

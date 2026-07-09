@@ -4,23 +4,27 @@
 
 ## Douteuses — 21 notes à trancher
 Cocher ce qui doit quand même être importé ; le reste sera écarté.
+Pour voir le contenu des notes non tranchées : ouvrir `preview-douteuses.html`
+(double-clic, s'ouvre dans le navigateur — textes, photos et suggestion pour chacune).
 
-- [ ] REGARDEZ - Les tomates n'ont pas de pépins — lepoint.fr (web, 20260616)
-- [ ] Poulpe "alla luciana" : saveurs napolitaines — gaycultes.blogspot.com (web, 20260223)
+- [x] REGARDEZ - Les tomates n'ont pas de pépins — lepoint.fr (web, 20260616)
+- [x] Poulpe "alla luciana" : saveurs napolitaines — gaycultes.blogspot.com (web, 20260223)
 - [ ] La table gourmande (perso, 20251001)
-- [ ] Pois chiches de ma cherie (perso, 20250813)
-- [ ] Couscous (perso, 20250719)
-- [ ] JUS (perso, 20231124)
+- [x] Pois chiches de ma cherie (perso, 20250813)
+- [x] Couscous (perso, 20250719)
+- [x] JUS (perso, 20231124) --> TRAITÉ le 07/07/2026 : 9 recettes de jus créées
+  (une par ligne, catégorie « Boissons », fiches/jus.json), dans import.sql.
+  La note du 05/09/2015 (cocktail gingembre-betterave) pourra s'y ajouter si cochée.
 - [ ] Taiwanese Food - Din Tai Fung — dintaifungusa.com (web, 20221030)
-- [ ] Cuisine : la gaufre de pommes de terre d'Alain Passard - Le Point — lepoint.fr (web, 20220830)
+- [x] Cuisine : la gaufre de pommes de terre d'Alain Passard - Le Point — lepoint.fr (web, 20220830)
 - [ ] Temps cuisson (perso, 20201124)
-- [ ] Recette véritables spaghettis à la carbonara - Marie Claire (perso, 20211231)
-- [ ] Filet de Bœuf en croûte (perso, 20190518)
+- [x] Recette véritables spaghettis à la carbonara - Marie Claire (perso, 20211231)
+- [x] Filet de Bœuf en croûte (perso, 20190518)
 - [ ] Note sans titre — marieclaire.fr (web, 20210801)
 - [ ] Note sans titre (perso, 20210801)
 - [ ] Cuisine Indienne — chalindia.blogspot.com (web, 20210411)
 - [ ] Jette un œil à ceci... 👀 — pin.it (web, 20210221)
-- [ ] Écrasé de patate douce, rougail de crabe aux épices douces, volute sablée - Marie Claire — marieclaire.fr (web, 20210221)
+- [x] Écrasé de patate douce, rougail de crabe aux épices douces, volute sablée - Marie Claire — marieclaire.fr (web, 20210221)
 - [ ] Quand on n’aime pas un dessin | DTBLOG — didierterrassonblog.wordpress.com (web, 20210106)
 - [ ] Note sans titre (perso, 20201220)
 - [ ] Note sans titre (perso, 20201213)

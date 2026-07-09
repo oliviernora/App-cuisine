@@ -12,14 +12,17 @@ const CHECKS = {
   household_members: 'household_id,user_id',
   items: 'id,qty,min,dismissed',
   shopping: 'id,done,manual,item_id,qty,unit,origin,available',
-  locations: 'id,name,last_inventory_at',
+  locations: 'id,name,last_inventory_at,dated,stale_months',
+  item_lots: 'id,item_id,qty,entered_on',
   sources: 'id,kind,title,isbn',
-  recipes: 'id,source_id,title,url,video,notes,steps,servings,country',
-  recipe_ingredients: 'id,recipe_id,position,qty,unit,name',
+  recipes: 'id,source_id,title,url,video,notes,steps,servings,country,category,wishlist',
+  recipe_ingredients: 'id,recipe_id,position,qty,unit,name,hard,note,optional,qty_raw',
   realisations: 'id,recipe_id,made_on,comment',
   events: 'id,day,title,guests,contraintes',
   event_recipes: 'event_id,recipe_id,scale_pct,qty_overrides',
-  ingredient_refs: 'id,name,aliases,rejected,category'
+  ingredient_refs: 'id,name,aliases,rejected,category,sourcing,sourcing_note',
+  ingredient_categories: 'id,name,sourcing,sourcing_note',
+  recipe_photos: 'id,recipe_id,realisation_id,kind,path'
 }
 
 let failed = false

@@ -13,16 +13,16 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | Cas | Validation | Couverture | Notes |
 |---|---|---|---|
 | N1 épuiser/racheter | validé | couvert, testé | |
-| N2 inventaire | dicté par Olivier | couvert, testé | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complément « emplacement daté » non couvert (lié à N7) |
+| N2 inventaire | dicté par Olivier | couvert, testé | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complété le 08/07 : emplacement « à dates » — le comptage ajuste les lots (sortie du plus ancien, excédent « sans date »), bilan annoncé avant application (décision Olivier 08/07) |
 | N3 je prépare mes courses | reformulé par Olivier 06/07 | partiel | le panier « réserve » existe ; **manque : quantité voulue à l'ajout** (recoupe NP4) |
 | N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
 | N5 foyer | validé | couvert | test manuel M4 à dérouler |
 | N6 rangements + déplacements | fusionné par Olivier 06/07 | **couvert, testé** (06/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire |
-| N7 emplacements datés | proposition précisée (générique + exemples) | non couvert | alerte d'ancienneté : question ouverte |
-| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incréments 1-2, 07/07) | consigner date+commentaire : fait ; 105 recettes Passard importées, 82 fiches remplies dans la vraie base (682 ingrédients, M13 déroulé) ; reste : photos, extraction IA (clé API), imports en volume (logiciel de scan à préciser) |
+| N7 emplacements datés | proposition précisée (générique + exemples) | **couvert, testé** (08/07) | fait 07/07 : réglage « à dates », entrée par lots datés, sortie du plus ancien, total simple, « sans date » pour l'existant ; fait 08/07 : inventaire des lots (N2, ajustement auto + bilan), rappel des lots anciens dans la Semaine (bloc « À utiliser », N10), seuil d'ancienneté réglable par emplacement (6 mois par défaut — décision Olivier 08/07) |
+| N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incréments 1-2, 07/07) | consigner date+commentaire : fait ; 105 recettes Passard importées, 82 fiches remplies dans la vraie base (682 ingrédients, M13 déroulé) ; photos livrées le 07/07 soir (plat — seule ou avec la réalisation — et page du livre, bucket privé du foyer, compression côté client, URL signée) ; reste : extraction IA (clé API), imports en volume (logiciel de scan à préciser), photos hors ligne |
 | N9 retrouver une recette | proposition | **couvert** (07/07) | recherche multicritère (titre, ingrédient, pays, source, mot du texte) dans Recettes ET dans la Semaine ; filtre par source (chips) ; sources gérées (renommer/fusionner/créer) ; pays à remplir (proposition en attente de validation) |
 | N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incréments 1-4, 07/07) | fait : événements, recettes associées, consignation, quantités à l'échelle avec **ajustement % et corrections par recette et par événement**, bloc semaine **déroulant**, courses **synchronisées automatiquement** (somme réappro + repas, bascule « je l'ai », dédoublonnage) ; reste : planning des tournées (attend créneaux + décision), agenda Google |
-| N11 wish list / beau produit | proposition | non couvert | étape 5 |
+| N11 wish list / beau produit | proposition | **couvert** (07/07 soir) | étoile « wish list » sur la fiche, filtre ★ dans Recettes (cumulable avec « Par ingrédient » = beau produit), ingrédients difficiles à sourcer (« ! » en tête de ligne, mention « à commander à l'avance ») ; l'anticipation des commandes viendra avec le planning (N10/étape 3) |
 | NP1 produit retrouvé | décidé par Olivier | couvert, testé | |
 | NP2 rupture en magasin | validé | couvert, testé | |
 | NP3 coché par erreur | validé | couvert, testé | |
@@ -46,9 +46,23 @@ n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
   au matin — check:schema 11/11, remplissage réel des 82 fiches fait, M13
   déroulé. Au passage : doublon d'import Passard du 06/07 découvert et
   nettoyé, garde-fou ajouté dans le code + test.)
-- Master list par catégories livrée le 07/07 (écran Inventaire, non classés
-  en tête) ; ingrédients Passard mal découpés à nettoyer (« /2 canard »,
-  fractions ½ dans parseIngredientLine).
+- Master list par genres livrée le 07/07, complétée le 08/07 (commentaires
+  Olivier) : genres en menu déroulant + « Gérer les genres » (table
+  ingredient_categories, sourcing par défaut), fiche ingrédient (renommage
+  libre avec fusion, sourcing affiné, recettes associées), filtre par genre
+  dans la recherche du Stock, sourcing → magasin prérempli des courses.
+- Fractions livrées le 08/07 (parseIngredientLine : « ½ », « 1/2 »,
+  « 1 ½ » ; qty_raw réaffiché comme saisi ; descriptif après virgule et
+  « (facultatif) ») ; la migration du 08/07 répare les lignes « /2 … » des
+  fiches Passard ; les autres noms douteux (« Aïe », « eau », « ficelle de
+  cuisine ») sortent en SELECT de contrôle à trancher avec Olivier.
+- Sauvegarde (exigence NFR) livrée le 08/07 : export JSON dans le panneau
+  Foyer + rappel à 7 jours (point orange). Restauration livrée le 09/07
+  (décisions Olivier : remplacement complet du foyer, export automatique de
+  l'état actuel + confirmation avant d'écraser ; fichier étranger/tronqué
+  refusé sans rien toucher). Test navigateur (M38) : après application de
+  la migration du 08/07 uniquement — sur la base réelle non migrée, une
+  restauration s'interromprait sur les tables manquantes.
 - Rapprochement ingrédients ↔ stock : v2 livrée le 07/07 (master list,
   décision Olivier) — alias confirmés un par un dans « Ingrédients à
   rapprocher » (onglet Inventaire), refus mémorisés, autocomplétion des noms
@@ -58,5 +72,4 @@ n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
 - Ingrédients des recettes Passard : 82 fiches remplies (07/07/2026) ; les
   23 restantes n'ont pas d'article exploitable (pages vidéo sans texte) —
   saisie au fil de l'eau dans la fiche si besoin.
-- Sauvegarde régulière des données (exigence NFR, voir architecture.md).
 - Réinitialisation de mot de passe dans l'application.

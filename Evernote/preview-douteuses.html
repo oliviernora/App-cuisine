@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — notes douteuses à trancher</title>
+<style>
+  :root {
+    --accent: #C73E36;
+    --bg: #FAF7F2;
+    --card: #FFFFFF;
+    --text: #2E2A26;
+    --muted: #8A817A;
+    --ok: #4A7C59;
+    --warn: #B07D2B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 1.5rem;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    max-width: 900px; margin-inline: auto;
+  }
+  h1 { color: var(--accent); font-size: 1.5rem; }
+  p.intro { color: var(--muted); }
+  .card {
+    background: var(--card); border-radius: 14px;
+    padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  }
+  .card h2 { margin: 0 0 .25rem; font-size: 1.1rem; }
+  .meta { color: var(--muted); font-size: .85rem; margin-bottom: .5rem; }
+  .meta a { color: var(--accent); word-break: break-all; }
+  .verdict {
+    display: inline-block; border-radius: 999px;
+    padding: .15rem .7rem; font-size: .8rem; font-weight: 600;
+    margin-bottom: .6rem;
+  }
+  .ecarter { background: #F6E3E2; color: var(--accent); }
+  .importer { background: #E4EEE7; color: var(--ok); }
+  .autre { background: #F5EBDA; color: var(--warn); }
+  pre {
+    white-space: pre-wrap; font-family: inherit; font-size: .9rem;
+    background: var(--bg); border-radius: 10px; padding: .75rem;
+    max-height: 260px; overflow-y: auto; margin: .5rem 0;
+  }
+  .photos { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .photos img { height: 110px; border-radius: 8px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
+</style>
+</head>
+<body>
+<h1>Notes douteuses — preview pour trancher</h1>
+<p class="intro">Les 12 notes non cochées de <code>tri.md</code> (la fiche JUS est traitée à part).
+Pour chacune : ce que contient la note, et une suggestion. Cochez ensuite dans
+<code>tri.md</code> ce qui doit être importé — le reste sera écarté.</p>
+
+<div class="card">
+  <h2>1. La table gourmande</h2>
+  <div class="meta">Note perso — 1er octobre 2025 — 843 caractères, pas de photo</div>
+  <span class="verdict autre">Suggestion : pas une recette — sommaire d'une collection de livres</span>
+  <p>C'est le sommaire des 9 volumes de la collection « La table gourmande » (pagination par thème).
+  Inutile comme recette, mais peut servir plus tard pour la bibliothèque des livres.</p>
+  <pre>1 - Pâtisserie, tartes, crèmes, desserts, desserts glacés, petits fours et friandises - 1-48
+2 - Plats gourmands des provinces françaises, toutes les sauces, soupes d'hier potage d'aujourd'hui, entrée pâtés terrines - 49-98
+3 - Plats froids salade fraîches, tourtes quiches et pizzas, les fritures, les œufs - 99-148
+4 - Poissons de toutes les façons, coquillages et crustacés, les volailles, grillades et barbecues - 149-196
+5 - Le bœuf, le veau, le porc, le mouton et le chevreau - 197-244
+6 - La pomme de terre, les légumes, le riz, les pâtes - 245-294
+7 - plats mijotés, Cuisine pour les enfants, cuisine à la crème, cuisine bon marché - 295-344
+8 - Cuisine légère, cuisine des vacances, cuisine au fromage, le fromage quotidien - 345-380
+9 - Cuisine exotique, plats nationaux, desserts de tous pays, boissons familiales - 381-428</pre>
+</div>
+
+<div class="card">
+  <h2>2. Taiwanese Food — Din Tai Fung</h2>
+  <div class="meta">Capture web — 30 octobre 2022 — <a href="https://www.dintaifungusa.com/us/menu.html">dintaifungusa.com/us/menu.html</a> — 60 photos</div>
+  <span class="verdict ecarter">Suggestion : écarter — menu du restaurant, aucune recette</span>
+  <p>La carte du restaurant Din Tai Fung (USA) : liste de plats (xiao long bao, dumplings, nouilles…)
+  avec leurs photos, mais sans aucun ingrédient ni préparation. Souvenir ou inspiration, pas une recette.</p>
+  <details><summary>Voir les 60 photos de plats</summary>
+    <div class="photos">
+      <img src="photos/021-taiwanese-food-din-tai-fung/1.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/2.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/3.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/4.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/5.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/6.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/7.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/8.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/9.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/10.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/11.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/12.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/13.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/14.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/15.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/16.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/17.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/18.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/19.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/20.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/21.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/22.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/23.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/24.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/25.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/26.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/27.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/28.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/29.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/30.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/31.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/32.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/33.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/34.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/35.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/36.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/37.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/38.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/39.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/40.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/41.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/42.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/43.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/44.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/45.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/46.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/47.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/48.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/49.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/50.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/51.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/52.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/53.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/54.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/55.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/56.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/57.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/58.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/59.jpg"><img src="photos/021-taiwanese-food-din-tai-fung/60.jpg">
+    </div>
+  </details>
+</div>
+
+<div class="card">
+  <h2>3. Temps cuisson</h2>
+  <div class="meta">Note perso — 24 novembre 2020 — 63 caractères</div>
+  <span class="verdict autre">Suggestion : à vous de voir — mémo de cuisson, pas une recette complète</span>
+  <pre>Daurade au sel
+210 degrés
+20-25 min en fonction taille poisson</pre>
+  <p>Un simple repère de cuisson. Importable comme mini-recette perso « Daurade au sel » si vous y tenez.</p>
+</div>
+
+<div class="card">
+  <h2>4. Note sans titre (web, 1er août 2021)</h2>
+  <div class="meta">Capture web — <a href="https://www.marieclaire.fr/cuisine/saint-jacques-au-curry-thai,1196110.asp">marieclaire.fr — Saint-Jacques au curry thaï</a></div>
+  <span class="verdict importer">Suggestion : importer — recette rechargeable depuis l'URL</span>
+  <p>La note ne contient que le lien, mais c'est une vraie recette Marie Claire :
+  <strong>Saint-Jacques au curry thaï</strong>. On peut la recharger depuis l'URL comme les 4 captures incomplètes.</p>
+</div>
+
+<div class="card">
+  <h2>5. Note sans titre (perso, 1er août 2021)</h2>
+  <div class="meta">Note perso — contient un lien Marie Claire</div>
+  <span class="verdict importer">Suggestion : importer — recette rechargeable depuis l'URL</span>
+  <p>Même cas : la note ne contient qu'un lien vers
+  <strong>Saint-Jacques rôties, beurre de cidre et crème de chou-fleur</strong> (Marie Claire).
+  Rechargeable depuis l'URL.</p>
+</div>
+
+<div class="card">
+  <h2>6. Cuisine Indienne — chalindia.blogspot.com</h2>
+  <div class="meta">Capture web — 11 avril 2021 — <a href="https://chalindia.blogspot.com/2021/02/troiseme-edition-de-fait-maison-inde.html?view=mosaic">chalindia.blogspot.com</a></div>
+  <span class="verdict ecarter">Suggestion : écarter — page d'accueil d'un blog, pas une recette</span>
+  <p>C'est la page d'accueil du blog « Cuisine Indienne » de Poonam Chawla : liste d'articles
+  (beurre de cacahuètes au chai masala, interviews, vidéos…), sans aucune recette détaillée.
+  Le blog peut en revanche rejoindre votre liste de sites sources si vous l'utilisez.</p>
+</div>
+
+<div class="card">
+  <h2>7. « Jette un œil à ceci… » — Pinterest</h2>
+  <div class="meta">Capture web — 21 février 2021 — <a href="https://pin.it/5NlUhnO">pin.it</a></div>
+  <span class="verdict importer">Suggestion : importer — c'est une terrine de lapin</span>
+  <p>Derrière l'épingle Pinterest : <strong>Terrine de lapin aux noisettes et Riesling</strong>
+  (blog La table d'Amélie, d'après Cuisine et Vins de France). La recette complète est
+  récupérable sur le blog d'origine.</p>
+</div>
+
+<div class="card">
+  <h2>8. « Quand on n'aime pas un dessin » — DTBLOG</h2>
+  <div class="meta">Capture web — 6 janvier 2021 — <a href="https://didierterrassonblog.wordpress.com/2015/01/30/quand-on-naime-pas-un-dessin/">didierterrassonblog.wordpress.com</a> — 1 photo</div>
+  <span class="verdict ecarter">Suggestion : écarter — rien de culinaire</span>
+  <p>Article de blog sur le dessin de presse (période Charlie). Aucun rapport avec la cuisine.</p>
+  <div class="photos"><img src="photos/317-quand-on-n-aime-pas-un-dessin-dtblog/1.jpg"></div>
+</div>
+
+<div class="card">
+  <h2>9-11. Trois notes sans titre vides (20 déc. 2020, 13 déc. 2020, 8 déc. 2020)</h2>
+  <div class="meta">Notes perso — 0 à 1 caractère, pas de photo</div>
+  <span class="verdict ecarter">Suggestion : écarter — notes vides</span>
+  <p>Contenus respectifs : « h », rien, rien. Il n'y a rien à importer.</p>
+</div>
+
+<div class="card">
+  <h2>12. Note sans titre (5 septembre 2015)</h2>
+  <div class="meta">Note perso — 54 caractères</div>
+  <span class="verdict importer">Suggestion : c'est un jus — à joindre à la fiche JUS</span>
+  <pre>Cocktail : Gingembre, betterave, orange, mangue, pomme</pre>
+  <p>Un jus de plus. Je propose de l'ajouter aux recettes de jus créées depuis la fiche JUS
+  (une recette « Jus gingembre, betterave, orange, mangue, pomme »).</p>
+</div>
+
+</body>
+</html>

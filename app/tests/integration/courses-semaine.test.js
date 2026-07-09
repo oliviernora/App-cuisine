@@ -13,7 +13,7 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, addEvent, updateEvent, attachRecipe, detachRecipe, importPassard,
-  parseIngredientLine, saveRecipeDetails, ingredientsOf, weekNeeds
+  parseIngredientLine, ingredientLine, saveRecipeDetails, ingredientsOf, weekNeeds
 } from '../../src/lib/store.svelte.js'
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -31,12 +31,28 @@ beforeEach(async () => {
 })
 
 describe('Analyse des lignes d\'ingrédients', () => {
+  const base = { qty_raw: '', note: '', optional: false, hard: false }
   test('quantité, unité et nom sont séparés', () => {
-    expect(parseIngredientLine('500 g d\'asperges vertes')).toEqual({ qty: 500, unit: 'g', name: 'asperges vertes' })
-    expect(parseIngredientLine('2 gousses d\'ail')).toEqual({ qty: 2, unit: 'gousses', name: 'ail' })
-    expect(parseIngredientLine('1,5 l de bouillon')).toEqual({ qty: 1.5, unit: 'l', name: 'bouillon' })
-    expect(parseIngredientLine('sel')).toEqual({ qty: null, unit: '', name: 'sel' })
+    expect(parseIngredientLine('500 g d\'asperges vertes')).toEqual({ ...base, qty: 500, qty_raw: '500', unit: 'g', name: 'asperges vertes' })
+    expect(parseIngredientLine('2 gousses d\'ail')).toEqual({ ...base, qty: 2, qty_raw: '2', unit: 'gousses', name: 'ail' })
+    expect(parseIngredientLine('1,5 l de bouillon')).toEqual({ ...base, qty: 1.5, qty_raw: '1,5', unit: 'l', name: 'bouillon' })
+    expect(parseIngredientLine('sel')).toEqual({ ...base, qty: null, unit: '', name: 'sel' })
     expect(parseIngredientLine('  ')).toBeNull()
+  })
+  test('fractions : qty décimal pour les calculs, saisie conservée pour l\'affichage', () => {
+    expect(parseIngredientLine('½ canard')).toEqual({ ...base, qty: 0.5, qty_raw: '½', unit: '', name: 'canard' })
+    expect(parseIngredientLine('1/2 poulet')).toEqual({ ...base, qty: 0.5, qty_raw: '1/2', unit: '', name: 'poulet' })
+    expect(parseIngredientLine('1 ½ l de lait')).toEqual({ ...base, qty: 1.5, qty_raw: '1 ½', unit: 'l', name: 'lait' })
+    expect(parseIngredientLine('3/4 c. à c. de sel')).toEqual({ ...base, qty: 0.75, qty_raw: '3/4', unit: 'c. à c.', name: 'sel' })
+  })
+  test('descriptif après une virgule et « (facultatif) » en fin de ligne', () => {
+    expect(parseIngredientLine('20 g de beurre, fondu')).toEqual({ ...base, qty: 20, qty_raw: '20', unit: 'g', name: 'beurre', note: 'fondu' })
+    expect(parseIngredientLine('coriandre (facultatif)')).toEqual({ ...base, qty: null, unit: '', name: 'coriandre', optional: true })
+    expect(parseIngredientLine('20 g de beurre, pommade (facultatif)')).toEqual({ ...base, qty: 20, qty_raw: '20', unit: 'g', name: 'beurre', note: 'pommade', optional: true })
+  })
+  test('la ligne d\'édition se reconstruit comme saisie', () => {
+    for (const line of ['½ canard', '1/2 poulet', '20 g beurre, fondu (facultatif)', '! 20 g morilles séchées'])
+      expect(ingredientLine(parseIngredientLine(line))).toBe(line)
   })
 })
 

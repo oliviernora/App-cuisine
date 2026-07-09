@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
-  import { store, addItem, changeQty, removeItem, toggleOrder, knownNames } from '../lib/store.svelte.js'
+  import { store, addItem, changeQty, removeItem, toggleOrder, knownNames,
+    isDatedLoc, lotsOf, undatedCount, enterLot, takeLot, categoryOf } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { MINUS, PLUS, TRASH, CART, CART_PLUS, MIC } from '../lib/icons.js'
 
@@ -17,7 +18,12 @@
 
   let search = $state('')
   let currentLoc = $state('Tous')
+  let genreFilter = $state('')
   let viewMode = $state('loc')
+
+  /* Filtre par genre d'ingrédient (master list) dans la recherche (demande Olivier 08/07). */
+  const genreNames = $derived([...new Set([...store.categories.map(c => c.name),
+    ...store.refs.map(r => r.category).filter(Boolean)])].toSorted((a, b) => a.localeCompare(b, 'fr')))
   let name = $state('')
   let qty = $state(1)
   let itemLoc = $state('')
@@ -46,6 +52,7 @@
   const filtered = $derived.by(() => {
     let items = store.items.filter(i => currentLoc === 'Tous' || i.loc === currentLoc)
     if (search) items = items.filter(i => fold(i.name).includes(fold(search)))
+    if (genreFilter) items = items.filter(i => categoryOf(i.name) === genreFilter)
     return items.toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
   })
 
@@ -61,6 +68,39 @@
 
   function ordered(item) {
     return store.shop.some(s => s.item_id === item.id)
+  }
+
+  /* Emplacements datés (N7) : « + » entre un lot daté du jour, « − » sort du
+   * lot le plus ancien ; la flèche déplie les dates (autre lot, autre date). */
+  let lotOpen = $state(null)
+  let lotQty = $state(1)
+  let lotDate = $state('')
+
+  function toggleLots(item) {
+    lotOpen = lotOpen === item.id ? null : item.id
+    lotQty = 1
+    lotDate = new Date().toISOString().slice(0, 10)
+  }
+
+  function dateFr(d) {
+    return new Date(d + 'T00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
+
+  async function plus(item) {
+    if (isDatedLoc(item.loc)) await enterLot(item, 1, new Date().toISOString().slice(0, 10))
+    else await changeQty(item, 1)
+  }
+
+  async function moins(item) {
+    const lot = isDatedLoc(item.loc) ? lotsOf(item.id)[0] : null
+    if (lot) await takeLot(item, lot)
+    else await changeQty(item, -1)
+  }
+
+  async function enter(item, e) {
+    e.preventDefault()
+    await enterLot(item, lotQty, lotDate || new Date().toISOString().slice(0, 10))
+    lotQty = 1
   }
 
   async function submit(e) {
@@ -117,6 +157,12 @@
   <div class="filters">
     <div class="searchrow">
       <input id="search" type="search" bind:value={search} placeholder="Rechercher une épice, un ingrédient…" aria-label="Rechercher">
+      {#if genreNames.length}
+        <select class="genre-filter" bind:value={genreFilter} aria-label="Genre d'ingrédient">
+          <option value="">Tous genres</option>
+          {#each genreNames as g (g)}<option value={g}>{g}</option>{/each}
+        </select>
+      {/if}
       <div class="sortsel" role="group" aria-label="Tri">
         <button type="button" class:active={viewMode === 'loc'} onclick={() => viewMode = 'loc'}>Emplacement</button>
         <button type="button" class:active={viewMode === 'az'} onclick={() => viewMode = 'az'}>A→Z</button>
@@ -148,17 +194,46 @@
         <li class="row" class:low={item.qty <= item.min}>
           <span class="name" title={item.name}>{item.name}</span>
           {#if viewMode === 'az'}<span class="note">{item.loc}</span>{/if}
+          {#if isDatedLoc(item.loc)}
+            <button class="icon-btn" type="button" aria-label="Détail des dates" aria-expanded={lotOpen === item.id}
+              title="Détail des dates (lots)" onclick={() => toggleLots(item)}>{lotOpen === item.id ? '▾' : '▸'}</button>
+          {/if}
           <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
             aria-label="Commander"
             title={inList ? 'Dans le panier — appuyer pour retirer' : missing ? 'Produit manquant — ajouter au panier' : 'Commander (réserve)'}
             onclick={() => toggleOrder(item)}><Icon d={missing ? CART_PLUS : CART} /></button>
           <div class="qty">
-            <button type="button" aria-label="Un pot de moins" onclick={() => changeQty(item, -1)}><Icon d={MINUS} /></button>
+            <button type="button" aria-label="Un pot de moins" onclick={() => moins(item)}><Icon d={MINUS} /></button>
             <output title="pots">{item.qty}</output>
-            <button type="button" aria-label="Un pot de plus" onclick={() => changeQty(item, 1)}><Icon d={PLUS} /></button>
+            <button type="button" aria-label="Un pot de plus" onclick={() => plus(item)}><Icon d={PLUS} /></button>
           </div>
           <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeItem(item)}><Icon d={TRASH} /></button>
         </li>
+        {#if lotOpen === item.id}
+          <li class="lot-panel">
+            {#if lotsOf(item.id).length}
+              <ul class="manage-items">
+                {#each lotsOf(item.id) as lot, i (lot.id)}
+                  <li class="row">
+                    <span class="name">{lot.qty} × {lot.qty > 1 ? 'entrés' : 'entré'} le {dateFr(lot.entered_on)}</span>
+                    {#if i === 0}<span class="note">le plus ancien</span>{/if}
+                    <button type="button" class="inv-manage" onclick={() => takeLot(item, lot)}>Sortir 1</button>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+            {#if undatedCount(item) > 0}
+              <p class="note">{undatedCount(item)} sans date (entrés avant le suivi par dates —
+                le prochain inventaire les datera)</p>
+            {/if}
+            <form class="manage-row" onsubmit={e => enter(item, e)}>
+              <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={lotQty} aria-label="Quantité entrée">
+              <input type="date" bind:value={lotDate} aria-label="Date d'entrée">
+              <span class="note">{lotDate ? dateFr(lotDate) : ''}</span>
+              <button class="inv-start">Entrer</button>
+            </form>
+          </li>
+        {/if}
       {/each}
     </ul>
   {/each}
