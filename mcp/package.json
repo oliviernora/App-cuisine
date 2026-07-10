@@ -1,0 +1,12 @@
+{
+  "name": "garde-manger-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Serveur MCP du garde-manger : Claude lit la base via des actions metier (B1 lecture seule)",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "zod": "^3.23.0"
+  }
+}

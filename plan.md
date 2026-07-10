@@ -85,8 +85,10 @@
   le 10/07, sans effet).
 - Trancher : vider automatiquement la catégorie « Plat » à l'import URL
   (convention de l'app : vide = plat) ?
-- Créer le compte Supabase dédié à Claude pour le MCP (B1) — voir la
-  section « MCP garde-manger ».
+- Créer le compte Supabase dédié à Claude + remplir `mcp/.env` (procédure
+  pas à pas : `docs/technique/mcp.md`) — le MCP B1 est prêt à tester.
+- Dérouler M41 (import « Coller le texte » depuis l'iPhone/iPad avec
+  « Texte en direct ») après republication de la prod.
 
 ### Livré le 08/07 (session commentaires + points 2, 3, 5) — EN ATTENTE DE MIGRATION + PASSE NAVIGATEUR
 - Commentaires d'Olivier (docs/utilisateur/Commentaires sur l'appli
@@ -477,12 +479,13 @@ difficiles : pages de biais, mises en page chargées, manuscrit).
   Chrome demande UNE FOIS l'autorisation « réseau local » (à cliquer par
   Olivier — voir exploitation.md). RESTE (plus tard) : PDF converti en
   images ; rapprochement master list en suggestions à l'import.
-- **A4 — iPhone/iPad : capture + OCR local Apple** : photo de la page
-  conservée (copie privée, bucket photos existant) + texte extrait par
-  « Texte en direct » (OCR Apple, 100 % sur l'appareil) collé dans l'app ;
-  parseur heuristique des lignes d'ingrédients (« 200 g de farine »,
-  fractions comprises) ; ce qui n'est pas structurable reste en texte,
-  à finir sur le PC (A3) si besoin.
+- **A4 — iPhone/iPad : capture + OCR local Apple** — CODE LIVRÉ le
+  10/07/2026 : « ▸ Coller le texte de la recette » dans le panneau
+  d'import (photo de la page → « Texte en direct » → coller), découpage
+  heuristique (`texte-recette.js` : titre, « Pour N personnes », puces et
+  quantités = ingrédients, « 1. … » = étapes), photos de la page jointes
+  sans IA (bucket « Page »), même relecture obligatoire. 4 tests.
+  RESTE : test réel M41 par Olivier sur iPhone/iPad (et prod à republier).
 - **A5 — (optionnel, seulement si A4 s'avère trop manuel à l'usage)
   Raccourci Apple Intelligence** : action « Utiliser le modèle » (modèle
   Apple local, iPad M5 et iPhone 15 Pro+) : photo → OCR → JSON → partage
@@ -516,10 +519,12 @@ Principes d'intégrité (imposés par le serveur, quel que soit l'appelant) :
 - Journal des actions du serveur (quoi, quand, résultat), consultable.
 
 Incréments :
-- **B1 — Lecture seule** : serveur MCP local (Node, stdio, dossier `mcp/`,
-  identifiants dans un `.env` hors git, déclaré dans `.mcp.json`) :
-  recherche de recettes, fiche complète, stock, master list, contrôle de
-  schéma. Aucun risque, valide la tuyauterie.
+- **B1 — Lecture seule** — CODE LIVRÉ le 10/07/2026 : serveur `mcp/index.mjs`
+  (Node, stdio, déclaré dans `.mcp.json`), 6 outils (recherche_recettes,
+  fiche_recette, stock, liste_courses, master_list, controle_schema),
+  protocole vérifié (initialize + tools/list + erreurs claires sans .env).
+  RESTE : compte dédié à créer par Olivier + `mcp/.env` + test réel —
+  procédure complète : `docs/technique/mcp.md`.
 - **B2 — Écritures métier** : les actions ci-dessus + dry-run + sauvegarde
   automatique + journal.
 - **B3 — Premier usage réel : lots Evernote 3-24** — l'import passe par le

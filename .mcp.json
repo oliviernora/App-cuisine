@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "garde-manger": {
+      "command": "node",
+      "args": ["mcp/index.mjs"]
+    }
+  }
+}

@@ -8,3 +8,5 @@ Evernote/photos/
 Evernote/textes/
 
 supabase/.temp/
+mcp/.env
+mcp/node_modules/

@@ -4,6 +4,7 @@
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
+  import { proposalFromText } from '../lib/texte-recette.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
 
   const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
@@ -252,6 +253,24 @@
     importFiles = []
     importError = ''
     importDuplicate = null
+    importTextOpen = false
+    importText = ''
+  }
+
+  /* A4 : texte collé (OCR « Texte en direct » sur iPhone/iPad, ou copié)
+   * + photos de la page jointes sans IA. */
+  let importTextOpen = $state(false)
+  let importText = $state('')
+
+  function keepPhotos(e) {
+    importFiles = [...(e.target.files ?? [])]
+  }
+
+  function prepareFromText() {
+    const proposal = proposalFromText(importText)
+    if (!proposal.title) { importError = 'Le texte est vide.'; return }
+    importError = ''
+    importProposal = { url: '', sourceTitle: '', category: '', country: '', sourceKind: 'livre', ...proposal }
   }
 </script>
 
@@ -322,6 +341,25 @@
           {#if importPhotoBusy}
             <p class="note">Lecture des photos par l'IA locale — environ une minute…</p>
           {/if}
+        {/if}
+        <p class="manage-row">
+          <button type="button" class="inv-manage" aria-expanded={importTextOpen}
+            onclick={() => importTextOpen = !importTextOpen}>
+            {importTextOpen ? '▾' : '▸'} Coller le texte de la recette
+          </button>
+        </p>
+        {#if importTextOpen}
+          <p class="note">Sur iPhone/iPad : photographier la page, sélectionner le texte sur la
+            photo (« Texte en direct »), le copier et le coller ici — tout reste sur l'appareil.</p>
+          <textarea bind:value={importText} rows="8" aria-label="Texte de la recette"
+            placeholder="Titre&#10;Pour 4 personnes&#10;200 g de farine&#10;…"></textarea>
+          <p class="manage-row">
+            <label class="file-btn">{importFiles.length ? importFiles.length + ' photo(s) à joindre' : 'Joindre les photos de la page (facultatif)'}
+              <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={keepPhotos}>
+            </label>
+            <button type="button" class="inv-start" disabled={busy || !importText.trim()}
+              onclick={prepareFromText}>Préparer la fiche</button>
+          </p>
         {/if}
         {#if importDuplicate}
           <p class="message">Cette recette est déjà là : « {importDuplicate.title} ».
