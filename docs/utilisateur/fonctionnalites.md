@@ -239,18 +239,31 @@ Il disparaît une fois rangé.
   créer une source (livre, site) — la liste reste courte et maîtrisée. Le
   choix de la source et le pays d'origine se règlent dans l'éditeur de la
   fiche.
-- **« ▸ Importer une recette depuis une URL »** (sous la recherche) : coller
-  l'adresse d'une page de recette (Marie Claire, Marmiton…) et « Récupérer
-  la recette ». L'application lit la **recette structurée publiée par le
-  site** (aucune IA) et propose une **fiche pré-remplie à relire** : titre,
-  source (créée si nouvelle), « pour N personnes », catégorie, ingrédients
-  (un par ligne), étapes. Rien n'est enregistré avant « **Enregistrer la
-  recette** » ; la fiche s'ouvre alors dans la liste. Une adresse **déjà
-  importée** est signalée (« Voir la fiche ») — même chose pour un titre
-  déjà présent chez la même source. Si la page ne publie pas de recette
-  structurée, un message l'explique (copier le texte et créer la fiche à la
-  main). Nécessite la fonction « rapatrier-page » côté serveur (voir
-  exploitation.md) et une connexion.
+- **« ▸ Importer une recette (URL, photos) »** (sous la recherche), deux
+  chemins vers la même **fiche pré-remplie à relire** — rien n'est
+  enregistré avant « **Enregistrer la recette** », la fiche s'ouvre alors
+  dans la liste :
+  - **Depuis une URL** : coller l'adresse d'une page de recette et
+    « Récupérer la recette ». L'application lit la **recette structurée
+    publiée par le site** (aucune IA) : titre, source (créée si nouvelle),
+    « pour N personnes », catégorie, ingrédients un par ligne, étapes. Une
+    adresse **déjà importée** est signalée (« Voir la fiche ») — même chose
+    pour un titre déjà présent chez la même source. Si la page ne publie
+    pas de recette structurée (ex. Marmiton), un message l'explique —
+    passer par les photos ou la saisie. Nécessite la fonction
+    « rapatrier-page » côté serveur (voir exploitation.md).
+  - **Depuis des photos (IA locale)** : le bouton « Depuis des photos de la
+    recette — IA locale sur ce PC » n'apparaît que si **Ollama** tourne sur
+    l'ordinateur avec le modèle prévu (voir exploitation.md). Choisir une
+    ou plusieurs photos (page de livre, magazine) : elles sont réduites sur
+    place puis lues par le modèle **sans quitter le PC** (~30 s à 1 min par
+    page, un peu plus au premier appel). La fiche proposée est à **relire
+    obligatoirement** (le modèle peut se tromper sur un titre bilingue, un
+    mot doublé…) ; la source se choisit (livre existant suggéré au fil de
+    la frappe). À l'enregistrement, **les photos sont attachées à la fiche**
+    (« Page », copie privée du foyer). Au premier usage depuis le site en
+    ligne, Chrome demande l'autorisation d'accéder au réseau local
+    (bulle près de la barre d'adresse) : cliquer « Autoriser », une fois.
 - Toucher une ligne déplie la fiche : source, lien « Voir en ligne » (avec le
   nom du site), nom de la vidéo locale, **ingrédients**, **texte de la
   recette**, historique des réalisations, et « **J'ai fait cette recette** »

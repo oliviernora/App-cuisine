@@ -2,7 +2,8 @@
   import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails,
     fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
-    fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe } from '../lib/store.svelte.js'
+    fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage } from '../lib/store.svelte.js'
+  import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
 
   const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
@@ -163,12 +164,51 @@
     busy = false
   }
 
-  /* Import d'une recette depuis une URL (A1) : récupérer → relire → enregistrer. */
+  /* Import d'une recette (A1 URL, A3 photos) : récupérer → relire → enregistrer. */
   let importOpen = $state(false)
   let importUrl = $state('')
   let importError = $state('')
   let importDuplicate = $state(null)
   let importProposal = $state(null)
+  let ollamaOk = $state(false) // IA locale disponible sur ce PC (A3)
+  let importPhotoBusy = $state(false)
+  let importFiles = [] // photos de la page, rattachées à la fiche après enregistrement
+
+  function toggleImport() {
+    importOpen = !importOpen
+    if (!importOpen) { cancelImport(); return }
+    ollamaReady().then(ok => { ollamaOk = ok })
+  }
+
+  /** A3 : photos de la page → IA locale (Ollama) → fiche à relire. */
+  async function importPhotos(e) {
+    const files = [...(e.target.files ?? [])]
+    e.target.value = ''
+    if (!files.length) return
+    busy = true
+    importPhotoBusy = true
+    importError = ''
+    importDuplicate = null
+    try {
+      const images = []
+      for (const f of files) {
+        const blob = await compressImage(f)
+        images.push(await new Promise((resolve, reject) => {
+          const r = new FileReader()
+          r.onload = () => resolve(r.result.split(',')[1])
+          r.onerror = () => reject(r.error)
+          r.readAsDataURL(blob)
+        }))
+      }
+      const proposal = proposalFromExtraction(await extractRecipeFromImages(images))
+      importProposal = { url: '', sourceTitle: '', category: '', country: '', sourceKind: 'livre', ...proposal }
+      importFiles = files
+    } catch {
+      importError = 'L\'extraction locale a échoué. Vérifier qu\'Ollama tourne sur ce PC, puis réessayer.'
+    }
+    busy = false
+    importPhotoBusy = false
+  }
 
   async function fetchImport() {
     const url = importUrl.trim()
@@ -196,10 +236,12 @@
     busy = true
     const p = importProposal
     const res = await createImportedRecipe({ ...p, servings: Number(p.servings) > 0 ? Number(p.servings) : null })
+    if (res.error) { importError = res.error; busy = false; return }
+    if (res.duplicate) { importProposal = null; importDuplicate = res.duplicate; busy = false; return }
+    for (const f of importFiles) await addRecipePhoto(res.recipe, f, 'page') // copie privée de la page
     busy = false
-    if (res.error) { importError = res.error; return }
-    if (res.duplicate) { importProposal = null; importDuplicate = res.duplicate; return }
     importProposal = null
+    importFiles = []
     importUrl = ''
     importOpen = false
     open = res.recipe.id
@@ -207,6 +249,7 @@
 
   function cancelImport() {
     importProposal = null
+    importFiles = []
     importError = ''
     importDuplicate = null
   }
@@ -258,9 +301,8 @@
     {/if}
   </div>
   <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
-    <button type="button" class="inv-manage" aria-expanded={importOpen}
-      onclick={() => { importOpen = !importOpen; if (!importOpen) cancelImport() }}>
-      {importOpen ? '▾' : '▸'} Importer une recette depuis une URL
+    <button type="button" class="inv-manage" aria-expanded={importOpen} onclick={toggleImport}>
+      {importOpen ? '▾' : '▸'} Importer une recette (URL, photos)
     </button>
   </div>
   {#if importOpen}
@@ -271,6 +313,16 @@
             aria-label="Adresse de la page de la recette" required>
           <button class="inv-start" disabled={busy || !importUrl.trim()}>Récupérer la recette</button>
         </form>
+        {#if ollamaOk}
+          <p class="manage-row">
+            <label class="file-btn">Depuis des photos de la recette — IA locale sur ce PC
+              <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={importPhotos}>
+            </label>
+          </p>
+          {#if importPhotoBusy}
+            <p class="note">Lecture des photos par l'IA locale — environ une minute…</p>
+          {/if}
+        {/if}
         {#if importDuplicate}
           <p class="message">Cette recette est déjà là : « {importDuplicate.title} ».
             <button type="button" class="inv-manage"
@@ -282,7 +334,13 @@
         <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
         <p class="manage-row">
           <label>Titre <input bind:value={importProposal.title} aria-label="Titre de la recette"></label>
-          <label>Source <input bind:value={importProposal.sourceTitle} aria-label="Source"></label>
+          <label>Source <input bind:value={importProposal.sourceTitle} list="import-sources"
+            placeholder="Livre, site…" aria-label="Source"></label>
+          <datalist id="import-sources">
+            {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
+              <option value={s.title}></option>
+            {/each}
+          </datalist>
         </p>
         <p class="manage-row">
           <label>Pour

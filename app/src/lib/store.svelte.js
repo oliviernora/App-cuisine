@@ -379,6 +379,7 @@ async function loadRecipes() {
 }
 
 const UNITS = ['cuillères à soupe', 'cuillère à soupe', 'cuillères à café', 'cuillère à café',
+  'cuil. à soupe', 'cuil. à café',
   'c. à s.', 'c. à c.', 'pincées', 'pincée', 'gousses', 'gousse', 'bottes', 'botte',
   'tranches', 'tranche', 'pièces', 'pièce', 'brins', 'brin', 'feuilles', 'feuille',
   'kg', 'mg', 'g', 'cl', 'ml', 'l', 'cs', 'cc']
@@ -397,7 +398,7 @@ export function parseIngredientLine(line) {
   if (rest.startsWith('!')) { hard = true; rest = rest.slice(1).trim() }
   let qty = null, qty_raw = ''
   let m
-  if ((m = rest.match(/^(?:(\d+) )?([½⅓⅔¼¾])\s*/))) {
+  if ((m = rest.match(/^(?:(\d+) ?)?([½⅓⅔¼¾])\s*/))) {
     qty = Number(m[1] ?? 0) + FRACTIONS[m[2]]
   } else if ((m = rest.match(/^(?:(\d+) )?(\d+)\s*\/\s*([1-9]\d*)\s*/))) {
     qty = Number(m[1] ?? 0) + Number(m[2]) / Number(m[3])
@@ -529,12 +530,12 @@ export async function fetchRecipeFromUrl(url) {
 /** Enregistre la fiche relue : crée la source (site) si besoin, refuse les
  * doublons (URL, sinon titre + source), puis insère recette et ingrédients.
  * Renvoie { recipe }, { duplicate } ou { error }. */
-export async function createImportedRecipe({ url, title, sourceTitle, ingredientsText, steps, servings, country, category }) {
+export async function createImportedRecipe({ url, title, sourceTitle, ingredientsText, steps, servings, country, category, sourceKind = 'site' }) {
   const t = title.trim()
   if (!t) return { error: 'Le titre est obligatoire.' }
   let source = store.sources.find(s => s.title === sourceTitle.trim())
   if (!source && sourceTitle.trim()) {
-    await addSource(sourceTitle, 'site')
+    await addSource(sourceTitle, sourceKind)
     source = store.sources.find(s => s.title === sourceTitle.trim())
   }
   const duplicate = findDuplicateRecipe(url, t, source?.id)
@@ -1067,9 +1068,10 @@ export async function addRealisation(recipe, madeOn, comment) {
  * plat (liée à une réalisation si consignée avec) ou la page du livre
  * (copie privée, réservée au foyer). */
 
-/** Réduit l'image côté client (max 1600 px, JPEG) avant l'envoi.
+/** Réduit l'image côté client (max 1600 px, JPEG) avant l'envoi — utilisée
+ * pour le stockage des photos ET pour l'extraction par IA locale (A3).
  * Hors navigateur (tests), le fichier part tel quel. */
-async function compressImage(file) {
+export async function compressImage(file) {
   if (typeof createImageBitmap === 'undefined' || typeof OffscreenCanvas === 'undefined') return file
   const bmp = await createImageBitmap(file)
   const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height))

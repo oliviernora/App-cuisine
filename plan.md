@@ -78,9 +78,11 @@
   « marchés » est la référence des créneaux — décision 07/07).
 - « épinards ≈ épinard » à trancher dans Ingrédients à rapprocher
   (la fusion absorbe maintenant proprement les deux fiches).
-- (Edge Function `rapatrier-page` déployée le 10/07 par Olivier ; M39 ✓.)
-- Donner le GO sur le verdict A2 (qwen3-vl:4b-instruct,
-  docs/technique/poc-ollama.md) pour lancer A3.
+- (Edge Function déployée, GO A3 donné et A3 livré le 10/07 ; M39-M40 ✓.)
+- Au premier import photo depuis https://garde-manger-chi.vercel.app :
+  cliquer « Autoriser » sur la bulle Chrome « réseau local » (une fois).
+- Supprimer du dashboard Vercel le projet « dist » (vide, créé par erreur
+  le 10/07, sans effet).
 - Trancher : vider automatiquement la catégorie « Plat » à l'import URL
   (convention de l'app : vide = plat) ?
 - Créer le compte Supabase dédié à Claude pour le MCP (B1) — voir la
@@ -128,10 +130,10 @@
    Olivier — un agent par lot, plusieurs lots en parallèle possibles).
 2. **Import de recettes en IA LOCALE** (étape 4, incr. 3 révisé le
    10/07/2026, décision Olivier : pas de clé API) : plan détaillé section
-   « Import de recettes — plan IA locale ». **A1 TERMINÉ (fonction
-   déployée, M39 ✓) et A2 FAIT le 10/07** — reste : GO d'Olivier sur le
-   verdict A2 (qwen3-vl:4b-instruct, docs/technique/poc-ollama.md) puis A3
-   (intégration app ↔ Ollama) et A4 (OCR iPhone/iPad).
+   « Import de recettes — plan IA locale ». **A1, A2 et A3 TERMINÉS le
+   10/07** (M39 et M40 déroulés en réel, prod republiée avec le tout) —
+   reste : A4 (capture + OCR local iPhone/iPad), et plus tard PDF → images
+   et A5 (Raccourci Apple Intelligence si A4 trop manuel).
 3. **Serveur MCP garde-manger** (décision Olivier 10/07/2026) : Claude
    travaille sur la vraie base via des actions métier qui garantissent
    l'intégrité — plan section « MCP garde-manger » (B1-B3). Premier usage
@@ -465,12 +467,16 @@ difficiles : pages de biais, mises en page chargées, manuscrit).
   num_ctx 8192, images 1600 px) : `docs/technique/poc-ollama.md` ; script
   rejouable `app/scripts/poc-extract-ollama.mjs`. GO d'Olivier attendu
   pour A3.
-- **A3 — Intégration app ↔ Ollama (PC)** : écran « Importer » (photo, ou
-  PDF converti en images) qui envoie au modèle local (localhost:11434,
-  CORS Ollama à configurer) et pré-remplit la fiche à relire ; le bouton
-  n'apparaît que si Ollama répond ; rapprochement des ingrédients extraits
-  avec la master list en suggestions (jamais de fusion silencieuse, règle
-  du 07/07).
+- **A3 — Intégration app ↔ Ollama (PC)** — FAIT le 10/07/2026 (GO
+  d'Olivier), M40 déroulé en réel (Chaudrée du potager importée depuis sa
+  photo, 129 recettes en base, photo attachée à la fiche). Bouton « Depuis
+  des photos » visible seulement si Ollama répond avec le modèle
+  (`ollama-recipe.js`), compression 1600 px réutilisée, photos rattachées
+  en « Page » (copie privée), source de type « livre ». CORS réglé
+  (OLLAMA_ORIGINS, persistant) ; au premier usage depuis le site public,
+  Chrome demande UNE FOIS l'autorisation « réseau local » (à cliquer par
+  Olivier — voir exploitation.md). RESTE (plus tard) : PDF converti en
+  images ; rapprochement master list en suggestions à l'import.
 - **A4 — iPhone/iPad : capture + OCR local Apple** : photo de la page
   conservée (copie privée, bucket photos existant) + texte extrait par
   « Texte en direct » (OCR Apple, 100 % sur l'appareil) collé dans l'app ;
