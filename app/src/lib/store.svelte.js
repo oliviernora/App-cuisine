@@ -405,6 +405,9 @@ export function parseIngredientLine(line) {
     qty = Number(m[1].replace(',', '.'))
   }
   if (m) { qty_raw = m[0].trim(); rest = rest.slice(m[0].length) }
+  // « 2/3 de c. à c. de cinq-parfums » : le « de » entre quantité et unité
+  // empêchait de reconnaître l'unité (constaté au M39, import URL)
+  if (qty !== null) rest = rest.replace(/^d(?:e |')\s*/i, '')
   let unit = ''
   const lower = rest.toLowerCase()
   for (const u of UNITS) {

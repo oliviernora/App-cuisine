@@ -78,10 +78,11 @@
   « marchés » est la référence des créneaux — décision 07/07).
 - « épinards ≈ épinard » à trancher dans Ingrédients à rapprocher
   (la fusion absorbe maintenant proprement les deux fiches).
-- Déployer l'Edge Function `rapatrier-page` (import URL, A1 — procédure
-  dans exploitation.md, section « Fonctions serveur ») puis dérouler M39.
+- (Edge Function `rapatrier-page` déployée le 10/07 par Olivier ; M39 ✓.)
 - Donner le GO sur le verdict A2 (qwen3-vl:4b-instruct,
   docs/technique/poc-ollama.md) pour lancer A3.
+- Trancher : vider automatiquement la catégorie « Plat » à l'import URL
+  (convention de l'app : vide = plat) ?
 - Créer le compte Supabase dédié à Claude pour le MCP (B1) — voir la
   section « MCP garde-manger ».
 
@@ -127,10 +128,9 @@
    Olivier — un agent par lot, plusieurs lots en parallèle possibles).
 2. **Import de recettes en IA LOCALE** (étape 4, incr. 3 révisé le
    10/07/2026, décision Olivier : pas de clé API) : plan détaillé section
-   « Import de recettes — plan IA locale ». **A1 (import URL) et A2 (POC
-   Ollama) FAITS le 10/07** — reste : Olivier déploie `rapatrier-page`
-   (exploitation.md) + M39, GO d'Olivier sur le verdict A2
-   (qwen3-vl:4b-instruct, docs/technique/poc-ollama.md) puis A3
+   « Import de recettes — plan IA locale ». **A1 TERMINÉ (fonction
+   déployée, M39 ✓) et A2 FAIT le 10/07** — reste : GO d'Olivier sur le
+   verdict A2 (qwen3-vl:4b-instruct, docs/technique/poc-ollama.md) puis A3
    (intégration app ↔ Ollama) et A4 (OCR iPhone/iPad).
 3. **Serveur MCP garde-manger** (décision Olivier 10/07/2026) : Claude
    travaille sur la vraie base via des actions métier qui garantissent
@@ -445,16 +445,17 @@ faut. La relecture avant enregistrement est OBLIGATOIRE partout
 (l'extraction locale se trompe plus souvent que l'API sur les cas
 difficiles : pages de biais, mises en page chargées, manuscrit).
 
-- **A1 — Import par URL sans IA** — FAIT le 10/07/2026 (code + 8 tests +
-  build + passe navigateur partielle). Parseur JSON-LD
-  (`app/src/lib/jsonld-recipe.js`, gère @graph, HowToSection, ingrédients
-  en bloc ou en tableau), panneau « ▸ Importer une recette depuis une
-  URL » dans Recettes (récupérer → fiche pré-remplie à relire →
-  enregistrer), dédoublonnage URL sinon titre+source (clé Evernote),
-  source « site » créée au besoin, messages d'erreur clairs. Edge Function
-  `supabase/functions/rapatrier-page/` (rapatrie le HTML, aucune clé IA).
-  RESTE : déploiement de la fonction par Olivier (procédure dans
-  exploitation.md) puis M39 en réel.
+- **A1 — Import par URL sans IA** — TERMINÉ le 10/07/2026 : code + 9 tests
+  + build, Edge Function `rapatrier-page` DÉPLOYÉE par Olivier (CLI), M39
+  déroulé en réel (poulet à la citronnelle Marie Claire importé de bout en
+  bout, doublons refusés, Marmiton sans JSON-LD serveur → repli propre).
+  Parseur JSON-LD `app/src/lib/jsonld-recipe.js` (@graph, HowToSection,
+  ingrédients en bloc ou tableau), panneau « ▸ Importer une recette depuis
+  une URL » (récupérer → relire → enregistrer), dédoublonnage URL sinon
+  titre+source, source « site » créée au besoin. Au passage : parseur
+  d'ingrédients corrigé (« 2/3 de c. à c. de X » reconnaît l'unité).
+  Question ouverte à Olivier : vider automatiquement la catégorie « Plat »
+  à l'import (convention : vide = plat) ?
 - **A2 — POC Ollama sur le PC** — FAIT le 10/07/2026, CONCLUANT. Verdict :
   **qwen3-vl:4b-instruct** (~33 s par page, 61 s pour une double page de
   livre, fractions ½/1½ intactes, étapes quasi verbatim ; défauts du

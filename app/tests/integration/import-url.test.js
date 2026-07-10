@@ -12,7 +12,8 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake, edgeFunctions } from '../helpers/fake-supabase.js'
 import {
-  store, fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, ingredientsOf
+  store, fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, ingredientsOf,
+  parseIngredientLine
 } from '../../src/lib/store.svelte.js'
 import { parseRecipeFromHtml } from '../../src/lib/jsonld-recipe.js'
 import {
@@ -55,6 +56,13 @@ describe('Parsing du JSON-LD schema.org/Recipe', () => {
 
   test('page sans recette structurée : null', () => {
     expect(parseRecipeFromHtml(SANS_RECETTE_HTML, 'https://exemple.fr')).toBe(null)
+  })
+
+  test('« 2/3 de c. à c. de cinq-parfums » : le « de » avant l\'unité ne la masque plus (M39)', () => {
+    expect(parseIngredientLine('2/3 de c. à c. de cinq-parfums'))
+      .toMatchObject({ qty_raw: '2/3', unit: 'c. à c.', name: 'cinq-parfums' })
+    expect(parseIngredientLine('1 botte de persil plat'))
+      .toMatchObject({ qty: 1, unit: 'botte', name: 'persil plat' })
   })
 })
 
