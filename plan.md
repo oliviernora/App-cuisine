@@ -46,16 +46,21 @@
 - Onglet en arrière-plan : les setTimeout sont throttlés (~1/min) — piloter
   le DOM en boucle synchrone pour les opérations en masse.
 
-### État de la base (réelle, PAS à jour — action Olivier)
-- **MIGRATION DU 08/07 EN ATTENTE** (`supabase/migration-en-attente.sql`) :
-  table ingredient_categories (genres + sourcing), sourcing sur
-  ingredient_refs, note/optional/qty_raw sur recipe_ingredients,
-  stale_months sur locations, réparation des « /2 … » Passard + SELECT de
-  contrôle des noms douteux. **À coller avant tout déploiement** : sans
-  elle, l'app livrée le 08/07 tourne en mode dégradé (bandeau migration,
-  recettes non chargées). Ensuite : check:schema attendu 15/15, passe
-  navigateur M30-M38 (M38 = restauration, à ne PAS tester avant la
-  migration), puis déploiement.
+### État de la base (réelle, à jour au 09/07)
+- **Migration du 08/07 APPLIQUÉE le 09/07** (SQL Editor piloté en session,
+  GO d'Olivier, check:schema 15/15). Sauvegarde préalable complète de la
+  base : `D:\OneDrive\Téléchargement\
+  sauvegarde-base-garde-manger-2026-07-09-avant-migration.csv` (14 tables
+  en JSON, 127 recettes, 837 lignes d'ingrédients). La réparation des
+  « /2 … » a fonctionné : il ne reste que « eau » (2 lignes) et « ficelle
+  de cuisine » (1 ligne) à trancher avec Olivier.
+- **Passe navigateur M30-M38 déroulée le 09/07** sur la base migrée :
+  tout est vert (détail au journal du cahier de tests). M34 (largeur
+  iPhone) reste à confirmer par Olivier sur son appareil. Trois
+  observations d'UX signalées au journal (Entrée sur « Nouveau genre »,
+  nombre non parsé au clavier dans l'inventaire, export auto de la
+  restauration à confirmer en passe humaine).
+  **Reste : déploiement en prod (main d'Olivier, `mettre-en-ligne.cmd`).**
 - Migration du 07/07 soir appliquée (category/wishlist/hard, recipe_photos
   + bucket privé « photos », locations.dated + item_lots).
 - 127 recettes (118 plats + 9 jus « Boissons ») ; pays : France 110,

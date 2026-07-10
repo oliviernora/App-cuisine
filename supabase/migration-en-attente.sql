@@ -1,5 +1,6 @@
--- Migration du 08/07/2026 — à coller dans le SQL Editor du dashboard
--- Supabase (session d'Olivier), en une seule fois.
+-- Migration du 08/07/2026 — APPLIQUÉE le 09/07/2026 (SQL Editor, session
+-- navigateur d'Olivier, sauvegarde préalable de la base ; check:schema 15/15).
+-- Conservée pour trace ; le schéma de référence est supabase/schema.sql.
 -- Porte : genres d'ingrédients (table + sourcing), sourcing par ingrédient,
 -- descriptif / facultatif / fraction sur les ingrédients de recette,
 -- seuil d'ancienneté des lots par emplacement (rappel Semaine, N10).
