@@ -13,10 +13,25 @@ racine (Claude Code le charge automatiquement dans ce projet).
 - B1 (livré le 10/07/2026) : **lecture seule** — `recherche_recettes`,
   `fiche_recette`, `stock`, `liste_courses`, `master_list`,
   `controle_schema`.
-- B2 (à venir) : écritures métier (créer une recette avec dédoublonnage,
-  consigner une réalisation…) avec mode « à blanc », export JSON
-  automatique avant toute écriture en masse, journal des actions.
-- B3 : premier usage réel — les lots Evernote 3-24 importés via le MCP.
+- B2 (livré le 10/07/2026) : **écritures métier** —
+  - `importer_recettes_evernote` : import en masse de
+    `Evernote/recettes-data.json`, TOUJOURS en deux temps : `a_blanc`
+    (rapport créer/ignorer + **jeton**) → GO explicite d'Olivier →
+    `executer` avec le jeton (un jeton faux ou périmé est refusé).
+    **Sauvegarde JSON automatique** de toutes les tables du foyer avant
+    l'exécution (`mcp/sauvegardes/`). Dédoublonnage par URL sinon
+    titre+source ; jamais de réalisation créée (décision du 07/07).
+  - `creer_recette` (unitaire, dédoublonnée, lignes d'ingrédients parsées
+    par le parseur de l'app — module partagé `app/src/lib/ligne-ingredient.js`),
+    `ajouter_realisation` (unitaire).
+  - `journal_actions` : toutes les écritures (et refus) sont consignées
+    dans `mcp/journal.jsonl` (hors git), les plus récentes en premier.
+  - Pas d'outil de suppression (décision : rien de destructif via le MCP
+    pour l'instant).
+- B3 (démarré le 10/07/2026) : les lots Evernote importés via le MCP —
+  lot 2 (10 recettes) importé le jour même avec GO d'Olivier ; les lots
+  suivants suivent le même cycle extraction (agents) → enex-merge →
+  a_blanc → GO → executer.
 
 ## Mise en service (FAITE le 10/07/2026 — gardé pour référence)
 

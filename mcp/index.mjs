@@ -1,18 +1,25 @@
 /**
- * Serveur MCP « garde-manger » — incrément B1 : LECTURE SEULE.
+ * Serveur MCP « garde-manger » — B1 (lecture) + B2 (écritures métier).
  *
- * Claude lit la vraie base via des actions métier, jamais de SQL libre.
- * Intégrité : connexion par le compte Supabase dédié (mcp/.env), simple
- * membre du foyer — la RLS s'applique à toutes les requêtes.
- * Documentation : docs/technique/mcp.md.
+ * Claude travaille sur la vraie base via des actions métier, jamais de SQL
+ * libre. Intégrité : connexion par le compte Supabase dédié (mcp/.env),
+ * simple membre du foyer — la RLS s'applique à toutes les requêtes ;
+ * écritures en masse en deux temps (mode « à blanc » → jeton → exécution)
+ * avec sauvegarde JSON automatique avant l'exécution, et journal de toutes
+ * les écritures (mcp/journal.jsonl). Documentation : docs/technique/mcp.md.
  */
-import { readFileSync } from 'node:fs'
+import { readFileSync, appendFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import { parseIngredientLine } from '../app/src/lib/ligne-ingredient.js'
+
+const DIR = dirname(fileURLToPath(import.meta.url))
+const ROOT = join(DIR, '..')
 
 const TABLES = ['items', 'shopping', 'households', 'household_members', 'locations',
   'item_lots', 'sources', 'recipes', 'realisations', 'events', 'event_recipes',
@@ -25,10 +32,9 @@ let householdId = null
  * (claire) ne sort qu'à l'appel d'un outil. */
 async function connect() {
   if (householdId) return
-  const dir = dirname(fileURLToPath(import.meta.url))
   let raw
   try {
-    raw = readFileSync(join(dir, '.env'), 'utf8')
+    raw = readFileSync(join(DIR, '.env'), 'utf8')
   } catch {
     throw new Error('mcp/.env introuvable — copier mcp/.env.exemple en mcp/.env et le remplir (voir docs/technique/mcp.md)')
   }
@@ -69,6 +75,111 @@ function ingredientLine(i) {
 
 function texte(s) {
   return { content: [{ type: 'text', text: s }] }
+}
+
+/* ----- Intégrité des écritures (B2) ----- */
+
+/** Toute écriture (ou tentative) est consignée dans mcp/journal.jsonl. */
+function journal(action, resultat) {
+  appendFileSync(join(DIR, 'journal.jsonl'),
+    JSON.stringify({ quand: new Date().toISOString(), action, resultat }) + '\n')
+}
+
+/** Sauvegarde JSON de toutes les tables du foyer AVANT une écriture en masse. */
+async function sauvegarde(nom) {
+  const dump = {}
+  for (const table of TABLES) {
+    const query = table === 'households'
+      ? supabase.from(table).select().eq('id', householdId)
+      : supabase.from(table).select().eq('household_id', householdId)
+    const { data, error } = await query
+    if (error) throw new Error(`sauvegarde impossible (${table} : ${error.message}) — écriture ANNULÉE`)
+    dump[table] = data
+  }
+  mkdirSync(join(DIR, 'sauvegardes'), { recursive: true })
+  const horodatage = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  const fichier = join(DIR, 'sauvegardes', `${horodatage}-avant-${nom}.json`)
+  writeFileSync(fichier, JSON.stringify(dump))
+  return fichier
+}
+
+function fiabiliseTitre(s) {
+  return (s ?? '').trim()
+}
+
+/** Plan d'import des fiches Evernote : quoi créer, quoi ignorer (doublons). */
+async function planImportEvernote() {
+  const fiches = JSON.parse(readFileSync(join(ROOT, 'Evernote', 'recettes-data.json'), 'utf8'))
+  const [recipes, sources] = await Promise.all([rows('recipes'), rows('sources')])
+  const creer = []
+  const doublons = []
+  const sourcesACreer = new Set()
+  const titresConnus = new Set(sources.map(s => s.title))
+  const vus = new Set()
+  for (const f of fiches) {
+    const src = sources.find(s => s.title === f.source)
+    // Deux clés : l'URL ET titre+source — deux captures de la même page ne
+    // diffèrent parfois que par un paramètre de tracking (?xtor…)
+    const cleTitre = `${f.title}|${f.source}`
+    const enBase = (f.url && recipes.some(r => r.url === f.url))
+      || recipes.some(r => r.title === f.title && (!src || r.source_id === src.id))
+    if (enBase || (f.url && vus.has(f.url)) || vus.has(cleTitre)) { doublons.push(f.title); continue }
+    if (f.url) vus.add(f.url)
+    vus.add(cleTitre)
+    creer.push(f)
+    if (!titresConnus.has(f.source)) sourcesACreer.add(f.source)
+  }
+  return { creer, doublons, sourcesACreer: [...sourcesACreer] }
+}
+
+/** Le jeton lie l'exécution au rapport « à blanc » que l'utilisateur a validé. */
+function jetonDe(plan) {
+  return createHash('sha256')
+    .update(JSON.stringify(plan.creer.map(f => f.id + '|' + f.title)))
+    .digest('hex').slice(0, 12)
+}
+
+/** Insère une recette et ses ingrédients structurés. Renvoie l'id créé. */
+async function insereRecette(fiche, sourceId) {
+  const { data, error } = await supabase.from('recipes').insert({
+    household_id: householdId,
+    source_id: sourceId ?? null,
+    title: fiabiliseTitre(fiche.title),
+    url: fiche.url ?? '',
+    servings: fiche.servings ?? null,
+    category: fiche.category ?? '',
+    country: fiche.country ?? '',
+    steps: fiche.steps ?? ''
+  }).select().single()
+  if (error) throw new Error(`recette « ${fiche.title} » : ${error.message}`)
+  const lignes = (fiche.ingredients ?? []).map((i, position) => ({
+    household_id: householdId,
+    recipe_id: data.id,
+    position,
+    qty: i.qty ?? null,
+    qty_raw: i.qty_raw ?? '',
+    unit: i.unit ?? '',
+    name: i.name,
+    note: i.note ?? '',
+    optional: i.optional ?? false,
+    hard: i.hard ?? false
+  }))
+  if (lignes.length) {
+    const { error: e2 } = await supabase.from('recipe_ingredients').insert(lignes)
+    if (e2) throw new Error(`ingrédients de « ${fiche.title} » : ${e2.message}`)
+  }
+  return data.id
+}
+
+/** Trouve la source par titre exact ; la crée si absente (kind « site »,
+ * comme le pipeline enex-merge). */
+async function sourcePourTitre(title, cache) {
+  if (cache.has(title)) return cache.get(title)
+  const { data, error } = await supabase.from('sources')
+    .insert({ household_id: householdId, title, kind: 'site' }).select().single()
+  if (error) throw new Error(`source « ${title} » : ${error.message}`)
+  cache.set(title, data.id)
+  return data.id
 }
 
 /** Enrobe un outil : connexion, exécution, erreurs en texte lisible. */
@@ -191,6 +302,118 @@ server.tool(
       out.push(error ? `- ${table} : ERREUR ${error.message}` : `- ${table} : OK (${count} lignes visibles)`)
     }
     return out.join('\n')
+  })
+)
+
+/* ----- Écritures métier (B2) ----- */
+
+server.tool(
+  'importer_recettes_evernote',
+  'Importe les fiches de Evernote/recettes-data.json dans la base du foyer. TOUJOURS en deux temps : mode "a_blanc" (rapport de ce qui serait créé/ignoré + jeton), puis — après le GO explicite d\'Olivier — mode "executer" avec le jeton. Une sauvegarde JSON complète est écrite avant toute exécution. Dédoublonnage par URL, sinon titre + source. Aucune réalisation créée (décision du 07/07).',
+  {
+    mode: z.enum(['a_blanc', 'executer']),
+    jeton: z.string().optional().describe('Obligatoire en mode executer : le jeton renvoyé par le dernier a_blanc')
+  },
+  outil(async ({ mode, jeton }) => {
+    const plan = await planImportEvernote()
+    const attendu = jetonDe(plan)
+    if (mode === 'a_blanc') {
+      journal('importer_recettes_evernote (à blanc)', `${plan.creer.length} à créer, ${plan.doublons.length} doublons`)
+      return [
+        `À CRÉER : ${plan.creer.length} recette(s)`,
+        ...plan.creer.map(f => `- ${f.title} (${f.source})`),
+        plan.sourcesACreer.length ? `\nSOURCES À CRÉER : ${plan.sourcesACreer.join(', ')}` : null,
+        `\nDOUBLONS IGNORÉS : ${plan.doublons.length}`,
+        `\nJeton d'exécution (après GO d'Olivier) : ${attendu}`
+      ].filter(Boolean).join('\n')
+    }
+    if (jeton !== attendu) {
+      journal('importer_recettes_evernote REFUSÉ', 'jeton absent ou périmé')
+      return 'REFUSÉ : le jeton ne correspond pas au rapport « à blanc » actuel. Relancer a_blanc, faire valider le rapport par Olivier, puis exécuter avec le nouveau jeton.'
+    }
+    if (!plan.creer.length) return 'Rien à créer — la base est déjà à jour.'
+    const fichierSauvegarde = await sauvegarde('import-evernote')
+    const sources = await rows('sources')
+    const cache = new Map(sources.map(s => [s.title, s.id]))
+    const creees = []
+    for (const fiche of plan.creer) {
+      const sourceId = await sourcePourTitre(fiche.source, cache)
+      await insereRecette(fiche, sourceId)
+      creees.push(fiche.title)
+    }
+    journal('importer_recettes_evernote EXÉCUTÉ', `${creees.length} recettes créées ; sauvegarde : ${fichierSauvegarde}`)
+    return `FAIT : ${creees.length} recette(s) créée(s), ${plan.doublons.length} doublon(s) ignoré(s).\nSauvegarde préalable : ${fichierSauvegarde}`
+  })
+)
+
+server.tool(
+  'creer_recette',
+  'Crée UNE recette dans la base du foyer (dédoublonnage par URL sinon titre + source ; la source est créée si nouvelle). Les ingrédients se donnent en lignes de texte (« 200 g de farine »), parsées comme dans l\'application.',
+  {
+    titre: z.string(),
+    source: z.string().describe('Nom de la source (livre, site, « Recettes perso »…)'),
+    ingredients: z.string().describe('Un ingrédient par ligne, ex. « 500 g asperges vertes »'),
+    recette: z.string().describe('Le texte des étapes'),
+    url: z.string().optional(),
+    personnes: z.number().int().positive().optional(),
+    pays: z.string().optional(),
+    categorie: z.string().optional()
+  },
+  outil(async ({ titre, source, ingredients, recette, url, personnes, pays, categorie }) => {
+    const [recipes, sources] = await Promise.all([rows('recipes'), rows('sources')])
+    const src = sources.find(s => s.title === source.trim())
+    const doublon = recipes.find(r => (url && r.url === url)
+      || (r.title === titre.trim() && src && r.source_id === src.id))
+    if (doublon) {
+      journal('creer_recette REFUSÉ (doublon)', titre)
+      return `REFUSÉ : « ${doublon.title} » existe déjà (même ${url && doublon.url === url ? 'URL' : 'titre et source'}).`
+    }
+    const cache = new Map(sources.map(s => [s.title, s.id]))
+    const sourceId = await sourcePourTitre(source.trim(), cache)
+    const lignes = ingredients.split('\n').map(parseIngredientLine).filter(Boolean)
+    await insereRecette({
+      title: titre, url: url ?? '', servings: personnes ?? null,
+      category: categorie ?? '', country: pays ?? '', steps: recette,
+      ingredients: lignes
+    }, sourceId)
+    journal('creer_recette', `${titre} (${source}) — ${lignes.length} ingrédients`)
+    return `FAIT : « ${titre.trim()} » créée (${lignes.length} ingrédient(s), source ${source.trim()}).`
+  })
+)
+
+server.tool(
+  'ajouter_realisation',
+  'Consigne « j\'ai fait cette recette » : date (AAAA-MM-JJ, ou absente = date non notée) et commentaire facultatif.',
+  {
+    titre: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    commentaire: z.string().optional()
+  },
+  outil(async ({ titre, date, commentaire }) => {
+    const recipes = await rows('recipes')
+    const t = fold(titre)
+    const recipe = recipes.find(r => fold(r.title) === t) ?? recipes.find(r => fold(r.title).includes(t))
+    if (!recipe) return `Aucune recette « ${titre} ».`
+    const { error } = await supabase.from('realisations').insert({
+      household_id: householdId, recipe_id: recipe.id,
+      made_on: date ?? null, comment: commentaire ?? ''
+    })
+    if (error) throw new Error(error.message)
+    journal('ajouter_realisation', `${recipe.title} — ${date ?? 'date non notée'}`)
+    return `FAIT : réalisation consignée pour « ${recipe.title} » (${date ?? 'date non notée'}).`
+  })
+)
+
+server.tool(
+  'journal_actions',
+  'Les dernières écritures faites (ou refusées) par ce serveur, les plus récentes en premier.',
+  {},
+  outil(async () => {
+    let raw
+    try { raw = readFileSync(join(DIR, 'journal.jsonl'), 'utf8') } catch { return 'Journal vide : aucune écriture pour l\'instant.' }
+    return raw.trim().split('\n').toReversed().slice(0, 50)
+      .map(l => { const e = JSON.parse(l); return `- ${e.quand} · ${e.action} · ${e.resultat}` })
+      .join('\n')
   })
 )
 

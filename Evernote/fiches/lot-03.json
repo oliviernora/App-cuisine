@@ -1,0 +1,264 @@
+[
+ {
+  "id": "055-beef-ularthiyathu-beef-dry-roast-pepper-delight",
+  "title": "Beef ularthiyathu (rôti de bœuf épicé du Kerala)",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 2.5, "unit": "lb", "name": "bœuf (à couper en cubes)" },
+   { "qty": 25, "unit": "", "name": "échalotes (émincées finement)" },
+   { "qty": 2.5, "unit": "", "name": "piments verts (fendus)" },
+   { "qty": 1, "unit": "c. à s.", "name": "pâte ail-gingembre" },
+   { "qty": 0.25, "unit": "c. à s.", "name": "curcuma en poudre" },
+   { "qty": 1, "unit": "c. à s.", "name": "piment rouge en poudre" },
+   { "qty": 1.5, "unit": "c. à s.", "name": "coriandre en poudre" },
+   { "qty": 2, "unit": "c. à s.", "name": "poivre en poudre" },
+   { "qty": 1, "unit": "c. à c.", "name": "meat masala (épices pour viande)" },
+   { "qty": 0.5, "unit": "c. à c.", "name": "garam masala" },
+   { "qty": 5, "unit": "brins", "name": "feuilles de curry" },
+   { "qty": 0.25, "unit": "cup", "name": "morceaux de noix de coco" },
+   { "qty": null, "unit": "pincée", "name": "graines de moutarde" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "huile" }
+  ],
+  "steps": "Couper le bœuf en cubes (façon « soup cut »). Cuire les cubes à la cocotte-minute avec sel, poivre en poudre, meat masala et un peu d'eau à hauteur, 2 sifflements ; laisser retomber la pression, réserver avec le jus de cuisson. Dans une poêle, faire éclater les graines de moutarde dans l'huile, ajouter feuilles de curry, échalotes, piments verts et un peu de sel, faire suer jusqu'à ce que l'oignon soit translucide. Ajouter la pâte ail-gingembre 1 min, puis à feu doux le curcuma, le piment, la coriandre et le garam masala sans les laisser brûler. Verser le bœuf cuit avec son jus, mélanger à la masala et laisser réduire à feu moyen jusqu'à ce que la sauce soit sèche, en remuant régulièrement pour éviter l'accroche ; rectifier le sel. À part, faire dorer les morceaux de noix de coco à l'huile avec des feuilles de curry jusqu'à coloration. Quand la sauce est sèche, baisser le feu et poursuivre la cuisson du bœuf 10-15 min en remuant jusqu'à ce qu'il soit bien grillé et noirci par endroits ; incorporer la coco et les feuilles de curry dorées. Servir chaud avec riz, porotta, appam ou naan. Astuce : le chuck roast convient aussi bien que le top blade/top loin ; à défaut de meat masala, doubler le garam masala ; l'huile de coco est recommandée pour une saveur kéralaise authentique. (Pepper Delight — Akhila, préparation 15 min, cuisson 1 h.)"
+ },
+ {
+  "id": "056-recette-lotte-au-safran-marie-claire",
+  "title": "Lotte au vin blanc, citron confit et safran",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 1, "unit": "", "name": "queue de lotte (2 kg)" },
+   { "qty": 3, "unit": "gousses", "name": "ail pelé" },
+   { "qty": 1, "unit": "", "name": "citron (jus)" },
+   { "qty": 1, "unit": "", "name": "citron confit" },
+   { "qty": 1, "unit": "", "name": "gros oignon" },
+   { "qty": null, "unit": "pincées", "name": "safran" },
+   { "qty": 1, "unit": "verre", "name": "vin blanc" },
+   { "qty": null, "unit": "", "name": "huile d'olive" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Demander au poissonnier de retirer la peau de la queue de lotte (ou le faire soi-même). Préchauffer le four à 180 °C (th. 6). Diluer le safran dans le vin blanc. Émincer l'oignon dégermé et le citron confit, répartir dans le fond d'un plat à four. Piquer la lotte de gousses d'ail pelées, la poser dans le plat sur l'oignon et le citron confit. Arroser du jus de citron, du vin blanc safrané et d'un filet d'huile d'olive. Enfourner 30 min en arrosant régulièrement de jus. Vérifier que la chair est ferme et blanche, retirer l'arête centrale et découper. Servir sur assiettes tièdes avec des légumes verts croquants, arrosé du jus de cuisson. (Marie Claire — préparation 15 min, cuisson 30 min.)"
+ },
+ {
+  "id": "057-recette-navarin-de-lotte-aux-petits-legumes-marie-claire",
+  "title": "Navarin de lotte aux petits légumes",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 6, "unit": "", "name": "médaillons de lotte (200 g pièce)" },
+   { "qty": 250, "unit": "g", "name": "pois gourmands" },
+   { "qty": 4, "unit": "", "name": "petits choux romanesco" },
+   { "qty": 2, "unit": "", "name": "petites courgettes" },
+   { "qty": 250, "unit": "g", "name": "petites carottes" },
+   { "qty": 250, "unit": "g", "name": "haricots verts" },
+   { "qty": 1, "unit": "pincée", "name": "safran" },
+   { "qty": 20, "unit": "cl", "name": "crème liquide" },
+   { "qty": 10, "unit": "cl", "name": "vin blanc sec" },
+   { "qty": 1, "unit": "c. à c.", "name": "fumet de poisson en poudre" },
+   { "qty": 1, "unit": "", "name": "citron non traité" },
+   { "qty": 1, "unit": "", "name": "jaune d'œuf" },
+   { "qty": 30, "unit": "g", "name": "beurre" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Nettoyer les légumes : tailler carottes et courgettes en bâtonnets, détailler les choux romanesco en petits bouquets. Cuire tous les légumes 15 min à la vapeur, réserver au chaud. Saler et poivrer les médaillons de lotte, les dorer légèrement 5 min de chaque côté dans le beurre fondu à feu modéré, égoutter et réserver. Prélever le zeste du citron, déglacer la sauteuse avec le safran, le vin blanc, le fumet de poisson et le zeste, saler, poivrer, cuire 3 min à feu vif. Ajouter la moitié de la crème et la lotte, poursuivre 3 min en retournant les médaillons dans la sauce. Disposer les légumes chauds dans un plat creux, poser la lotte dessus, couvrir d'aluminium. Battre le reste de crème avec le jaune d'œuf, verser dans la sauteuse et remuer 1 min à feu doux sans laisser bouillir, puis napper le plat et servir aussitôt. (Marie Claire — n° 74, accord : condrieu blanc ; préparation 30 min, cuisson 30 min.)"
+ },
+ {
+  "id": "058-recette-lotte-farcie-aux-herbes-marie-claire",
+  "title": "Lotte farcie aux herbes",
+  "servings": 6,
+  "ingredients": [
+   { "qty": 1.5, "unit": "kg", "name": "lotte (filets)" },
+   { "qty": 0.5, "unit": "botte", "name": "cerfeuil" },
+   { "qty": 0.5, "unit": "botte", "name": "estragon" },
+   { "qty": 0.5, "unit": "bouquet", "name": "basilic" },
+   { "qty": 0.5, "unit": "bouquet", "name": "persil plat" },
+   { "qty": 3, "unit": "brins", "name": "menthe" },
+   { "qty": 1, "unit": "c. à s.", "name": "poivre vert frais (ou 0,5 c. à c. de poivre vert déshydraté)" },
+   { "qty": 60, "unit": "g", "name": "beurre" },
+   { "qty": 2, "unit": "c. à s.", "name": "crème fraîche" },
+   { "qty": 1, "unit": "dose", "name": "safran en poudre" },
+   { "qty": 1, "unit": "", "name": "orange non traitée" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Demander au poissonnier de retirer la fine peau de la lotte et de lever les deux filets en ôtant le cartilage central. Laver rapidement les herbes (cerfeuil, estragon, basilic, persil), les éponger, ôter les grosses tiges et les mixer grossièrement par à-coups. Poser les filets côte à côte sur une gaze, saler, étaler les herbes mixées au milieu avec les grains de poivre vert, superposer les filets face herbes contre face herbes, ficeler comme un rôti et envelopper entièrement dans la gaze. Cuire à la vapeur 25 min. Pendant ce temps, préparer la sauce : râper le zeste de l'orange lavée, extraire son jus, réunir jus, zestes, beurre, crème fraîche, safran, sel et poivre dans une petite casserole sur feu doux, fouetter sans cesse jusqu'à émulsion, réserver au chaud. Découper la lotte et servir sans attendre avec la sauce en saucière. Astuce : se sert aussi tiède avec une vinaigrette huile d'olive, vinaigre blanc, jus d'orange, sel, poivre blanc. (Marie Claire — n° 40, accord : coteaux-du-languedoc blanc ; préparation 15 min, cuisson 25 min.)"
+ },
+ {
+  "id": "059-recette-coquilles-saint-jacques-au-beurre-de-cidre-et-creme-",
+  "title": "Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 12, "unit": "", "name": "noix de saint-jacques (avec les barbes réservées)" },
+   { "qty": 20, "unit": "g", "name": "beurre" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" },
+   { "qty": 50, "unit": "cl", "name": "cidre brut" },
+   { "qty": 100, "unit": "g", "name": "beurre bien froid (pour monter la sauce)" },
+   { "qty": 15, "unit": "g", "name": "beurre (pour suer les légumes)" },
+   { "qty": 1, "unit": "", "name": "échalote" },
+   { "qty": 2, "unit": "", "name": "carottes" },
+   { "qty": 1, "unit": "", "name": "bouquet garni" },
+   { "qty": 1, "unit": "", "name": "petit chou-fleur" },
+   { "qty": 30, "unit": "cl", "name": "crème liquide" },
+   { "qty": 40, "unit": "cl", "name": "lait" }
+  ],
+  "steps": "Peler et émincer l'échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l'échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)"
+ },
+ {
+  "id": "060-recette-curry-de-lotte-au-lait-de-coco-marie-claire",
+  "title": "Curry de lotte au lait de coco",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 1, "unit": "", "name": "boîte de lait de coco" },
+   { "qty": 200, "unit": "g", "name": "oignons en cubes" },
+   { "qty": 150, "unit": "g", "name": "tomates à l'italienne en cubes" },
+   { "qty": 1, "unit": "kg", "name": "queues de lotte" },
+   { "qty": 200, "unit": "g", "name": "trio de poivrons" },
+   { "qty": 30, "unit": "g", "name": "beurre" },
+   { "qty": 3, "unit": "c. à s.", "name": "coriandre (feuilles)" },
+   { "qty": 2, "unit": "c. à s.", "name": "gingembre haché" },
+   { "qty": 600, "unit": "g", "name": "riz basmati" },
+   { "qty": 1, "unit": "c. à s.", "name": "ail haché" },
+   { "qty": 3, "unit": "c. à s.", "name": "curry en poudre" },
+   { "qty": null, "unit": "", "name": "sel" }
+  ],
+  "steps": "Couper grossièrement les queues de lotte décongelées. Faire fondre le beurre en cocotte, y faire revenir doucement l'oignon, l'ail et le gingembre jusqu'à légère coloration. Ajouter la lotte, monter le feu et cuire jusqu'à ce qu'elle dore. Saupoudrer de curry, cuire encore 2 min, saler. Verser le lait de coco, les poivrons et les tomates, porter à ébullition, écumer, laisser mijoter 15 min. En fin de cuisson, ajouter la coriandre. Rectifier l'assaisonnement, servir avec un riz basmati cuit avec quelques gousses de cardamome fendues. (Marie Claire — préparation 15 min, cuisson 20 min.)"
+ },
+ {
+  "id": "062-recette-coquilles-saint-jacques-au-beurre-de-cidre-et-creme-",
+  "title": "Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 12, "unit": "", "name": "noix de saint-jacques (avec les barbes réservées)" },
+   { "qty": 20, "unit": "g", "name": "beurre" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" },
+   { "qty": 50, "unit": "cl", "name": "cidre brut" },
+   { "qty": 100, "unit": "g", "name": "beurre bien froid (pour monter la sauce)" },
+   { "qty": 15, "unit": "g", "name": "beurre (pour suer les légumes)" },
+   { "qty": 1, "unit": "", "name": "échalote" },
+   { "qty": 2, "unit": "", "name": "carottes" },
+   { "qty": 1, "unit": "", "name": "bouquet garni" },
+   { "qty": 1, "unit": "", "name": "petit chou-fleur" },
+   { "qty": 30, "unit": "cl", "name": "crème liquide" },
+   { "qty": 40, "unit": "cl", "name": "lait" }
+  ],
+  "steps": "Peler et émincer l'échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l'échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)"
+ },
+ {
+  "id": "063-recette-coquilles-saint-jacques-au-beurre-de-cidre-et-creme-",
+  "title": "Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 12, "unit": "", "name": "noix de saint-jacques (avec les barbes réservées)" },
+   { "qty": 20, "unit": "g", "name": "beurre" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" },
+   { "qty": 50, "unit": "cl", "name": "cidre brut" },
+   { "qty": 100, "unit": "g", "name": "beurre bien froid (pour monter la sauce)" },
+   { "qty": 15, "unit": "g", "name": "beurre (pour suer les légumes)" },
+   { "qty": 1, "unit": "", "name": "échalote" },
+   { "qty": 2, "unit": "", "name": "carottes" },
+   { "qty": 1, "unit": "", "name": "bouquet garni" },
+   { "qty": 1, "unit": "", "name": "petit chou-fleur" },
+   { "qty": 30, "unit": "cl", "name": "crème liquide" },
+   { "qty": 40, "unit": "cl", "name": "lait" }
+  ],
+  "steps": "Peler et émincer l'échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l'échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)"
+ },
+ {
+  "id": "069-recette-carpaccio-de-betteraves-ecume-de-haddock-marie-clair",
+  "title": "Carpaccio de betteraves, écume de haddock",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 4, "unit": "", "name": "betteraves crues (taille moyenne)" },
+   { "qty": 200, "unit": "g", "name": "haddock" },
+   { "qty": 25, "unit": "cl", "name": "crème liquide" },
+   { "qty": 1, "unit": "", "name": "petit oignon rouge" },
+   { "qty": 1, "unit": "", "name": "œuf" },
+   { "qty": 4, "unit": "", "name": "cornichons" },
+   { "qty": 1, "unit": "", "name": "tranche de pain de mie" },
+   { "qty": 10, "unit": "g", "name": "beurre" },
+   { "qty": 10, "unit": "cl", "name": "huile de noix" },
+   { "qty": 2, "unit": "c. à s.", "name": "vinaigre de vin" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Préchauffer le four à 180 °C (th. 6). Emballer les betteraves séparément dans du papier alu, cuire 1 h 30 au four, laisser refroidir dans le papier. Pendant ce temps, cuire l'œuf dur 10 min, l'écaler et le hacher finement ; peler et hacher finement l'oignon rouge avec les cornichons pour une brunoise. Couper le pain de mie en dés et les dorer à la poêle au beurre. Retirer la peau du haddock, couper la chair en petits morceaux. Chauffer la crème, y ajouter le haddock, laisser mijoter 10 min, puis filtrer pour récupérer une crème parfumée et laisser refroidir. Éplucher les betteraves refroidies, les trancher très finement en carpaccio, disposer dans un plat. Émulsionner huile de noix, vinaigre, sel et poivre, en arroser le carpaccio. Au moment de servir, entourer le carpaccio de crème de haddock froide, parsemer de la brunoise œuf-cornichon-oignon et des croûtons dorés. Astuce croûtons : voir la recette maison dédiée. (Marie Claire — Éric Frechon, n° 144, accord : muscadet-sèvre-et-maine ; préparation 30 min, cuisson 1 h 30.)"
+ },
+ {
+  "id": "070-recette-flans-de-petits-pois-au-lard-croustillant-marie-clai",
+  "title": "Flans de petits pois au lard croustillant",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 1, "unit": "kg", "name": "petits pois frais à écosser" },
+   { "qty": 2, "unit": "", "name": "gros œufs" },
+   { "qty": 20, "unit": "cl", "name": "crème épaisse" },
+   { "qty": 2, "unit": "c. à s.", "name": "mascarpone" },
+   { "qty": 4, "unit": "tranches", "name": "lard fumé (fines tranches)" },
+   { "qty": 4, "unit": "brins", "name": "menthe fraîche" },
+   { "qty": 4, "unit": "c. à s.", "name": "huile d'olive" },
+   { "qty": 2, "unit": "c. à s.", "name": "jus de citron" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Préchauffer le four à 180 °C (th. 6). Écosser les petits pois, les cuire à l'eau bouillante salée 12-15 min selon la grosseur, égoutter (réserver 100 g de pois entiers) et mixer le reste en fine purée. Ajouter à la purée les œufs et la crème, saler, poivrer, mélanger au fouet. Répartir dans des moules individuels en silicone, enfourner 25 min. En parallèle, disposer les tranches de lard sur une plaque tapissée de papier sulfurisé, recouvrir d'une autre feuille et d'une plaque pour qu'il reste plat, cuire au four le même temps que les flans. Ciseler la menthe effeuillée, préparer une vinaigrette avec l'huile, le jus de citron, sel et poivre, y ajouter la menthe. Démouler les flans tièdes, servir avec les petits pois réservés, une cuillerée de mascarpone, le lard croustillant et la vinaigrette à la menthe ; se déguste chaud ou froid. Variante : remplacer le lard par des lanières de saumon fumé. (Marie Claire — Irène Karsenty, n° 145, accord : côtes-de-gascogne blanc sec ; préparation 35 min, cuisson 40 min.)"
+ },
+ {
+  "id": "071-recette-creme-de-petits-pois-a-la-menthe-marie-claire",
+  "title": "Crème de petits pois à la menthe",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 500, "unit": "g", "name": "petits pois surgelés" },
+   { "qty": 2, "unit": "", "name": "tablettes de bouillon de volaille" },
+   { "qty": 125, "unit": "g", "name": "lardons allumettes" },
+   { "qty": 15, "unit": "cl", "name": "crème liquide" },
+   { "qty": 1, "unit": "c. à s.", "name": "huile d'arachide" },
+   { "qty": 2, "unit": "c. à s.", "name": "huile de noix" },
+   { "qty": 10, "unit": "feuilles", "name": "menthe" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre du moulin" }
+  ],
+  "steps": "Diluer les tablettes de bouillon dans 50 cl d'eau bouillante, y plonger les petits pois, cuire 20 min à petits frémissements, saler, poivrer. Pendant ce temps, faire revenir les lardons à l'huile d'arachide à feu doux jusqu'à ce qu'ils soient bien grillés. Mixer les petits pois avec leur bouillon, l'huile de noix, la crème et 6 feuilles de menthe (mixeur plongeant ou blender), rectifier l'assaisonnement. Répartir la crème dans des bols, parsemer de lardons grillés et décorer d'une feuille de menthe. Astuce : en saison, remplacer par des petits pois frais (environ 1 kg à écosser pour 4 personnes). (Marie Claire — Marie Leteuré, n° 91 ; préparation 5 min, cuisson 20 min.)"
+ },
+ {
+  "id": "072-recette-saute-d-agneau-aux-petits-navets-marie-claire",
+  "title": "Sauté d'agneau aux petits navets",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 1.5, "unit": "kg", "name": "collier d'agneau (coupé en morceaux)" },
+   { "qty": 2, "unit": "bottes", "name": "navets" },
+   { "qty": 250, "unit": "g", "name": "tomates en dés (en boîte)" },
+   { "qty": 10, "unit": "brins", "name": "menthe" },
+   { "qty": 10, "unit": "brins", "name": "persil" },
+   { "qty": 2, "unit": "gousses", "name": "ail" },
+   { "qty": 1, "unit": "", "name": "orange bio" },
+   { "qty": 1, "unit": "", "name": "citron bio" },
+   { "qty": 5, "unit": "cl", "name": "huile d'olive" },
+   { "qty": 10, "unit": "cl", "name": "vin blanc" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Préparer la gremolata : ciseler finement les herbes lavées, hacher l'ail pelé, prélever et hacher les zestes des agrumes, mélanger le tout avec la moitié de l'huile d'olive, réserver. Faire dorer les morceaux d'agneau sur toutes les faces 5 min dans le reste d'huile en cocotte, verser le vin blanc, laisser réduire un peu, ajouter les tomates en dés et un verre d'eau, assaisonner, cuire à feu doux 1 h 30. Pendant ce temps, éplucher les navets (garder un peu de fanes), les cuire 10 min à l'eau bouillante, égoutter et les ajouter à la cocotte avec la moitié de la gremolata 15 min avant la fin de cuisson. Rectifier l'assaisonnement, servir bien chaud ; encore meilleur préparé la veille. Astuce : pour épaissir la sauce, saupoudrer la viande de 2 c. à s. de farine avant de mouiller au vin blanc. (Marie Claire — Sophie Menut-Yovanovitch, n° 193, accord : corbières blanc ; préparation 20 min, cuisson 1 h 45.)"
+ },
+ {
+  "id": "073-recette-rougets-a-la-rhubarbe-marie-claire",
+  "title": "Rougets à la rhubarbe",
+  "servings": 4,
+  "ingredients": [
+   { "qty": 8, "unit": "", "name": "filets de rougets barbets (frais ou surgelés)" },
+   { "qty": 500, "unit": "g", "name": "tiges de rhubarbe" },
+   { "qty": 12, "unit": "", "name": "tomates cerises" },
+   { "qty": 100, "unit": "g", "name": "beurre" },
+   { "qty": 60, "unit": "g", "name": "miel" },
+   { "qty": 2, "unit": "pincées", "name": "cinq-épices" },
+   { "qty": 6, "unit": "c. à s.", "name": "huile d'olive" },
+   { "qty": 10, "unit": "g", "name": "sucre" },
+   { "qty": 2, "unit": "c. à s.", "name": "farine" },
+   { "qty": null, "unit": "", "name": "sel" },
+   { "qty": null, "unit": "", "name": "poivre" }
+  ],
+  "steps": "Effiler les tiges de rhubarbe, les couper en petits tronçons, les blanchir 2 min à l'eau bouillante, égoutter. Faire chauffer le beurre jusqu'à couleur noisette, y rissoler la rhubarbe 5 min en remuant, ajouter le cinq-épices et le miel, laisser compoter 3-4 min à feu doux, réserver. Mélanger la moitié de l'huile d'olive avec le sucre dans une petite casserole, y cuire les tomates cerises à feu doux 5 min. Saler et poivrer les filets de rougets, les fariner, les cuire à la poêle avec le reste d'huile 1 min de chaque côté. Dresser la rhubarbe en dôme dans les assiettes, poser les rougets dessus, garnir des tomates. (Marie Claire — n° 145, accord : côtes-de-provence rosé ; préparation 30 min, cuisson 20 min.)"
+ }
+]

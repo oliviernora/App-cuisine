@@ -10,3 +10,5 @@ Evernote/textes/
 supabase/.temp/
 mcp/.env
 mcp/node_modules/
+mcp/journal.jsonl
+mcp/sauvegardes/

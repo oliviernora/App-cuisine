@@ -9,7 +9,8 @@ select h.id, 'site', v.title from h cross join (values
   ('L''Atelier des Chefs'),
   ('healthyfoodcreation.fr'),
   ('recettes-de-clairette.overblog.com'),
-  ('Le Monde — Cuisine')
+  ('Le Monde — Cuisine'),
+  ('pepperdelight.com')
 ) as v(title)
 where not exists (select 1 from sources s where s.title = v.title);
 
@@ -587,6 +588,851 @@ select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
   (11, 750, 'g', 'champignons de Paris'),
   (12, 3, '', 'échalotes'),
   (13, 20, 'g', 'beurre')
+) as v(pos, qty, unit, name) on true;
+
+-- Beef ularthiyathu (rôti de bœuf épicé du Kerala)
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'pepperdelight.com'), 'Beef ularthiyathu (rôti de bœuf épicé du Kerala)', 'https://www.pepperdelight.com/beef-ularthiyathu-dry-roast/', 4, 'Couper le bœuf en cubes (façon « soup cut »). Cuire les cubes à la cocotte-minute avec sel, poivre en poudre, meat masala et un peu d''eau à hauteur, 2 sifflements ; laisser retomber la pression, réserver avec le jus de cuisson. Dans une poêle, faire éclater les graines de moutarde dans l''huile, ajouter feuilles de curry, échalotes, piments verts et un peu de sel, faire suer jusqu''à ce que l''oignon soit translucide. Ajouter la pâte ail-gingembre 1 min, puis à feu doux le curcuma, le piment, la coriandre et le garam masala sans les laisser brûler. Verser le bœuf cuit avec son jus, mélanger à la masala et laisser réduire à feu moyen jusqu''à ce que la sauce soit sèche, en remuant régulièrement pour éviter l''accroche ; rectifier le sel. À part, faire dorer les morceaux de noix de coco à l''huile avec des feuilles de curry jusqu''à coloration. Quand la sauce est sèche, baisser le feu et poursuivre la cuisson du bœuf 10-15 min en remuant jusqu''à ce qu''il soit bien grillé et noirci par endroits ; incorporer la coco et les feuilles de curry dorées. Servir chaud avec riz, porotta, appam ou naan. Astuce : le chuck roast convient aussi bien que le top blade/top loin ; à défaut de meat masala, doubler le garam masala ; l''huile de coco est recommandée pour une saveur kéralaise authentique. (Pepper Delight — Akhila, préparation 15 min, cuisson 1 h.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.pepperdelight.com/beef-ularthiyathu-dry-roast/')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 2.5::numeric, 'lb', 'bœuf (à couper en cubes)'),
+  (1, 25, '', 'échalotes (émincées finement)'),
+  (2, 2.5, '', 'piments verts (fendus)'),
+  (3, 1, 'c. à s.', 'pâte ail-gingembre'),
+  (4, 0.25, 'c. à s.', 'curcuma en poudre'),
+  (5, 1, 'c. à s.', 'piment rouge en poudre'),
+  (6, 1.5, 'c. à s.', 'coriandre en poudre'),
+  (7, 2, 'c. à s.', 'poivre en poudre'),
+  (8, 1, 'c. à c.', 'meat masala (épices pour viande)'),
+  (9, 0.5, 'c. à c.', 'garam masala'),
+  (10, 5, 'brins', 'feuilles de curry'),
+  (11, 0.25, 'cup', 'morceaux de noix de coco'),
+  (12, null, 'pincée', 'graines de moutarde'),
+  (13, null, '', 'sel'),
+  (14, null, '', 'huile')
+) as v(pos, qty, unit, name) on true;
+
+-- Lotte au vin blanc, citron confit et safran
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Lotte au vin blanc, citron confit et safran', 'https://www.marieclaire.fr/cuisine/lotte-au-safran,1193358.asp', 6, 'Demander au poissonnier de retirer la peau de la queue de lotte (ou le faire soi-même). Préchauffer le four à 180 °C (th. 6). Diluer le safran dans le vin blanc. Émincer l''oignon dégermé et le citron confit, répartir dans le fond d''un plat à four. Piquer la lotte de gousses d''ail pelées, la poser dans le plat sur l''oignon et le citron confit. Arroser du jus de citron, du vin blanc safrané et d''un filet d''huile d''olive. Enfourner 30 min en arrosant régulièrement de jus. Vérifier que la chair est ferme et blanche, retirer l''arête centrale et découper. Servir sur assiettes tièdes avec des légumes verts croquants, arrosé du jus de cuisson. (Marie Claire — préparation 15 min, cuisson 30 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/lotte-au-safran,1193358.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, '', 'queue de lotte (2 kg)'),
+  (1, 3, 'gousses', 'ail pelé'),
+  (2, 1, '', 'citron (jus)'),
+  (3, 1, '', 'citron confit'),
+  (4, 1, '', 'gros oignon'),
+  (5, null, 'pincées', 'safran'),
+  (6, 1, 'verre', 'vin blanc'),
+  (7, null, '', 'huile d''olive'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Navarin de lotte aux petits légumes
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Navarin de lotte aux petits légumes', 'https://www.marieclaire.fr/cuisine/navarin-de-lotte,1196357.asp', 6, 'Nettoyer les légumes : tailler carottes et courgettes en bâtonnets, détailler les choux romanesco en petits bouquets. Cuire tous les légumes 15 min à la vapeur, réserver au chaud. Saler et poivrer les médaillons de lotte, les dorer légèrement 5 min de chaque côté dans le beurre fondu à feu modéré, égoutter et réserver. Prélever le zeste du citron, déglacer la sauteuse avec le safran, le vin blanc, le fumet de poisson et le zeste, saler, poivrer, cuire 3 min à feu vif. Ajouter la moitié de la crème et la lotte, poursuivre 3 min en retournant les médaillons dans la sauce. Disposer les légumes chauds dans un plat creux, poser la lotte dessus, couvrir d''aluminium. Battre le reste de crème avec le jaune d''œuf, verser dans la sauteuse et remuer 1 min à feu doux sans laisser bouillir, puis napper le plat et servir aussitôt. (Marie Claire — n° 74, accord : condrieu blanc ; préparation 30 min, cuisson 30 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/navarin-de-lotte,1196357.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 6::numeric, '', 'médaillons de lotte (200 g pièce)'),
+  (1, 250, 'g', 'pois gourmands'),
+  (2, 4, '', 'petits choux romanesco'),
+  (3, 2, '', 'petites courgettes'),
+  (4, 250, 'g', 'petites carottes'),
+  (5, 250, 'g', 'haricots verts'),
+  (6, 1, 'pincée', 'safran'),
+  (7, 20, 'cl', 'crème liquide'),
+  (8, 10, 'cl', 'vin blanc sec'),
+  (9, 1, 'c. à c.', 'fumet de poisson en poudre'),
+  (10, 1, '', 'citron non traité'),
+  (11, 1, '', 'jaune d''œuf'),
+  (12, 30, 'g', 'beurre'),
+  (13, null, '', 'sel'),
+  (14, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Lotte farcie aux herbes
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Lotte farcie aux herbes', 'https://www.marieclaire.fr/cuisine/lotte-farcie-aux-herbes,24109,1190807.asp', 6, 'Demander au poissonnier de retirer la fine peau de la lotte et de lever les deux filets en ôtant le cartilage central. Laver rapidement les herbes (cerfeuil, estragon, basilic, persil), les éponger, ôter les grosses tiges et les mixer grossièrement par à-coups. Poser les filets côte à côte sur une gaze, saler, étaler les herbes mixées au milieu avec les grains de poivre vert, superposer les filets face herbes contre face herbes, ficeler comme un rôti et envelopper entièrement dans la gaze. Cuire à la vapeur 25 min. Pendant ce temps, préparer la sauce : râper le zeste de l''orange lavée, extraire son jus, réunir jus, zestes, beurre, crème fraîche, safran, sel et poivre dans une petite casserole sur feu doux, fouetter sans cesse jusqu''à émulsion, réserver au chaud. Découper la lotte et servir sans attendre avec la sauce en saucière. Astuce : se sert aussi tiède avec une vinaigrette huile d''olive, vinaigre blanc, jus d''orange, sel, poivre blanc. (Marie Claire — n° 40, accord : coteaux-du-languedoc blanc ; préparation 15 min, cuisson 25 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/lotte-farcie-aux-herbes,24109,1190807.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1.5::numeric, 'kg', 'lotte (filets)'),
+  (1, 0.5, 'botte', 'cerfeuil'),
+  (2, 0.5, 'botte', 'estragon'),
+  (3, 0.5, 'bouquet', 'basilic'),
+  (4, 0.5, 'bouquet', 'persil plat'),
+  (5, 3, 'brins', 'menthe'),
+  (6, 1, 'c. à s.', 'poivre vert frais (ou 0,5 c. à c. de poivre vert déshydraté)'),
+  (7, 60, 'g', 'beurre'),
+  (8, 2, 'c. à s.', 'crème fraîche'),
+  (9, 1, 'dose', 'safran en poudre'),
+  (10, 1, '', 'orange non traitée'),
+  (11, null, '', 'sel'),
+  (12, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur', 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793', 4, 'Peler et émincer l''échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l''échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 12::numeric, '', 'noix de saint-jacques (avec les barbes réservées)'),
+  (1, 20, 'g', 'beurre'),
+  (2, null, '', 'sel'),
+  (3, null, '', 'poivre'),
+  (4, 50, 'cl', 'cidre brut'),
+  (5, 100, 'g', 'beurre bien froid (pour monter la sauce)'),
+  (6, 15, 'g', 'beurre (pour suer les légumes)'),
+  (7, 1, '', 'échalote'),
+  (8, 2, '', 'carottes'),
+  (9, 1, '', 'bouquet garni'),
+  (10, 1, '', 'petit chou-fleur'),
+  (11, 30, 'cl', 'crème liquide'),
+  (12, 40, 'cl', 'lait')
+) as v(pos, qty, unit, name) on true;
+
+-- Curry de lotte au lait de coco
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Curry de lotte au lait de coco', 'https://www.marieclaire.fr/cuisine/curry-de-lotte-au-lait-de-coco,1200745.asp', 4, 'Couper grossièrement les queues de lotte décongelées. Faire fondre le beurre en cocotte, y faire revenir doucement l''oignon, l''ail et le gingembre jusqu''à légère coloration. Ajouter la lotte, monter le feu et cuire jusqu''à ce qu''elle dore. Saupoudrer de curry, cuire encore 2 min, saler. Verser le lait de coco, les poivrons et les tomates, porter à ébullition, écumer, laisser mijoter 15 min. En fin de cuisson, ajouter la coriandre. Rectifier l''assaisonnement, servir avec un riz basmati cuit avec quelques gousses de cardamome fendues. (Marie Claire — préparation 15 min, cuisson 20 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/curry-de-lotte-au-lait-de-coco,1200745.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, '', 'boîte de lait de coco'),
+  (1, 200, 'g', 'oignons en cubes'),
+  (2, 150, 'g', 'tomates à l''italienne en cubes'),
+  (3, 1, 'kg', 'queues de lotte'),
+  (4, 200, 'g', 'trio de poivrons'),
+  (5, 30, 'g', 'beurre'),
+  (6, 3, 'c. à s.', 'coriandre (feuilles)'),
+  (7, 2, 'c. à s.', 'gingembre haché'),
+  (8, 600, 'g', 'riz basmati'),
+  (9, 1, 'c. à s.', 'ail haché'),
+  (10, 3, 'c. à s.', 'curry en poudre'),
+  (11, null, '', 'sel')
+) as v(pos, qty, unit, name) on true;
+
+-- Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur', 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793', 4, 'Peler et émincer l''échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l''échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 12::numeric, '', 'noix de saint-jacques (avec les barbes réservées)'),
+  (1, 20, 'g', 'beurre'),
+  (2, null, '', 'sel'),
+  (3, null, '', 'poivre'),
+  (4, 50, 'cl', 'cidre brut'),
+  (5, 100, 'g', 'beurre bien froid (pour monter la sauce)'),
+  (6, 15, 'g', 'beurre (pour suer les légumes)'),
+  (7, 1, '', 'échalote'),
+  (8, 2, '', 'carottes'),
+  (9, 1, '', 'bouquet garni'),
+  (10, 1, '', 'petit chou-fleur'),
+  (11, 30, 'cl', 'crème liquide'),
+  (12, 40, 'cl', 'lait')
+) as v(pos, qty, unit, name) on true;
+
+-- Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Coquilles Saint-Jacques au beurre de cidre et crème de chou-fleur', 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793', 4, 'Peler et émincer l''échalote, éplucher et tailler les carottes en petits dés, rincer les barbes de saint-jacques pour éliminer le sable. Faire fondre l''échalote et les carottes dans 15 g de beurre 2 min, ajouter les barbes 2 min, mouiller avec le cidre, ajouter le bouquet garni, poivrer, laisser frémir doucement 25 min. Pendant ce temps, détailler le chou-fleur en bouquets ; porter à ébullition le lait et la crème, y cuire le chou-fleur 35 min à frémissement, poivrer. Prélever 2 louches de liquide, mixer le reste au mixeur plongeant (rallonger avec le liquide réservé si trop épais). Filtrer le cidre pour retirer les barbes, le faire réduire de moitié à feu vif, puis monter la sauce en incorporant peu à peu le beurre bien froid en dés, en fouettant vigoureusement ; réserver au chaud. Dans une poêle, chauffer le reste de beurre et saisir les noix de saint-jacques 2 min par face, saler, poivrer. Répartir les noix dans les assiettes, napper de beurre de cidre et servir chaud avec la crème de chou-fleur. Astuce : remplacer le lait de vache par du lait de coco pour une touche exotique. (Marie Claire — n° 144, accord : cidre brut ; préparation 30 min, cuisson 40 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saint-jacques-roties-beurre-de-cidre-et-creme-de-chou-fleur,1210716.asp?xtor=EPR-3&M_BT=2557490782793')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 12::numeric, '', 'noix de saint-jacques (avec les barbes réservées)'),
+  (1, 20, 'g', 'beurre'),
+  (2, null, '', 'sel'),
+  (3, null, '', 'poivre'),
+  (4, 50, 'cl', 'cidre brut'),
+  (5, 100, 'g', 'beurre bien froid (pour monter la sauce)'),
+  (6, 15, 'g', 'beurre (pour suer les légumes)'),
+  (7, 1, '', 'échalote'),
+  (8, 2, '', 'carottes'),
+  (9, 1, '', 'bouquet garni'),
+  (10, 1, '', 'petit chou-fleur'),
+  (11, 30, 'cl', 'crème liquide'),
+  (12, 40, 'cl', 'lait')
+) as v(pos, qty, unit, name) on true;
+
+-- Carpaccio de betteraves, écume de haddock
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Carpaccio de betteraves, écume de haddock', 'https://www.marieclaire.fr/cuisine/carpaccio-de-betteraves-ecume-de-haddock,1206503.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Préchauffer le four à 180 °C (th. 6). Emballer les betteraves séparément dans du papier alu, cuire 1 h 30 au four, laisser refroidir dans le papier. Pendant ce temps, cuire l''œuf dur 10 min, l''écaler et le hacher finement ; peler et hacher finement l''oignon rouge avec les cornichons pour une brunoise. Couper le pain de mie en dés et les dorer à la poêle au beurre. Retirer la peau du haddock, couper la chair en petits morceaux. Chauffer la crème, y ajouter le haddock, laisser mijoter 10 min, puis filtrer pour récupérer une crème parfumée et laisser refroidir. Éplucher les betteraves refroidies, les trancher très finement en carpaccio, disposer dans un plat. Émulsionner huile de noix, vinaigre, sel et poivre, en arroser le carpaccio. Au moment de servir, entourer le carpaccio de crème de haddock froide, parsemer de la brunoise œuf-cornichon-oignon et des croûtons dorés. Astuce croûtons : voir la recette maison dédiée. (Marie Claire — Éric Frechon, n° 144, accord : muscadet-sèvre-et-maine ; préparation 30 min, cuisson 1 h 30.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/carpaccio-de-betteraves-ecume-de-haddock,1206503.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'betteraves crues (taille moyenne)'),
+  (1, 200, 'g', 'haddock'),
+  (2, 25, 'cl', 'crème liquide'),
+  (3, 1, '', 'petit oignon rouge'),
+  (4, 1, '', 'œuf'),
+  (5, 4, '', 'cornichons'),
+  (6, 1, '', 'tranche de pain de mie'),
+  (7, 10, 'g', 'beurre'),
+  (8, 10, 'cl', 'huile de noix'),
+  (9, 2, 'c. à s.', 'vinaigre de vin'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Flans de petits pois au lard croustillant
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Flans de petits pois au lard croustillant', 'https://www.marieclaire.fr/cuisine/flans-de-petits-pois-au-lard-croustillant,1206546.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Préchauffer le four à 180 °C (th. 6). Écosser les petits pois, les cuire à l''eau bouillante salée 12-15 min selon la grosseur, égoutter (réserver 100 g de pois entiers) et mixer le reste en fine purée. Ajouter à la purée les œufs et la crème, saler, poivrer, mélanger au fouet. Répartir dans des moules individuels en silicone, enfourner 25 min. En parallèle, disposer les tranches de lard sur une plaque tapissée de papier sulfurisé, recouvrir d''une autre feuille et d''une plaque pour qu''il reste plat, cuire au four le même temps que les flans. Ciseler la menthe effeuillée, préparer une vinaigrette avec l''huile, le jus de citron, sel et poivre, y ajouter la menthe. Démouler les flans tièdes, servir avec les petits pois réservés, une cuillerée de mascarpone, le lard croustillant et la vinaigrette à la menthe ; se déguste chaud ou froid. Variante : remplacer le lard par des lanières de saumon fumé. (Marie Claire — Irène Karsenty, n° 145, accord : côtes-de-gascogne blanc sec ; préparation 35 min, cuisson 40 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/flans-de-petits-pois-au-lard-croustillant,1206546.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, 'kg', 'petits pois frais à écosser'),
+  (1, 2, '', 'gros œufs'),
+  (2, 20, 'cl', 'crème épaisse'),
+  (3, 2, 'c. à s.', 'mascarpone'),
+  (4, 4, 'tranches', 'lard fumé (fines tranches)'),
+  (5, 4, 'brins', 'menthe fraîche'),
+  (6, 4, 'c. à s.', 'huile d''olive'),
+  (7, 2, 'c. à s.', 'jus de citron'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Crème de petits pois à la menthe
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Crème de petits pois à la menthe', 'https://www.marieclaire.fr/cuisine/creme-de-petits-pois-a-la-menthe,24101,1192382.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Diluer les tablettes de bouillon dans 50 cl d''eau bouillante, y plonger les petits pois, cuire 20 min à petits frémissements, saler, poivrer. Pendant ce temps, faire revenir les lardons à l''huile d''arachide à feu doux jusqu''à ce qu''ils soient bien grillés. Mixer les petits pois avec leur bouillon, l''huile de noix, la crème et 6 feuilles de menthe (mixeur plongeant ou blender), rectifier l''assaisonnement. Répartir la crème dans des bols, parsemer de lardons grillés et décorer d''une feuille de menthe. Astuce : en saison, remplacer par des petits pois frais (environ 1 kg à écosser pour 4 personnes). (Marie Claire — Marie Leteuré, n° 91 ; préparation 5 min, cuisson 20 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/creme-de-petits-pois-a-la-menthe,24101,1192382.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 500::numeric, 'g', 'petits pois surgelés'),
+  (1, 2, '', 'tablettes de bouillon de volaille'),
+  (2, 125, 'g', 'lardons allumettes'),
+  (3, 15, 'cl', 'crème liquide'),
+  (4, 1, 'c. à s.', 'huile d''arachide'),
+  (5, 2, 'c. à s.', 'huile de noix'),
+  (6, 10, 'feuilles', 'menthe'),
+  (7, null, '', 'sel'),
+  (8, null, '', 'poivre du moulin')
+) as v(pos, qty, unit, name) on true;
+
+-- Sauté d'agneau aux petits navets
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Sauté d''agneau aux petits navets', 'https://www.marieclaire.fr/cuisine/saute-d-agneau-aux-petits-navets,1351448.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Préparer la gremolata : ciseler finement les herbes lavées, hacher l''ail pelé, prélever et hacher les zestes des agrumes, mélanger le tout avec la moitié de l''huile d''olive, réserver. Faire dorer les morceaux d''agneau sur toutes les faces 5 min dans le reste d''huile en cocotte, verser le vin blanc, laisser réduire un peu, ajouter les tomates en dés et un verre d''eau, assaisonner, cuire à feu doux 1 h 30. Pendant ce temps, éplucher les navets (garder un peu de fanes), les cuire 10 min à l''eau bouillante, égoutter et les ajouter à la cocotte avec la moitié de la gremolata 15 min avant la fin de cuisson. Rectifier l''assaisonnement, servir bien chaud ; encore meilleur préparé la veille. Astuce : pour épaissir la sauce, saupoudrer la viande de 2 c. à s. de farine avant de mouiller au vin blanc. (Marie Claire — Sophie Menut-Yovanovitch, n° 193, accord : corbières blanc ; préparation 20 min, cuisson 1 h 45.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saute-d-agneau-aux-petits-navets,1351448.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1.5::numeric, 'kg', 'collier d''agneau (coupé en morceaux)'),
+  (1, 2, 'bottes', 'navets'),
+  (2, 250, 'g', 'tomates en dés (en boîte)'),
+  (3, 10, 'brins', 'menthe'),
+  (4, 10, 'brins', 'persil'),
+  (5, 2, 'gousses', 'ail'),
+  (6, 1, '', 'orange bio'),
+  (7, 1, '', 'citron bio'),
+  (8, 5, 'cl', 'huile d''olive'),
+  (9, 10, 'cl', 'vin blanc'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Rougets à la rhubarbe
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Rougets à la rhubarbe', 'https://www.marieclaire.fr/cuisine/rougets-a-la-rhubarbe,1206553.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Effiler les tiges de rhubarbe, les couper en petits tronçons, les blanchir 2 min à l''eau bouillante, égoutter. Faire chauffer le beurre jusqu''à couleur noisette, y rissoler la rhubarbe 5 min en remuant, ajouter le cinq-épices et le miel, laisser compoter 3-4 min à feu doux, réserver. Mélanger la moitié de l''huile d''olive avec le sucre dans une petite casserole, y cuire les tomates cerises à feu doux 5 min. Saler et poivrer les filets de rougets, les fariner, les cuire à la poêle avec le reste d''huile 1 min de chaque côté. Dresser la rhubarbe en dôme dans les assiettes, poser les rougets dessus, garnir des tomates. (Marie Claire — n° 145, accord : côtes-de-provence rosé ; préparation 30 min, cuisson 20 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/rougets-a-la-rhubarbe,1206553.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 8::numeric, '', 'filets de rougets barbets (frais ou surgelés)'),
+  (1, 500, 'g', 'tiges de rhubarbe'),
+  (2, 12, '', 'tomates cerises'),
+  (3, 100, 'g', 'beurre'),
+  (4, 60, 'g', 'miel'),
+  (5, 2, 'pincées', 'cinq-épices'),
+  (6, 6, 'c. à s.', 'huile d''olive'),
+  (7, 10, 'g', 'sucre'),
+  (8, 2, 'c. à s.', 'farine'),
+  (9, null, '', 'sel'),
+  (10, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Wok de mignon de porc aux pois gourmands
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Wok de mignon de porc aux pois gourmands', 'https://www.marieclaire.fr/cuisine/wok-de-mignon-de-porc-aux-pois-gourmands,1197748.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Couper le filet mignon en fines tranches, saler et poivrer. Effiler et rincer les pois gourmands, éplucher et émincer l''oignon rouge. Chauffer l''huile dans un wok, y faire revenir l''oignon à feu vif 1 min puis le réserver sur le côté. Faire dorer la viande 3 min en remuant sans arrêt, ajouter les pois gourmands et poursuivre 3 min. Incorporer la pâte de curry, le yaourt et l''oignon réservé, mélanger et retirer du feu. Astuce : les pois gourmands peuvent être remplacés ou complétés par des petits pois frais ou surgelés, précuits 10 min à l''eau bouillante salée à découvert. (Marie Claire, Marie-France Six — préparation 10 min, cuisson 7 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/wok-de-mignon-de-porc-aux-pois-gourmands,1197748.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, '', 'filet mignon de porc (400 g)'),
+  (1, 200, 'g', 'pois gourmands'),
+  (2, 1, '', 'gros oignon rouge'),
+  (3, 2, 'c. à s.', 'yaourt nature'),
+  (4, 2, 'c. à s.', 'pâte de curry'),
+  (5, 1, 'c. à s.', 'huile d''olive'),
+  (6, null, '', 'sel'),
+  (7, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Croquettes de poulet mijotées, sauce curry-coco
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Croquettes de poulet mijotées, sauce curry-coco', 'https://www.marieclaire.fr/cuisine/croquettes-de-poulet-mijotees-sauce-curry,1193978.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Hacher les blancs de poulet au couteau, peler et hacher l''ail et les oignons, effeuiller la coriandre, verser la farine dans une assiette. Mixer au robot les cacahuètes avec la moitié de la coriandre et 2 gousses d''ail pour obtenir une pâte. Faire fondre la moitié des oignons dans 2 c. à s. d''huile, ajouter la pâte de cacahuètes et le miel, laisser caraméliser 3 min à feu vif. Laisser refroidir puis mélanger avec le poulet haché, le jaune d''œuf, sel et poivre ; former des boulettes, les rouler dans la farine en retirant l''excédent. Faire fondre le reste des oignons et la dernière gousse d''ail hachée dans 1 c. à s. d''huile, ajouter le curry, le lait de coco, 20 cl d''eau et la tablette de bouillon émiettée, cuire 10 min à feu moyen puis mixer la sauce au mixeur plongeant. Dorer les croquettes 5 min à la poêle dans le reste d''huile en les faisant rouler, puis les mettre dans la sauce et laisser mijoter 15 min à feu moyen. Parsemer du reste de coriandre ciselée avant de servir, avec un riz basmati ou thaï sauté aux amandes effilées. Peut se préparer à l''avance : croquettes dorées et sauce réservées séparément, réunies 15 min avant de servir. (Marie Claire, Valéry Drouet — préparation 40 min, cuisson 40 min ; vin conseillé : un rully blanc de Bourgogne.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/croquettes-de-poulet-mijotees-sauce-curry,1193978.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'blancs de poulet'),
+  (1, 80, '', 'cacahuètes décortiquées'),
+  (2, 1, 'c. à s.', 'miel liquide'),
+  (3, 2, '', 'petits oignons'),
+  (4, 3, 'gousses', 'ail'),
+  (5, 20, 'cl', 'lait de coco'),
+  (6, 0.5, '', 'tablette de bouillon de volaille'),
+  (7, 1, '', 'jaune d''œuf'),
+  (8, 1, 'c. à s.', 'curry en poudre'),
+  (9, 40, 'g', 'farine'),
+  (10, 5, 'c. à s.', 'huile d''olive'),
+  (11, 1, 'botte', 'coriandre'),
+  (12, null, '', 'sel'),
+  (13, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Poulet à l'estragon et vin blanc
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Poulet à l''estragon et vin blanc', 'https://www.marieclaire.fr/cuisine/poulet-a-l-estragon-et-vin-blanc,1355711.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Faire dorer le poulet sur toutes ses faces dans l''huile en cocotte, réserver. Éplucher et hacher les échalotes, les faire blondir 3 min dans la même cocotte. Remettre le poulet, saler, poivrer, ajouter la farine, bien mélanger puis verser le vin blanc ; laisser 5 min puis ajouter le bouillon bien chaud, couvrir et laisser cuire 20 min. Retirer le poulet et poursuivre la cuisson du bouillon 10 min pour le faire réduire. Laver et ciseler l''estragon, l''ajouter à la crème, saler, poivrer, verser dans la cocotte et laisser cuire 5 min. Remettre le poulet et prolonger la cuisson environ 10 min jusqu''à sauce épaisse et veloutée. Servir avec du riz nature. Version express et légère : blancs de poulet sans peau coupés en lanières, temps de cuisson divisé par deux. (Marie Claire, Sophie Menut-Yovanovitch — préparation 20 min, cuisson 45 min ; vin conseillé : un riesling d''Alsace.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/poulet-a-l-estragon-et-vin-blanc,1355711.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, '', 'poulet coupé en morceaux'),
+  (1, 1, 'botte', 'estragon'),
+  (2, 3, '', 'échalotes'),
+  (3, 15, 'cl', 'crème liquide'),
+  (4, 15, 'cl', 'vin blanc'),
+  (5, 20, 'cl', 'bouillon de poule'),
+  (6, 2, 'c. à s.', 'huile d''olive'),
+  (7, 1, 'c. à s.', 'farine'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Curry indien de poulet aux petits pois
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Curry indien de poulet aux petits pois', 'https://www.marieclaire.fr/cuisine/curry-indien-de-poulet-aux-petits-pois,1356319.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Couper le poulet en morceaux, le faire mariner avec le jus de citron vert, le paprika, le piment, sel et poivre pendant 30 min. Précuire les petits pois 5 min à la vapeur douce. Peler l''ail et l''oignon, émincer l''oignon, hacher l''ail et le gingembre, épépiner le poivron et le tailler en lamelles. Chauffer l''huile de coco en cocotte avec le bâton de cannelle, la cardamome fendue et les graines de cumin jusqu''à ce que les parfums se dégagent. Ajouter ail, oignon, poivron et gingembre, cuire 3 min à feu moyen, puis le poulet mariné 5 à 8 min. Ajouter garam masala, curcuma et cumin en poudre, laisser 2 min, verser le coulis de tomates et un verre d''eau, mijoter 10 min. Ajouter les petits pois et prolonger 10 min, puis les épinards 2 min avant la fin. Se déguste tel quel ou avec du riz ou des pommes de terre. (150 recettes de naturopathe, Hélène Comlan, éditions Marie Claire — préparation 25 min, cuisson 30 min, repos 30 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/curry-indien-de-poulet-aux-petits-pois,1356319.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 400::numeric, 'g', 'petits pois'),
+  (1, 2, '', 'filets de poulet'),
+  (2, 25, 'cl', 'coulis de tomates'),
+  (3, 1, '', 'poivron jaune'),
+  (4, 500, 'g', 'jeunes pousses d''épinards'),
+  (5, 1, 'c. à s.', 'huile de coco'),
+  (6, 0.5, '', 'citron vert'),
+  (7, 1, 'c. à c.', 'paprika'),
+  (8, 1, 'pincée', 'piment en poudre (facultatif)'),
+  (9, 1, '', 'bâton de cannelle'),
+  (10, 2, 'gousses', 'cardamome'),
+  (11, 0.5, 'c. à c.', 'graines de cumin'),
+  (12, 1, '', 'oignon'),
+  (13, 2, 'gousses', 'ail'),
+  (14, 3, 'cm', 'gingembre'),
+  (15, 1, 'c. à c.', 'curcuma'),
+  (16, 1, 'c. à c.', 'cumin en poudre'),
+  (17, 1, 'c. à c.', 'garam masala'),
+  (18, 0.5, 'botte', 'coriandre'),
+  (19, null, '', 'sel'),
+  (20, null, '', 'poivre du moulin')
+) as v(pos, qty, unit, name) on true;
+
+-- Lasagnes aux épinards et saumon
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Lasagnes aux épinards et saumon', 'https://www.marieclaire.fr/cuisine/lasagnes-aux-epinards-et-saumon,1356317.asp?xtor=EPR-3&M_BT=2242774561181', 2, 'Pocher le saumon 10 min dans la boisson végétale, l''émietter en retirant les arêtes, réserver la boisson de cuisson. Laver et hacher les épinards, les cuire 10 min à la vapeur. Faire un roux avec le beurre fondu et la farine de riz, mouiller avec la boisson de cuisson du saumon, porter à ébullition au fouet jusqu''à sauce homogène ; saler, poivrer, ajouter la muscade, retirer du feu et incorporer épinards et saumon. Préchauffer le four à 200 °C, monter les lasagnes en plat à gratin en alternant pâtes et garniture saumon-épinards, terminer par la garniture et la mozzarella émiettée. Enfourner 30 min. (150 recettes de naturopathe, Hélène Comlan, éditions Marie Claire — préparation 15 min, cuisson 40 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/lasagnes-aux-epinards-et-saumon,1356317.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 0.5::numeric, '', 'boîte de pâtes à lasagne précuites'),
+  (1, 250, 'g', 'saumon frais'),
+  (2, 500, 'g', 'épinards frais'),
+  (3, 50, 'g', 'mozzarella'),
+  (4, 10, 'g', 'beurre'),
+  (5, 35, 'cl', 'boisson végétale de riz'),
+  (6, 2, 'c. à s.', 'farine de riz'),
+  (7, 0.25, 'c. à c.', 'muscade'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Anchois marinés au vin blanc
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Anchois marinés au vin blanc', 'https://www.marieclaire.fr/cuisine/anchois-marines-au-vin-blanc,1193828.asp?xtor=EPR-3&M_BT=2242774561181', 6, 'Faire étêter et vider les anchois par le poissonnier. Les essuyer sans les rincer, les ranger dans un plat en verre et les recouvrir complètement de sel fin ; laisser reposer 2 h au frais. Éplucher et émincer finement échalotes et ail. Sortir les anchois du sel, les essuyer un par un. Préparer la marinade : vin blanc, vinaigre, échalotes, ail, estragon, laurier, thym, piments et quelques grains de poivre dans un saladier ; y plonger les anchois, couvrir et mettre au frais 12 h. Égoutter les anchois à l''écumoire, ouvrir chaque poisson et retirer l''arête centrale, ranger les filets en terrine. (Marie Claire, Irène Karsenty — préparation 45 min ; vin conseillé : un collioure blanc du Languedoc-Roussillon.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/anchois-marines-au-vin-blanc,1193828.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, 'kg', 'anchois frais moyens'),
+  (1, 10, '', 'échalotes'),
+  (2, 5, 'gousses', 'ail'),
+  (3, 75, 'cl', 'vin blanc sec'),
+  (4, 75, 'cl', 'vinaigre de vin blanc'),
+  (5, 2, 'brins', 'estragon'),
+  (6, 4, 'feuilles', 'laurier'),
+  (7, 2, 'brins', 'thym'),
+  (8, 2, '', 'piments oiseaux'),
+  (9, null, '', 'poivre en grains'),
+  (10, null, '', 'sel fin de mer')
+) as v(pos, qty, unit, name) on true;
+
+-- Pintxos de chorizo
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Pintxos de chorizo', 'https://www.marieclaire.fr/cuisine/pintxos-de-chorizo,1212823.asp?xtor=EPR-3&M_BT=2242774561181', 6, 'Ôter la peau du chorizo et le couper en tranches épaisses. Couper les cornichons en gros morceaux, détailler les piquillos égouttés en larges lamelles. Préparer un barbecue. Emballer chaque rondelle de chorizo dans une lamelle de piquillo, piquer sur des minibrochettes avec un morceau de cornichon. Faire colorer sur le barbecue, relever de piment d''Espelette. Au moment de servir, flamber hors du feu avec un peu de cognac réchauffé. Servir chaud. (Marie Claire, Pascale Mosnier — préparation 10 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/pintxos-de-chorizo,1212823.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 300::numeric, 'g', 'chorizo'),
+  (1, 6, '', 'cornichons au vinaigre'),
+  (2, 12, '', 'piquillos (petits poivrons espagnols en bocal)'),
+  (3, null, '', 'piment d''Espelette'),
+  (4, null, '', 'cognac')
+) as v(pos, qty, unit, name) on true;
+
+-- Tortilla aux courgettes et aux oignons
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Tortilla aux courgettes et aux oignons', 'https://www.marieclaire.fr/cuisine/tortilla-aux-courgettes-et-aux-oignons,1196797.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Rincer les courgettes, ôter les extrémités, les émincer en fines rondelles. Peler et hacher les oignons au couteau, ciseler le persil, peler et hacher l''ail, battre les œufs en omelette. Faire fondre doucement les oignons 10 min dans 2 c. à s. d''huile, les réserver ; dans la même poêle, faire revenir courgettes et ail 8 à 10 min à feu moyen. Mélanger courgettes, oignons et persil aux œufs, saler, poivrer. Nettoyer la poêle, y chauffer le reste d''huile, verser la préparation et laisser prendre en détachant les bords à la spatule. Quand le centre commence à prendre, retourner la tortilla sur un plat puis la glisser de nouveau dans la poêle pour cuire l''autre face environ 5 min. Couper en parts, servir tiède ou froid, éventuellement avec une salade de mâche aux noix. (Marie Claire, Irène Karsenty — préparation 30 min, cuisson 30 min ; vin conseillé : un bordeaux rosé.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/tortilla-aux-courgettes-et-aux-oignons,1196797.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 10::numeric, '', 'œufs'),
+  (1, 4, '', 'petites courgettes'),
+  (2, 2, '', 'gros oignons'),
+  (3, 2, 'gousses', 'ail'),
+  (4, 1, 'botte', 'persil plat'),
+  (5, 10, 'cl', 'huile d''olive'),
+  (6, null, '', 'sel'),
+  (7, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Pot-au-feu de veau à l'italienne
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Pot-au-feu de veau à l''italienne', 'https://www.marieclaire.fr/cuisine/pot-au-feu-de-veau-a-l-italienne,1194612.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Peler carottes et oignon, couper le céleri en tronçons. Mettre la viande dans un faitout avec ces légumes, la tomate entière et le bouquet garni, couvrir d''eau froide, porter à ébullition, saler, puis laisser mijoter à découvert 2 h 30 à 3 h jusqu''à ce que la viande se détache des os. Sortir la viande (réserver le bouillon), retirer les os et couper le veau en bouchées. Passer le bouillon à la passoire, le remettre dans le faitout, rectifier l''assaisonnement, porter à ébullition et y cuire les pâtes 2 à 3 min. Rincer et éponger roquette et tomates cerise. Répartir pâtes et un peu de bouillon dans 4 assiettes creuses, ajouter roquette et viande, garnir de tomates cerise, une cuillerée de pesto et une de mascarpone par assiette. Poivrer et servir aussitôt. Version italienne du pot-au-feu, plus légère et colorée que la version classique ; à garnir au dernier moment. (Marie Claire, Irène Karsenty — préparation 30 min, cuisson environ 2 h 30 ; vin conseillé : un mont baudile du Languedoc-Roussillon.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/pot-au-feu-de-veau-a-l-italienne,1194612.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, 'tranches', 'osso-buco de veau (épaisses)'),
+  (1, 2, '', 'carottes'),
+  (2, 1, '', 'tomate'),
+  (3, 1, '', 'oignon'),
+  (4, 2, 'branches', 'céleri'),
+  (5, 1, '', 'bouquet garni (thym, laurier, persil)'),
+  (6, null, '', 'sel'),
+  (7, null, '', 'poivre'),
+  (8, 4, 'c. à s.', 'pesto en pot'),
+  (9, 4, 'c. à s.', 'mascarpone'),
+  (10, 12, '', 'tomates cerise'),
+  (11, 1, '', 'poignée de roquette'),
+  (12, 250, 'g', 'tagliatelles fraîches')
+) as v(pos, qty, unit, name) on true;
+
+-- Conchiglioni farcis au veau
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Conchiglioni farcis au veau', 'https://www.marieclaire.fr/cuisine/conchiglioni-farcis-au-veau,1193982.asp?xtor=EPR-1&M_BT=2242774561181', 6, 'Précuire les pâtes 5 min à l''eau bouillante salée, les égoutter, les rafraîchir puis les étaler sur un torchon. Ciseler le cerfeuil. Préchauffer le four à 180 °C. Éplucher et hacher oignons et ail, les faire fondre 5 min à l''huile d''olive. Ajouter la viande hachée, cuire 5 min à feu vif en remuant puis verser 20 cl de coulis de tomates, saler, poivrer et laisser mijoter 15 min à feu doux. Hors du feu, ajouter le cerfeuil ciselé et laisser tiédir. Garnir les conchiglioni de cette farce, les disposer dans un plat à four. Diluer la tablette de bouillon dans 20 cl d''eau bouillante, verser dans le plat avec le reste de coulis, parsemer de parmesan et faire gratiner 20 à 25 min au four. Servir très chaud. Peut se préparer à l''avance : pâtes garnies couvertes de papier alu quelques heures avant, coulis et bouillon versés puis plat enfourné 30 min avant de servir. (Marie Claire, Valéry Drouet — préparation 30 min, cuisson 55 min ; vin conseillé : un patrimonio blanc de Provence-Corse.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/conchiglioni-farcis-au-veau,1193982.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 24::numeric, '', 'conchiglioni (très grosses pâtes en forme de coquillage)'),
+  (1, 500, 'g', 'veau haché'),
+  (2, 2, '', 'oignons'),
+  (3, 2, 'gousses', 'ail'),
+  (4, 60, 'cl', 'coulis de tomates'),
+  (5, 1, 'botte', 'cerfeuil'),
+  (6, 4, 'c. à s.', 'huile d''olive'),
+  (7, 100, 'g', 'parmesan fraîchement râpé'),
+  (8, 1, '', 'tablette de bouillon de volaille'),
+  (9, null, '', 'sel'),
+  (10, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Boulettes de veau au citron de Cyril Lignac
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Boulettes de veau au citron de Cyril Lignac', 'https://www.marieclaire.fr/cuisine/boulettes-de-veau-au-citron-de-cyril-lignac,1375851.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Mélanger à la main le haché de veau avec le parmesan, les œufs, la ricotta, le persil haché et le pain trempé dans le lait puis pressé ; assaisonner de sel fin, poivre, muscade râpée et zeste de citron. Former une trentaine de boulettes. Porter une casserole d''eau à ébullition avec le gros sel. Dans une poêle chaude, faire fondre l''huile d''olive et le beurre avec le laurier et le bâton de cannelle, ajouter le parmesan et le laisser fondre, ajouter le jus de citron et une louche de l''eau de cuisson des boulettes en fouettant jusqu''à sauce liée, légèrement épaisse et brillante ; retirer la cannelle, passer la sauce et la remettre dans la poêle avec le laurier. Plonger les boulettes 7 min dans l''eau bouillante, les égoutter et les déposer dans la sauce, mélanger. Servir chaud en assiettes creuses, garni d''un quartier de citron et d''une feuille de laurier. (Cyril Lignac pour Bravo le Veau, via Marie Claire — préparation 20 min, cuisson 25 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/boulettes-de-veau-au-citron-de-cyril-lignac,1375851.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 600::numeric, 'g', 'haché de veau'),
+  (1, 30, 'g', 'parmesan râpé'),
+  (2, 2, '', 'œufs bio'),
+  (3, 100, 'g', 'ricotta'),
+  (4, 2, 'c. à s.', 'persil haché'),
+  (5, 100, 'g', 'pain sans croûte trempé dans du lait'),
+  (6, 1, '', 'zeste de citron non traité'),
+  (7, 1, 'pincée', 'muscade'),
+  (8, 4, 'quartiers', 'citron jaune non traité'),
+  (9, null, '', 'jus de citron'),
+  (10, 50, 'g', 'parmesan râpé'),
+  (11, 1, '', 'bâton de cannelle'),
+  (12, 4, 'feuilles', 'laurier'),
+  (13, 25, 'g', 'beurre demi-sel'),
+  (14, 10, 'cl', 'huile d''olive'),
+  (15, 1, 'c. à c.', 'gros sel de cuisine'),
+  (16, null, '', 'sel fin'),
+  (17, null, '', 'poivre du moulin')
+) as v(pos, qty, unit, name) on true;
+
+-- Tajine de veau à l'orange et aux carottes
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Tajine de veau à l''orange et aux carottes', 'https://www.marieclaire.fr/cuisine/tajine-de-veau-a-l-orange-et-aux-carottes,24107,1192454.asp?xtor=EPR-1&M_BT=2242774561181', 6, 'Peler carottes, ail et oignons ; couper les carottes en rondelles épaisses, hacher l''ail, émincer finement les oignons, couper la viande en gros dés. Presser une orange, peler les deux autres à vif et lever les quartiers, réserver deux rubans de zeste. Faire revenir la viande dans l''huile en cocotte, l''égoutter et à sa place faire fondre oignons et ail à feu doux, puis remettre la viande avec les carottes et les zestes. Ajouter les épices, saler, poivrer, verser 10 cl d''eau, l''eau de fleur d''oranger et le jus d''orange, laisser mijoter à couvert 1 h 20 à feu doux. Ajouter le bouquet de coriandre ficelé et les quartiers d''orange, poursuivre 10 min, retirer la coriandre avant de servir. Astuce budget : remplacer par du tendron de veau, en prévoyant 1,5 kg à cause des os. (Marie Claire, Valéry Drouet — préparation 25 min, cuisson 1 h 30 ; vin conseillé : un chardonnay de Limoux, Languedoc.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/tajine-de-veau-a-l-orange-et-aux-carottes,24107,1192454.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, 'kg', 'viande de veau (jarret et épaule)'),
+  (1, 1, 'kg', 'carottes'),
+  (2, 3, '', 'oranges bio'),
+  (3, 2, '', 'oignons'),
+  (4, 2, 'gousses', 'ail'),
+  (5, 1, 'c. à c.', 'cannelle en poudre'),
+  (6, 2, 'pincées', 'gingembre en poudre'),
+  (7, 2, 'pincées', 'cumin en poudre'),
+  (8, 1, 'c. à s.', 'eau de fleur d''oranger'),
+  (9, 1, 'botte', 'coriandre'),
+  (10, 2, 'c. à s.', 'huile d''olive'),
+  (11, null, '', 'sel'),
+  (12, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Colombo de veau
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Colombo de veau', 'https://www.marieclaire.fr/cuisine/colombo-de-veau,1292071.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Peler l''échalote et l''ail, les hacher avec le persil. Mettre dans un saladier avec 3 c. à s. d''huile, les épices, sel et poivre, zester le citron vert au-dessus, ajouter son jus, bien mélanger puis incorporer la viande et malaxer à la main pour bien l''imprégner de marinade ; laisser reposer au moins 4 h au frais. Couper l''aubergine en cubes, la faire revenir dans le reste d''huile environ 10 min. Faire dorer la viande marinée en cocotte 5 min à feu vif en remuant souvent. Ajouter les aubergines et les tomates, verser 40 cl d''eau, rectifier l''assaisonnement et laisser cuire à couvert à feu doux environ 45 min jusqu''à ce que la viande soit fondante et la sauce sirupeuse (ajouter un peu d''eau si la sauce réduit trop). Servir bien chaud avec du riz, basmati par exemple. (Marie Claire, Sophie Menut — préparation 30 min, cuisson 1 h, repos 4 h ; vin conseillé : un bandol rosé de Provence-Corse.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/colombo-de-veau,1292071.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 800::numeric, 'g', 'veau coupé en morceaux (quasi, échine)'),
+  (1, 1, '', 'aubergine'),
+  (2, 1, '', 'échalote'),
+  (3, 1, 'gousse', 'ail'),
+  (4, 3, 'brins', 'persil plat'),
+  (5, 1, '', 'citron vert bio'),
+  (6, 1, '', 'tomates jaunes entières au jus (rouges si vous n''en trouvez pas)'),
+  (7, 5, 'c. à s.', 'huile d''olive'),
+  (8, 2, 'c. à s.', 'poudre à colombo'),
+  (9, 1, 'c. à c.', 'poudre de bois d''Inde'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Cocotte de veau aux asperges vertes de Cyril Lignac
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Cocotte de veau aux asperges vertes de Cyril Lignac', 'https://www.marieclaire.fr/cuisine/cocotte-de-veau-aux-asperges-vertes-de-cyril-lignac,1375850.asp?xtor=EPR-1&M_BT=2242774561181', 4, 'Couper le veau en cubes de 3 cm. Parer les asperges (retirer la partie dure, tailler les pointes puis le reste en biseau), émincer finement les champignons nettoyés et l''oignon. Faire suer l''oignon à l''huile en cocotte, ajouter les têtes d''asperges puis le reste taillé en biseau, cuire 4 min ; ajouter les champignons, saler, poivrer, parsemer de fenouil sauvage et cuire encore 5 min, puis réserver les légumes. Dans la même cocotte, huiler et colorer la viande assaisonnée sur toutes les faces à feu vif, ajouter le beurre, laisser caraméliser 2 min. Remettre les légumes, incorporer la moutarde à l''ancienne et la crème, assaisonner, laisser frémir quelques minutes puis parsemer d''anis vert. Servir chaud, accompagné de riz. (Cyril Lignac pour Bravo le Veau, sur Marie Claire — préparation 20 min, cuisson 20 min.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/cocotte-de-veau-aux-asperges-vertes-de-cyril-lignac,1375850.asp?xtor=EPR-1&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 600::numeric, 'g', 'escalopes de veau'),
+  (1, 8, '', 'asperges vertes'),
+  (2, 8, '', 'champignons de Paris'),
+  (3, 1, '', 'oignon'),
+  (4, 30, 'g', 'beurre'),
+  (5, 1, 'c. à s.', 'moutarde à l''ancienne'),
+  (6, 20, 'cl', 'crème fraîche'),
+  (7, 1, 'c. à c.', 'fenouil sauvage sec'),
+  (8, 1, 'pincée', 'anis vert'),
+  (9, null, '', 'huile d''olive'),
+  (10, null, '', 'sel fin'),
+  (11, null, '', 'poivre du moulin')
+) as v(pos, qty, unit, name) on true;
+
+-- Saumon grillé et chutney de rhubarbe
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Saumon grillé et chutney de rhubarbe', 'https://www.marieclaire.fr/cuisine/saumon-grille-et-chutney-de-rhubarbe,1375789.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'La veille, éplucher et couper la rhubarbe en tronçons, hacher le gingembre, peler et émincer l''oignon, faire gonfler les raisins secs 15 min dans l''eau chaude. Chauffer le vinaigre avec le sucre, ajouter rhubarbe, oignon, gingembre et raisins, cuire 30 min jusqu''à consistance compotée et liquide réduit sans caraméliser ; laisser refroidir puis réserver au frais jusqu''au lendemain. Le jour même, torréfier les graines de sarrasin 1 min à sec, cuire les pavés de saumon côté peau 3 min puis 3 min de l''autre côté dans l''huile chaude. Servir le saumon avec le chutney, parsemer de graines de sarrasin et d''aneth, saler, poivrer. (Sophie Menut-Yovanovitch, Marie Claire — préparation 35 min, cuisson 35 min, repos 24 h. Accord vin : blanc, Cassis blanc.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saumon-grille-et-chutney-de-rhubarbe,1375789.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'pavés de saumon'),
+  (1, 500, 'g', 'rhubarbe'),
+  (2, 1, '', 'oignon'),
+  (3, 75, 'g', 'raisins secs'),
+  (4, 1, '', 'noix de gingembre frais'),
+  (5, 250, 'g', 'sucre cassonade'),
+  (6, 4, 'c. à s.', 'graines de sarrasin'),
+  (7, 25, 'cl', 'vinaigre blanc'),
+  (8, null, '', 'aneth'),
+  (9, 1, 'c. à s.', 'huile d''olive'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Bar confit au fenouil
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Bar confit au fenouil', 'https://www.marieclaire.fr/cuisine/bar-confit-au-fenouil,1375787.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'La veille, laver et ôter la peau des filets de bar, les recouvrir de gros sel (moitié dessous, moitié dessus) et laisser confire 24 h au frais. Le jour même, rincer les filets, les tremper 30 min dans l''eau froide, égoutter puis couper en cubes de 2,5 cm. Peler, épépiner et couper les tomates en petits dés, égoutter dans une passoire. Couper le fenouil en petits cubes et le fondre 10 min dans une partie de l''huile. Ciseler persil et basilic. Dans le reste d''huile, saisir 1 min les graines de fenouil et les dés de poisson, ajouter tomates et herbes, cuire 2 min, saler si besoin, poivrer. Ajouter quelques lamelles crues de fenouil pour le croquant. Servir immédiatement. (Sophie Menut-Yovanovitch, Marie Claire — préparation 20 min, cuisson 15 min, repos 24 h. Accord vin : rosé, Lubéron rosé. Astuce : arroser d''un peu de jus de citron.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/bar-confit-au-fenouil,1375787.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'filets de bar'),
+  (1, 8, '', 'tomates'),
+  (2, 2, '', 'fenouils'),
+  (3, 3, 'brins', 'persil'),
+  (4, 2, 'brins', 'basilic'),
+  (5, 5, 'cl', 'huile d''olive'),
+  (6, 1, 'c. à c.', 'graines de fenouil'),
+  (7, 500, 'g', 'gros sel'),
+  (8, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Salade d'asperges vertes, sauce au citron
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Salade d''asperges vertes, sauce au citron', 'https://www.marieclaire.fr/cuisine/salade-d-asperges-vertes-sauce-au-citron,1375775.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'La veille, prélever le zeste et le jus du citron, ciseler le persil, mélanger le tout au lait ribot, saler, poivrer, réserver au frais. Le jour même, préchauffer le four à 200 °C. Émietter le pain en grosses miettes (robot ou couteau), peler et tailler l''ail en lamelles, disposer sur une plaque avec les câpres égouttées, arroser d''huile et enfourner 10 min en remuant de temps en temps. Laver et parer les asperges, les tailler en fines lamelles à l''économe ou à la mandoline ; ciseler cerfeuil et estragon. Mélanger les asperges avec la garniture de pain, câpres et herbes ; disposer en les enroulant dans les assiettes, arroser de la sauce au lait ribot et citron. (Sophie Menut-Yovanovitch, Marie Claire — préparation 20 min, cuisson 15 min. Accord vin : blanc, Muscat d''Alsace. Astuce : ajouter un œuf dur haché, choisir des asperges pas trop grosses pour qu''elles restent tendres.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/salade-d-asperges-vertes-sauce-au-citron,1375775.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 12::numeric, '', 'asperges vertes très fraîches'),
+  (1, 1, '', 'citron'),
+  (2, 2, 'gousses', 'ail'),
+  (3, 3, 'c. à s.', 'câpres'),
+  (4, 5, 'brins', 'cerfeuil'),
+  (5, 2, 'brins', 'estragon'),
+  (6, 2, 'brins', 'persil'),
+  (7, 15, 'cl', 'lait ribot'),
+  (8, 0.25, '', 'baguette de pain rassis'),
+  (9, null, '', 'huile d''olive'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Gaspacho d'asperge
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Gaspacho d''asperge', 'https://www.marieclaire.fr/cuisine/gaspacho-d-asperge,1375772.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Couper le haut des asperges en conservant les têtes, peler les tiges et les couper en rondelles. Laver et hacher les cébettes, peler, dégermer et hacher l''ail. Faire blondir cébettes et ail 3 min dans 2 c. à s. d''huile, ajouter les rondelles d''asperges, cuire 5 min, verser le bouillon chaud, saler, poivrer et laisser cuire à couvert environ 30 min jusqu''à ce que les asperges soient moelleuses. Pendant ce temps, recouper les têtes en bâtonnets et les faire sauter 6 min dans 2 c. à s. d''huile jusqu''à légère coloration, réserver. Prélever le zeste du citron vert. Mixer finement le pain coupé en morceaux avec le contenu de la casserole, le sucre, le vinaigre et le jus de citron jusqu''à obtenir une crème lisse ; ajouter le zeste, rectifier l''assaisonnement, réfrigérer au moins 3 h. Répartir les bâtonnets d''asperges au centre des assiettes, verser le gaspacho autour. (Sophie Menut-Yovanovitch, Marie Claire — préparation 20 min, cuisson 30 min, repos 3 h. Accord vin : blanc, Sauvignon. Astuce : ajouter un filet d''huile d''olive extra-vierge avant de servir.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/gaspacho-d-asperge,1375772.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1.2::numeric, 'kg', 'asperges blanches'),
+  (1, 3, '', 'cébettes'),
+  (2, 2, 'gousses', 'ail'),
+  (3, 1, '', 'tranche de pain de campagne'),
+  (4, 1, '', 'citron vert'),
+  (5, 1, 'c. à s.', 'sucre semoule'),
+  (6, 1, 'l', 'bouillon de volaille'),
+  (7, 2, 'c. à s.', 'vinaigre blanc'),
+  (8, 4, 'c. à s.', 'huile d''olive'),
+  (9, null, '', 'sel'),
+  (10, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Tarte aux fraises et à la rhubarbe d'Hélène Darroze
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Tarte aux fraises et à la rhubarbe d''Hélène Darroze', 'https://www.marieclaire.fr/cuisine/tarte-aux-fraises-et-a-la-rhubarbe-d-helene-darroze,1375948.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Éplucher la rhubarbe et la couper en tronçons ; laver rapidement les fraises et couper les plus grosses en deux. Préchauffer le four à 200 °C, étaler la pâte sur une feuille de papier cuisson saupoudrée de 30 g de sucre. Répartir la rhubarbe sur la pâte en laissant 2 cm de bord, rabattre et rouler légèrement les bords, enfourner 15 min puis baisser à 180 °C et poursuivre 10 min. Sortir la tarte, répartir les fraises et le beurre coupé en morceaux, saupoudrer du sucre restant, remettre au four environ 15 min. Servir tiède. (Hélène Darroze, Marie Claire — préparation 20 min, cuisson 40 min. Accord vin : effervescent rosé, Crémant de Loire rosé. Variante : pâte feuilletée à la place de la pâte sucrée ; badigeonner de marmelade d''oranges avant dégustation pour plus de gourmandise.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/tarte-aux-fraises-et-a-la-rhubarbe-d-helene-darroze,1375948.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 300::numeric, 'g', 'fraises'),
+  (1, 3, '', 'tiges de rhubarbe'),
+  (2, 70, 'g', 'sucre brun'),
+  (3, 1, '', 'disque de pâte sablée'),
+  (4, 50, 'g', 'beurre')
+) as v(pos, qty, unit, name) on true;
+
+-- Carré d'agneau aux herbes d'Hélène Darroze
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Carré d''agneau aux herbes d''Hélène Darroze', 'https://www.marieclaire.fr/cuisine/carre-d-agneau-aux-herbes-d-helene-darroze,1375941.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Faire dorer le carré d''agneau et les gousses d''ail en chemise dans la graisse de canard jusqu''à belle coloration, saler, poivrer. Préchauffer le four à 180 °C. Dans une cocotte, faire un lit avec les trois quarts des herbes, poser le carré dessus avec les gousses d''ail autour, recouvrir avec le reste des herbes. Enfourner environ 15 min, laisser reposer une dizaine de minutes avant de servir. (Hélène Darroze, Marie Claire — préparation 15 min, cuisson 15 min. Accord vin : rouge, Faugères rouge. Servir avec des légumes de printemps.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/carre-d-agneau-aux-herbes-d-helene-darroze,1375941.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, '', 'carré d''agneau de 8 côtes'),
+  (1, 1, '', 'tête d''ail'),
+  (2, 1, '', 'bouquet de thym'),
+  (3, 1, '', 'bouquet de romarin'),
+  (4, 1, '', 'bouquet de serpolet'),
+  (5, 1, '', 'bouquet de marjolaine'),
+  (6, 2, 'brins', 'fenouil'),
+  (7, 3, 'c. à s.', 'graisse de canard'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Cocotte de légumes des beaux jours et œufs pochés d'Hélène Darroze
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Cocotte de légumes des beaux jours et œufs pochés d''Hélène Darroze', 'https://www.marieclaire.fr/cuisine/cocotte-de-legumes-des-beaux-jours-et-oeufs-poches-d-helene-darroze,1375931.asp?xtor=EPR-3&M_BT=2242774561181', 4, 'Écosser les petits pois, laver le cœur de salade et les pommes de terre, couper les oignons nouveaux en 2 ou 4 et la ventrèche en gros lardons. Faire chauffer la graisse de canard en cocotte, ajouter oignons et ventrèche, cuire 5 min. Ajouter les pommes de terre, les gousses d''ail en chemise, le thym, verser le bouillon, saler, poivrer, couvrir et cuire 25 min ; 10 min avant la fin ajouter les petits pois, puis 5 min après les feuilles de salade romaine. Pendant ce temps, pocher les œufs 3 min dans une eau vinaigrée, égoutter sur papier absorbant. Mélanger les légumes, rectifier l''assaisonnement et glisser délicatement les œufs pochés dedans. Servir directement en cocotte. (Hélène Darroze, Marie Claire — préparation 45 min, cuisson 30 min. Accord vin : blanc, Beaujolais blanc. Astuce d''Hélène : rallonger d''un peu de bouillon si les légumes accrochent ; on peut aussi pocher les œufs directement dans les légumes en fin de cuisson, moins joli mais délicieux.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/cocotte-de-legumes-des-beaux-jours-et-oeufs-poches-d-helene-darroze,1375931.asp?xtor=EPR-3&M_BT=2242774561181')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1::numeric, 'kg', 'petits pois frais'),
+  (1, 400, 'g', 'petites pommes de terre grenaille'),
+  (2, 1, '', 'cœur de salade romaine'),
+  (3, 2, '', 'oignons nouveaux'),
+  (4, 4, 'gousses', 'ail'),
+  (5, 4, '', 'œufs'),
+  (6, 125, 'g', 'ventrèche du Sud-Ouest (poitrine de porc au piment d''Espelette)'),
+  (7, 20, 'cl', 'bouillon de volaille'),
+  (8, 1, 'trait', 'vinaigre blanc'),
+  (9, 2, 'c. à s.', 'graisse de canard'),
+  (10, 2, 'brins', 'thym'),
+  (11, null, '', 'sel'),
+  (12, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Rôti de veau au citron et au gingembre
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Rôti de veau au citron et au gingembre', 'https://www.marieclaire.fr/cuisine/roti-de-veau-au-citron-et-au-gingembre,24107,1191332.asp', 6, 'Préchauffer le four à 180 °C (th. 6). Faire chauffer l''huile en cocotte allant au four et dorer le rôti sur toutes ses faces. Saler, ajouter les oignons en quartiers, le gingembre finement émincé, un peu de poivre mignonnette, enfourner à découvert environ 10 min. Prélever le zeste des deux citrons en julienne, presser un citron. Réunir le vin, 10 cl d''eau, le sucre, les clous de girofle, le jus de citron, la julienne de zestes et le bouquet garni, porter à ébullition et réduire d''un tiers à feu vif. Verser sur le rôti en cocotte, couvrir et cuire 1 h au four en arrosant fréquemment. Le rôti doit être bien doré, sinon augmenter la température 10 min avant la fin. Servir découpé avec le jus dégraissé et déglacé d''un peu d''eau, accompagné de riz créole ou de pâtes. (Marie Claire, recette parue dans le numéro 88 — préparation 25 min, cuisson 1 h 20. Astuce : préférer un veau élevé sous la mère, plus cher mais incomparable.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/roti-de-veau-au-citron-et-au-gingembre,24107,1191332.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 1.5::numeric, 'kg', 'rôti de longe de veau'),
+  (1, 2, '', 'citrons non traités'),
+  (2, 3, '', 'oignons moyens'),
+  (3, 3, '', 'clous de girofle'),
+  (4, 3, 'cm', 'racine de gingembre'),
+  (5, 1, '', 'bouquet garni (laurier, thym frais, queues de persil plat)'),
+  (6, 10, 'cl', 'vin blanc sec'),
+  (7, 3, 'c. à s.', 'huile'),
+  (8, 40, 'g', 'sucre'),
+  (9, null, '', 'sel'),
+  (10, null, '', 'poivre mignonnette')
+) as v(pos, qty, unit, name) on true;
+
+-- Nems au jambon blanc
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Nems au jambon blanc', 'https://www.marieclaire.fr/cuisine/nems-au-jambon-blanc,1197141.asp', 4, 'Ébouillanter les germes de soja dans une passoire, égoutter. Couper le jambon en lanières, effeuiller et ciseler grossièrement la coriandre. Couper les feuilles de brick en deux ; au centre de chaque demi-feuille, répartir St Môret, jambon, germes de soja et coriandre, saler, poivrer, parsemer de sésame, rabattre les grands côtés puis rouler en cigare. Chauffer l''huile dans une poêle antiadhésive, dorer les nems 7-8 min en les retournant régulièrement pour qu''ils soient croustillants. Servir très chauds avec la sauce soja en coupelles. (Cuisine et Vins de France pour Marie Claire, recette parue dans le numéro 634 — préparation 30 min, cuisson 10 min. Accord vin : rosé, vin de pays d''Oc. Astuce : ajouter une pincée de piment de Cayenne ou d''Espelette dans la farce pour plus de piquant.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/nems-au-jambon-blanc,1197141.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, 'tranches', 'jambon blanc'),
+  (1, 4, 'feuilles', 'brick'),
+  (2, 200, 'g', 'germes de soja frais'),
+  (3, 150, 'g', 'fromage frais type St Môret'),
+  (4, 1, 'c. à s.', 'graines de sésame'),
+  (5, 1, '', 'bouquet de coriandre'),
+  (6, 10, 'cl', 'huile'),
+  (7, 15, 'cl', 'sauce soja douce (type Kikkoman)'),
+  (8, null, '', 'sel'),
+  (9, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Carpaccio de betteraves, écume de haddock
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Carpaccio de betteraves, écume de haddock', 'https://www.marieclaire.fr/cuisine/carpaccio-de-betteraves-ecume-de-haddock,1206503.asp', 4, 'Préchauffer le four à 180 °C (th. 6). Emballer les betteraves séparément dans du papier alu, enfourner 1 h 30, laisser refroidir dans le papier. Cuire l''œuf dur 10 min à l''eau bouillante, écaler et hacher finement ; peler et hacher finement l''oignon avec les cornichons, réserver cette brunoise. Couper le pain de mie en dés et les dorer à la poêle au beurre, réserver. Ôter la peau du haddock, couper la chair en petits morceaux. Chauffer la crème, ajouter le haddock, mijoter 10 min, puis filtrer pour récupérer une crème parfumée, laisser refroidir. Éplucher les betteraves refroidies, les couper en fines rondelles façon carpaccio, disposer en plat de service. Émulsionner huile et vinaigre avec sel et poivre, arroser le carpaccio. Au moment de servir, entourer de crème de haddock froide, parsemer de la brunoise œuf-cornichon-oignon et de croûtons. Servir aussitôt. (Eric Frechon, Marie Claire, recette parue dans le numéro 144 — préparation 30 min, cuisson 1 h 30. Accord vin : blanc, muscadet-sèvre-et-maine.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/carpaccio-de-betteraves-ecume-de-haddock,1206503.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'betteraves crues de taille moyenne'),
+  (1, 200, 'g', 'haddock'),
+  (2, 25, 'cl', 'crème liquide'),
+  (3, 1, '', 'petit oignon rouge'),
+  (4, 1, '', 'œuf'),
+  (5, 4, '', 'cornichons'),
+  (6, 1, '', 'tranche de pain de mie'),
+  (7, 10, 'g', 'beurre'),
+  (8, 10, 'cl', 'huile de noix'),
+  (9, 2, 'c. à s.', 'vinaigre de vin'),
+  (10, null, '', 'sel'),
+  (11, null, '', 'poivre')
+) as v(pos, qty, unit, name) on true;
+
+-- Saumon fumé, asperges blanches en vinaigrette mimosa
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Saumon fumé, asperges blanches en vinaigrette mimosa', 'https://www.marieclaire.fr/cuisine/saumon-fume-asperges-blanches-en-vinaigrette-mimosa,1193089.asp', 4, 'Éplucher les asperges blanches, casser les queues et égaliser leur longueur, les attacher en botte et cuire 7-8 min à l''eau bouillante salée, puis laisser tiédir à température ambiante. Écaler les œufs durs, mélanger les jaunes avec le persil ciselé et la mayonnaise, saler, poivrer, remettre la préparation dans les blancs (œufs mimosa). Assaisonner les asperges de vinaigre balsamique blanc et d''huile d''olive. Dresser dans les assiettes : asperges, œufs mimosa, crevettes décortiquées, quelques feuilles de jeune pousse de salade et le saumon fumé sur les asperges. Parsemer de cacahuètes grillées, de piment d''Espelette et de fleur de sel. (Rédaction CVF, Marie Claire — préparation 10 min, cuisson 10 min. Astuce : pour une version plus classique, essayer les asperges blanches à la sauce mousseline maison.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/saumon-fume-asperges-blanches-en-vinaigrette-mimosa,1193089.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, 'tranches', 'saumon fumé'),
+  (1, 12, '', 'crevettes'),
+  (2, 10, 'g', 'cacahuètes grillées'),
+  (3, 12, '', 'asperges blanches'),
+  (4, 4, '', 'œufs durs'),
+  (5, 2, 'c. à s.', 'mayonnaise'),
+  (6, 0.5, 'botte', 'persil plat'),
+  (7, null, '', 'huile d''olive'),
+  (8, null, '', 'vinaigre balsamique blanc'),
+  (9, null, '', 'poivre'),
+  (10, null, '', 'fleur de sel'),
+  (11, null, '', 'piment d''Espelette'),
+  (12, null, '', 'jeunes pousses de salade')
+) as v(pos, qty, unit, name) on true;
+
+-- Poulet sauté à la citronnelle et au piment
+with h as (select id from households limit 1),
+r as (insert into recipes (household_id, source_id, title, url, servings, steps, category)
+  select h.id, (select id from sources where title = 'Marie Claire — Cuisine'), 'Poulet sauté à la citronnelle et au piment', 'https://www.marieclaire.fr/cuisine/poulet-saute-a-la-citronnelle-et-au-piment,728986.asp', 4, 'Hacher ensemble l''ail, la citronnelle débarrassée de ses couches dures et le piment ; couper l''oignon pelé et le poulet en morceaux. Faire mariner le poulet 30 min avec la moitié du nuoc-mam, le poivre, le cinq-parfums, la moitié du miel, un peu d''huile et la moitié du hachis ail-citronnelle-piment. Dans une poêle bien chaude, saisir le reste du hachis avec l''oignon quelques secondes, ajouter le poulet mariné et cuire en remuant sans cesse ; verser l''eau de coco et laisser cuire 5 min. À part, cuire le reste du hachis avec le reste du nuoc-mam et de miel jusqu''à belle coloration, puis y verser le poulet et bien mélanger. Parsemer de menthe vietnamienne hachée, accompagner de riz blanc ou gluant. (Eric Solal, Marie Claire — préparation 20 min, cuisson 10 min. Astuce : accompagner d''un riz pilaf.)', ''
+  from h where not exists (select 1 from recipes where url = 'https://www.marieclaire.fr/cuisine/poulet-saute-a-la-citronnelle-et-au-piment,728986.asp')
+  returning id, household_id)
+insert into recipe_ingredients (household_id, recipe_id, position, qty, unit, name)
+select r.household_id, r.id, v.pos, v.qty, v.unit, v.name from r join (values
+  (0, 4::numeric, '', 'cuisses de poulet désossées'),
+  (1, 2, '', 'oignons'),
+  (2, 3, 'gousses', 'ail'),
+  (3, 6, 'tiges', 'citronnelle'),
+  (4, 1, '', 'petit piment rouge'),
+  (5, 3, 'c. à s.', 'miel'),
+  (6, 8, 'c. à s.', 'nuoc-mam'),
+  (7, 6, 'c. à s.', 'huile de tournesol'),
+  (8, 1, 'c. à c.', 'curcuma'),
+  (9, 0.67, 'c. à c.', 'cinq-parfums'),
+  (10, 0.67, 'c. à c.', 'poivre'),
+  (11, 8, 'c. à s.', 'eau de coco'),
+  (12, 20, 'feuilles', 'menthe vietnamienne')
 ) as v(pos, qty, unit, name) on true;
 
 select count(*) as recettes_evernote from recipes where url like '%marieclaire%' or url like '%.fr%' or url like '%.com%' or url like '%.org%';

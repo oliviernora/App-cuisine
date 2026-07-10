@@ -361,10 +361,12 @@ Validé en cours de route :
   indépendante de l'app) + `import.sql` idempotent généré par
   `enex-merge.mjs` ; pipeline complet : extract-enex → enex-lots (24 lots de
   ~13) → fiches par lot en session → enex-merge → import dashboard
-- Avancement des lots : **lot 1 fait** (11 fiches, 10 importées + salade de
-  poulet dédupliquée par URL ; 2 intrus écartés → `exclusions.json` : article
-  NYT et page boutique Alsace Saveurs). Restent lots 2 à 24 (~290 fiches),
-  à traiter par lots sur les prochaines sessions
+- Avancement des lots : **lots 1 à 5 EN BASE au 10/07/2026** (lot 1 : 11
+  fiches ; lot 2 : 12 fiches ; lots 3-5 : 39 fiches par agents parallèles ;
+  + 9 jus) — les imports passent désormais par le **MCP**
+  (`importer_recettes_evernote`, a_blanc → GO → executer, sauvegarde auto)
+  et plus jamais par le SQL au presse-papier. Restent les **lots 6 à 24**
+  (~250 fiches) sur les prochaines sessions
 - EN ATTENTE : validation par Olivier des 21 notes douteuses
   (`Evernote/tri.md`) — elles s'ajouteront en fin de chantier
 
@@ -526,12 +528,23 @@ Incréments :
   (15 tables OK, 2 membres, tous les outils justes). Doc :
   `docs/technique/mcp.md`. Le serveur se charge au prochain démarrage de
   session Claude Code dans le projet.
-- **B2 — Écritures métier** : les actions ci-dessus + dry-run + sauvegarde
-  automatique + journal.
-- **B3 — Premier usage réel : lots Evernote 3-24** — l'import passe par le
-  MCP (dédoublonnage garanti par l'action métier) au lieu du SQL collé au
-  dashboard ; le pipeline d'extraction par lots (agents Sonnet) reste le
-  même en amont.
+- **B2 — Écritures métier** — LIVRÉ le 10/07/2026 :
+  `importer_recettes_evernote` (deux temps : a_blanc → jeton → GO Olivier
+  → executer ; sauvegarde JSON automatique avant exécution ; dédoublonnage
+  URL sinon titre+source ; jeton faux REFUSÉ — testé), `creer_recette`
+  (unitaire, parseur partagé `ligne-ingredient.js`), `ajouter_realisation`,
+  `journal_actions` (mcp/journal.jsonl). Pas d'outil de suppression.
+- **B3 — Lots Evernote via le MCP** — DÉMARRÉ le 10/07/2026, lots 1-5 EN
+  BASE : lot 2 importé (10 recettes, GO Olivier), puis lots 3-5 extraits
+  par 3 agents en parallèle (13+13+13 fiches) et importés (34 recettes,
+  GO Olivier ; le dédoublonnage a été renforcé au passage : titre+source
+  vaut aussi pour les fiches avec URL — deux captures de la même page ne
+  différaient que par un ?xtor de tracking). **173 recettes en base,
+  1 351 lignes d'ingrédients.** Restent les **lots 6-24** (~19 lots),
+  même cycle : extraction (agents) → enex-merge → a_blanc → GO → executer.
+  Cas douteux des agents consignés au journal du cahier (fourchettes de
+  quantités → moyenne, « 4 à 6 pers. » → 4, unités manquantes laissées
+  telles quelles).
 
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),
