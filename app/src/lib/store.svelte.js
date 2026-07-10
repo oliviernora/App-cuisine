@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { seedRows } from './seed.js'
+import { parseRecipeFromHtml } from './jsonld-recipe.js'
 
 /* En développement, une mise à jour à chaud de ce module laisserait tourner
  * l'ancienne instance (canal temps réel, synchros) à côté de la nouvelle —
@@ -497,6 +498,52 @@ export async function addSource(title, kind = 'livre') {
 export async function setRecipeSource(recipe, sourceId) {
   recipe.source_id = sourceId
   await supabase.from('recipes').update({ source_id: sourceId }).eq('id', recipe.id)
+}
+
+/* ----- Import d'une recette depuis une URL (A1, décision Olivier 10/07/2026) ----- */
+
+/** Recette déjà importée : même URL, sinon même titre + même source (clé de l'import Evernote). */
+export function findDuplicateRecipe(url, title = '', sourceId = null) {
+  return store.recipes.find(r => (url && r.url === url)
+    || (title && sourceId && r.title === title && r.source_id === sourceId))
+}
+
+/** Rapatrie la page (Edge Function « rapatrier-page », contournement CORS) et
+ * propose une fiche à relire. N'écrit rien en base.
+ * Renvoie { proposal } ou { error } (message affichable). */
+export async function fetchRecipeFromUrl(url) {
+  const { data, error } = await supabase.functions.invoke('rapatrier-page', { body: { url } })
+  if (error || !data?.html) {
+    return { error: 'La page n\'a pas pu être récupérée. Vérifier l\'adresse et la connexion, puis réessayer.' }
+  }
+  const proposal = parseRecipeFromHtml(data.html, url)
+  if (!proposal) {
+    return { error: 'Aucune recette structurée trouvée sur cette page. Copier le texte de la recette et créer la fiche à la main.' }
+  }
+  return { proposal }
+}
+
+/** Enregistre la fiche relue : crée la source (site) si besoin, refuse les
+ * doublons (URL, sinon titre + source), puis insère recette et ingrédients.
+ * Renvoie { recipe }, { duplicate } ou { error }. */
+export async function createImportedRecipe({ url, title, sourceTitle, ingredientsText, steps, servings, country, category }) {
+  const t = title.trim()
+  if (!t) return { error: 'Le titre est obligatoire.' }
+  let source = store.sources.find(s => s.title === sourceTitle.trim())
+  if (!source && sourceTitle.trim()) {
+    await addSource(sourceTitle, 'site')
+    source = store.sources.find(s => s.title === sourceTitle.trim())
+  }
+  const duplicate = findDuplicateRecipe(url, t, source?.id)
+  if (duplicate) return { duplicate }
+  const { data, error } = await supabase.from('recipes')
+    .insert({ household_id: store.household.id, source_id: source?.id ?? null, title: t, url: url ?? '' })
+    .select().single()
+  if (error) { store.schemaWarning = true; return { error: 'Enregistrement impossible. Réessayer une fois la connexion revenue.' } }
+  store.recipes.push(data)
+  const recipe = store.recipes[store.recipes.length - 1]
+  await saveRecipeDetails(recipe, ingredientsText, steps, servings, country, category)
+  return { recipe }
 }
 
 export function ingredientsOf(recipeId) {

@@ -78,6 +78,12 @@
   « marchés » est la référence des créneaux — décision 07/07).
 - « épinards ≈ épinard » à trancher dans Ingrédients à rapprocher
   (la fusion absorbe maintenant proprement les deux fiches).
+- Déployer l'Edge Function `rapatrier-page` (import URL, A1 — procédure
+  dans exploitation.md, section « Fonctions serveur ») puis dérouler M39.
+- Donner le GO sur le verdict A2 (qwen3-vl:4b-instruct,
+  docs/technique/poc-ollama.md) pour lancer A3.
+- Créer le compte Supabase dédié à Claude pour le MCP (B1) — voir la
+  section « MCP garde-manger ».
 
 ### Livré le 08/07 (session commentaires + points 2, 3, 5) — EN ATTENTE DE MIGRATION + PASSE NAVIGATEUR
 - Commentaires d'Olivier (docs/utilisateur/Commentaires sur l'appli
@@ -119,9 +125,18 @@
    `category` traverse le pipeline. Instructions d'extraction pour un
    agent Sonnet : `Evernote/instructions-extraction-lot.md` (validées par
    Olivier — un agent par lot, plusieurs lots en parallèle possibles).
-2. **Extraction IA** (étape 4, incr. 3) : photo/PDF/URL → fiche à relire ;
-   demande la clé API Claude d'Olivier, de préférence via Edge Function.
-3. Quantités à l'ajout (N3/NP4 — décision toujours en attente).
+2. **Import de recettes en IA LOCALE** (étape 4, incr. 3 révisé le
+   10/07/2026, décision Olivier : pas de clé API) : plan détaillé section
+   « Import de recettes — plan IA locale ». **A1 (import URL) et A2 (POC
+   Ollama) FAITS le 10/07** — reste : Olivier déploie `rapatrier-page`
+   (exploitation.md) + M39, GO d'Olivier sur le verdict A2
+   (qwen3-vl:4b-instruct, docs/technique/poc-ollama.md) puis A3
+   (intégration app ↔ Ollama) et A4 (OCR iPhone/iPad).
+3. **Serveur MCP garde-manger** (décision Olivier 10/07/2026) : Claude
+   travaille sur la vraie base via des actions métier qui garantissent
+   l'intégrité — plan section « MCP garde-manger » (B1-B3). Premier usage
+   réel visé : les lots Evernote (plus de SQL au presse-papier).
+4. Quantités à l'ajout (N3/NP4 — décision toujours en attente).
 
 ## Décisions prises (06/07/2026)
 
@@ -133,7 +148,9 @@
 - Voix : dès le POC (reconnaissance du navigateur + dictée clavier iOS)
 - Modèle foyer : un seul foyer, emplacements hiérarchiques (maison > lieu de stockage) ; l'association est un contexte d'événement, pas un foyer séparé
 - Agenda : Google Calendar
-- Capture de recettes : extraction par IA (API Claude) depuis photo, PDF ou URL, avec correction manuelle
+- Capture de recettes : extraction par IA depuis photo, PDF ou URL, avec correction
+  manuelle — révisé le 10/07/2026 : IA LOCALE (pas de clé API), voir section
+  « Import de recettes — plan IA locale »
 - Rôle utilisateur : utilisateur final uniquement, le code et le déploiement sont gérés dans les sessions Claude
 
 ## Étapes
@@ -414,6 +431,95 @@ Validé en cours de route :
   Calendar à réautoriser sur claude.ai), consigné dans `creneaux-courses.md`
 - Tests : 75 verts + 1 todo ; 5 vérifications de schéma ajoutées (14 tables)
 
+### Import de recettes — plan IA locale (décision Olivier 10/07/2026)
+
+Décision : l'extraction de recettes (étape 4, incrément 3) se fait SANS clé
+API, avec de l'IA locale, pour rester autonome. Matériel cible : PC Legion
+i9 + RTX 5070 Laptop 8 Go de VRAM (un modèle à vision 7-8B quantifié tient
+entièrement sur le GPU), iPad Pro M5 16 Go (Apple Intelligence), iPhones
+modernes visés (15 Pro et plus : Apple Intelligence aussi — l'iPhone 13
+d'Olivier n'est pas la cible).
+
+Stratégie en couches : le maximum SANS IA, l'IA locale seulement là où il
+faut. La relecture avant enregistrement est OBLIGATOIRE partout
+(l'extraction locale se trompe plus souvent que l'API sur les cas
+difficiles : pages de biais, mises en page chargées, manuscrit).
+
+- **A1 — Import par URL sans IA** — FAIT le 10/07/2026 (code + 8 tests +
+  build + passe navigateur partielle). Parseur JSON-LD
+  (`app/src/lib/jsonld-recipe.js`, gère @graph, HowToSection, ingrédients
+  en bloc ou en tableau), panneau « ▸ Importer une recette depuis une
+  URL » dans Recettes (récupérer → fiche pré-remplie à relire →
+  enregistrer), dédoublonnage URL sinon titre+source (clé Evernote),
+  source « site » créée au besoin, messages d'erreur clairs. Edge Function
+  `supabase/functions/rapatrier-page/` (rapatrie le HTML, aucune clé IA).
+  RESTE : déploiement de la fonction par Olivier (procédure dans
+  exploitation.md) puis M39 en réel.
+- **A2 — POC Ollama sur le PC** — FAIT le 10/07/2026, CONCLUANT. Verdict :
+  **qwen3-vl:4b-instruct** (~33 s par page, 61 s pour une double page de
+  livre, fractions ½/1½ intactes, étapes quasi verbatim ; défauts du
+  niveau « relecture » : titre pris en chinois sur le livre bilingue, une
+  ligne d'accompagnement omise). Comparatif complet, réglages et pièges
+  (types union interdits dans le schéma, variante -instruct obligatoire,
+  num_ctx 8192, images 1600 px) : `docs/technique/poc-ollama.md` ; script
+  rejouable `app/scripts/poc-extract-ollama.mjs`. GO d'Olivier attendu
+  pour A3.
+- **A3 — Intégration app ↔ Ollama (PC)** : écran « Importer » (photo, ou
+  PDF converti en images) qui envoie au modèle local (localhost:11434,
+  CORS Ollama à configurer) et pré-remplit la fiche à relire ; le bouton
+  n'apparaît que si Ollama répond ; rapprochement des ingrédients extraits
+  avec la master list en suggestions (jamais de fusion silencieuse, règle
+  du 07/07).
+- **A4 — iPhone/iPad : capture + OCR local Apple** : photo de la page
+  conservée (copie privée, bucket photos existant) + texte extrait par
+  « Texte en direct » (OCR Apple, 100 % sur l'appareil) collé dans l'app ;
+  parseur heuristique des lignes d'ingrédients (« 200 g de farine »,
+  fractions comprises) ; ce qui n'est pas structurable reste en texte,
+  à finir sur le PC (A3) si besoin.
+- **A5 — (optionnel, seulement si A4 s'avère trop manuel à l'usage)
+  Raccourci Apple Intelligence** : action « Utiliser le modèle » (modèle
+  Apple local, iPad M5 et iPhone 15 Pro+) : photo → OCR → JSON → partage
+  vers l'app.
+
+Cas d'utilisation touchés : N8 (je fais une recette et je la consigne —
+volet capture), N9 (retrouver une recette). Chaque incrément suit la
+méthode : cas limites décidés avant de coder, tests d'intégration,
+parcours réel navigateur, docs à jour.
+
+### MCP garde-manger — Claude travaille sur la base (décision Olivier 10/07/2026)
+
+Objectif : que Claude lise et écrive dans la vraie base SANS SQL libre ni
+collages au dashboard (deux incidents de presse-papier le 07/07), via un
+serveur MCP local exposant des actions métier qui garantissent l'intégrité
+des données.
+
+Principes d'intégrité (imposés par le serveur, quel que soit l'appelant) :
+- Connexion par un compte Supabase dédié (ex. claude@…), simple membre du
+  foyer : la RLS s'applique à toutes ses actions ; JAMAIS la service key.
+  DÉCISION OLIVIER à valider : création de ce compte + invitation au foyer.
+- Écritures uniquement via des actions métier à schéma strict, qui portent
+  les règles du projet : `creer_recette` (dédoublonnage par URL et par
+  titre+source, ingrédients structurés quantité/unité/nom, catégorie,
+  pays), `maj_recette`, `ajouter_realisation`, `rapprocher_ingredient`
+  (suggestion contre la master list, jamais de fusion silencieuse)…
+- Toute écriture en masse passe par un mode « à blanc » : rapport de ce
+  qui serait créé / modifié / ignoré (doublons), exécution seulement après
+  GO d'Olivier ; export JSON automatique du foyer AVANT l'exécution.
+- Pas de suppression en masse ; suppression à l'unité, avec confirmation.
+- Journal des actions du serveur (quoi, quand, résultat), consultable.
+
+Incréments :
+- **B1 — Lecture seule** : serveur MCP local (Node, stdio, dossier `mcp/`,
+  identifiants dans un `.env` hors git, déclaré dans `.mcp.json`) :
+  recherche de recettes, fiche complète, stock, master list, contrôle de
+  schéma. Aucun risque, valide la tuyauterie.
+- **B2 — Écritures métier** : les actions ci-dessus + dry-run + sauvegarde
+  automatique + journal.
+- **B3 — Premier usage réel : lots Evernote 3-24** — l'import passe par le
+  MCP (dédoublonnage garanti par l'action métier) au lieu du SQL collé au
+  dashboard ; le pipeline d'extraction par lots (agents Sonnet) reste le
+  même en amont.
+
 ### Étape 5 — Semaine et événements (démarrée le 06/07/2026)
 - Fait (incrément 1) : onglet Semaine — événements (jour, type, convives, contraintes),
   recettes associées avec alerte « déjà cuisinée il y a moins d'un an », consignation à
@@ -461,7 +567,11 @@ Validé en cours de route :
 - Recettes scannées = copie privée : accès strictement limité au foyer, jamais public.
 - Multi-maisons + hors ligne + multi-utilisateurs : conflits de synchro possibles, règle simple « dernière écriture gagne » au début.
 - Google Calendar : nécessite une connexion OAuth (étape 3).
-- Extraction IA des recettes : nécessite une clé API Claude, coût de quelques centimes par recette.
+- Extraction IA des recettes — révisé le 10/07/2026 : IA locale retenue (0 €,
+  autonome) ; qualité moindre que l'API sur les cas difficiles, d'où la
+  relecture obligatoire avant enregistrement ; l'extraction photo/PDF
+  complète n'est disponible que sur le PC (Ollama), les appareils iOS font
+  capture + OCR local.
 - Coût de fonctionnement cible : 0 €/mois au début (offres gratuites), quelques €/mois à terme.
 
 ## Questions ouvertes

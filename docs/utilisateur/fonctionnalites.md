@@ -239,6 +239,18 @@ Il disparaît une fois rangé.
   créer une source (livre, site) — la liste reste courte et maîtrisée. Le
   choix de la source et le pays d'origine se règlent dans l'éditeur de la
   fiche.
+- **« ▸ Importer une recette depuis une URL »** (sous la recherche) : coller
+  l'adresse d'une page de recette (Marie Claire, Marmiton…) et « Récupérer
+  la recette ». L'application lit la **recette structurée publiée par le
+  site** (aucune IA) et propose une **fiche pré-remplie à relire** : titre,
+  source (créée si nouvelle), « pour N personnes », catégorie, ingrédients
+  (un par ligne), étapes. Rien n'est enregistré avant « **Enregistrer la
+  recette** » ; la fiche s'ouvre alors dans la liste. Une adresse **déjà
+  importée** est signalée (« Voir la fiche ») — même chose pour un titre
+  déjà présent chez la même source. Si la page ne publie pas de recette
+  structurée, un message l'explique (copier le texte et créer la fiche à la
+  main). Nécessite la fonction « rapatrier-page » côté serveur (voir
+  exploitation.md) et une connexion.
 - Toucher une ligne déplie la fiche : source, lien « Voir en ligne » (avec le
   nom du site), nom de la vidéo locale, **ingrédients**, **texte de la
   recette**, historique des réalisations, et « **J'ai fait cette recette** »

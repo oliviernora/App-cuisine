@@ -13,9 +13,13 @@ export const tables = {
 /** Fichiers du bucket « photos » : chemin → contenu envoyé. */
 export const storageFiles = new Map()
 
+/** Edge Functions simulées : nom → handler(body) renvoyant les données. */
+export const edgeFunctions = {}
+
 export function resetFake() {
   for (const key of Object.keys(tables)) tables[key].length = 0
   storageFiles.clear()
+  for (const key of Object.keys(edgeFunctions)) delete edgeFunctions[key]
   counter = 0
 }
 
@@ -110,5 +114,13 @@ export const fakeSupabase = {
     getSession: () => Promise.resolve({ data: { session: { user: { id: 'user-test' } } } }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     signOut: () => Promise.resolve()
+  },
+  functions: {
+    invoke: async (name, opts = {}) => {
+      const fn = edgeFunctions[name]
+      if (!fn) return { data: null, error: { message: 'fonction absente : ' + name } }
+      try { return { data: await fn(opts.body ?? {}), error: null } }
+      catch (e) { return { data: null, error: e } }
+    }
   }
 }

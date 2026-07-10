@@ -1,7 +1,8 @@
 <script>
   import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails,
     fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
-    knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine } from '../lib/store.svelte.js'
+    knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
+    fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe } from '../lib/store.svelte.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
 
   const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
@@ -161,6 +162,54 @@
     await importPassard()
     busy = false
   }
+
+  /* Import d'une recette depuis une URL (A1) : récupérer → relire → enregistrer. */
+  let importOpen = $state(false)
+  let importUrl = $state('')
+  let importError = $state('')
+  let importDuplicate = $state(null)
+  let importProposal = $state(null)
+
+  async function fetchImport() {
+    const url = importUrl.trim()
+    importError = ''
+    importProposal = null
+    importDuplicate = findDuplicateRecipe(url)
+    if (importDuplicate) return
+    busy = true
+    const { proposal, error } = await fetchRecipeFromUrl(url)
+    busy = false
+    if (error) { importError = error; return }
+    importProposal = {
+      url,
+      title: proposal.title,
+      sourceTitle: proposal.sourceName,
+      servings: proposal.servings ?? '',
+      category: proposal.category,
+      country: '',
+      ingredientsText: proposal.ingredientLines.join('\n'),
+      steps: proposal.steps
+    }
+  }
+
+  async function saveImport() {
+    busy = true
+    const p = importProposal
+    const res = await createImportedRecipe({ ...p, servings: Number(p.servings) > 0 ? Number(p.servings) : null })
+    busy = false
+    if (res.error) { importError = res.error; return }
+    if (res.duplicate) { importProposal = null; importDuplicate = res.duplicate; return }
+    importProposal = null
+    importUrl = ''
+    importOpen = false
+    open = res.recipe.id
+  }
+
+  function cancelImport() {
+    importProposal = null
+    importError = ''
+    importDuplicate = null
+  }
 </script>
 
 <section>
@@ -208,6 +257,59 @@
       </div>
     {/if}
   </div>
+  <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
+    <button type="button" class="inv-manage" aria-expanded={importOpen}
+      onclick={() => { importOpen = !importOpen; if (!importOpen) cancelImport() }}>
+      {importOpen ? '▾' : '▸'} Importer une recette depuis une URL
+    </button>
+  </div>
+  {#if importOpen}
+    <div class="manage-panel">
+      {#if !importProposal}
+        <form class="manage-row" onsubmit={e => { e.preventDefault(); fetchImport() }}>
+          <input type="url" bind:value={importUrl} placeholder="https://…"
+            aria-label="Adresse de la page de la recette" required>
+          <button class="inv-start" disabled={busy || !importUrl.trim()}>Récupérer la recette</button>
+        </form>
+        {#if importDuplicate}
+          <p class="message">Cette recette est déjà là : « {importDuplicate.title} ».
+            <button type="button" class="inv-manage"
+              onclick={() => { open = importDuplicate.id; importOpen = false; cancelImport() }}>Voir la fiche</button>
+          </p>
+        {/if}
+        {#if importError}<p class="message">{importError}</p>{/if}
+      {:else}
+        <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
+        <p class="manage-row">
+          <label>Titre <input bind:value={importProposal.title} aria-label="Titre de la recette"></label>
+          <label>Source <input bind:value={importProposal.sourceTitle} aria-label="Source"></label>
+        </p>
+        <p class="manage-row">
+          <label>Pour
+            <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={importProposal.servings}
+              aria-label="Nombre de personnes" placeholder="?">
+            personnes</label>
+          <label>Pays d'origine
+            <input bind:value={importProposal.country} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
+          </label>
+          <label>Catégorie
+            <input bind:value={importProposal.category} list="recipe-categories" placeholder="Boissons… (vide = plat)"
+              aria-label="Catégorie">
+          </label>
+        </p>
+        <p>Ingrédients — un par ligne (« ! » en tête = difficile à sourcer) :</p>
+        <textarea bind:value={importProposal.ingredientsText} rows="8" aria-label="Ingrédients"></textarea>
+        <p>Recette (étapes) :</p>
+        <textarea bind:value={importProposal.steps} rows="8" aria-label="Recette"></textarea>
+        {#if importError}<p class="message">{importError}</p>{/if}
+        <div class="manage-row">
+          <button type="button" class="inv-start" disabled={busy} onclick={saveImport}>Enregistrer la recette</button>
+          <button type="button" class="inv-manage" onclick={cancelImport}>Annuler</button>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
   <datalist id="known-ingredients-rec">
     {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
   </datalist>
