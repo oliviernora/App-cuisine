@@ -143,9 +143,9 @@ server.tool(
     const items = await rows('items')
     const q = fold(recherche ?? '')
     const list = items.filter(i => !q || fold(i.name).includes(q))
-      .toSorted((a, b) => (a.location ?? '').localeCompare(b.location ?? '', 'fr') || a.name.localeCompare(b.name, 'fr'))
+      .toSorted((a, b) => (a.loc ?? '').localeCompare(b.loc ?? '', 'fr') || a.name.localeCompare(b.name, 'fr'))
     if (!list.length) return 'Rien au stock pour cette recherche.'
-    return list.map(i => `- ${i.name} : ${i.qty ?? '?'}${i.min != null ? ' (mini ' + i.min + ')' : ''} · ${i.location ?? 'sans emplacement'}${i.qty === 0 ? ' · ÉPUISÉ' : ''}`).join('\n')
+    return list.map(i => `- ${i.name} : ${i.qty ?? '?'}${i.min ? ' (mini ' + i.min + ')' : ''} · ${i.loc || 'sans emplacement'}${i.store ? ' · magasin : ' + i.store : ''}${i.qty === 0 ? ' · ÉPUISÉ' : ''}`).join('\n')
   })
 )
 
@@ -158,7 +158,7 @@ server.tool(
     if (!shop.length) return 'La liste de courses est vide.'
     const byStore = Map.groupBy(shop, s => s.store || 'Sans magasin')
     return [...byStore.entries()].map(([store, lines]) =>
-      `## ${store}\n` + lines.map(l => `- ${l.name}${l.qty ? ' (' + l.qty + (l.unit ? ' ' + l.unit : '') + ')' : ''}${l.origin === 'week' ? ' · semaine' : ''}${l.available ? ' · « je l\'ai déjà »' : ''}`).join('\n')
+      `## ${store}\n` + lines.map(l => `- ${l.name}${l.qty ? ' (' + l.qty + (l.unit ? ' ' + l.unit : '') + ')' : ''}${l.origin === 'semaine' ? ' · semaine' : ''}${l.available ? ' · « je l\'ai déjà »' : ''}`).join('\n')
     ).join('\n\n')
   })
 )

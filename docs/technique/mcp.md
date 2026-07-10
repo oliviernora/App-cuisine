@@ -18,7 +18,14 @@ racine (Claude Code le charge automatiquement dans ce projet).
   automatique avant toute écriture en masse, journal des actions.
 - B3 : premier usage réel — les lots Evernote 3-24 importés via le MCP.
 
-## Mise en service (une fois)
+## Mise en service (FAITE le 10/07/2026 — gardé pour référence)
+
+Compte dédié créé par Olivier (dashboard, Auto Confirm), rattaché au foyer
+par le code d'invitation, `mcp/.env` rempli par Olivier. Chaîne validée en
+réel : 15 tables OK au `controle_schema`, 2 membres au foyer, les 6 outils
+répondent sur les vraies données. Deux corrections au passage : la colonne
+d'emplacement du stock s'appelle `loc` (pas `location`) et l'origine des
+lignes de courses vaut `semaine` (pas `week`).
 
 1. **Créer le compte dédié** (main d'Olivier — le mot de passe ne passe
    jamais par une session Claude) :

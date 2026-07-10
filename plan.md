@@ -85,10 +85,11 @@
   le 10/07, sans effet).
 - Trancher : vider automatiquement la catégorie « Plat » à l'import URL
   (convention de l'app : vide = plat) ?
-- Créer le compte Supabase dédié à Claude + remplir `mcp/.env` (procédure
-  pas à pas : `docs/technique/mcp.md`) — le MCP B1 est prêt à tester.
+- (Compte dédié créé et rattaché le 10/07, MCP B1 validé en réel.)
 - Dérouler M41 (import « Coller le texte » depuis l'iPhone/iPad avec
-  « Texte en direct ») après republication de la prod.
+  « Texte en direct ») — la prod est à jour.
+- Constaté via le MCP : deux lignes « Safran » identiques au stock, sans
+  emplacement — doublon probable à fusionner (panneau Gérer).
 
 ### Livré le 08/07 (session commentaires + points 2, 3, 5) — EN ATTENTE DE MIGRATION + PASSE NAVIGATEUR
 - Commentaires d'Olivier (docs/utilisateur/Commentaires sur l'appli
@@ -519,12 +520,12 @@ Principes d'intégrité (imposés par le serveur, quel que soit l'appelant) :
 - Journal des actions du serveur (quoi, quand, résultat), consultable.
 
 Incréments :
-- **B1 — Lecture seule** — CODE LIVRÉ le 10/07/2026 : serveur `mcp/index.mjs`
-  (Node, stdio, déclaré dans `.mcp.json`), 6 outils (recherche_recettes,
-  fiche_recette, stock, liste_courses, master_list, controle_schema),
-  protocole vérifié (initialize + tools/list + erreurs claires sans .env).
-  RESTE : compte dédié à créer par Olivier + `mcp/.env` + test réel —
-  procédure complète : `docs/technique/mcp.md`.
+- **B1 — Lecture seule** — TERMINÉ le 10/07/2026 : serveur `mcp/index.mjs`
+  (Node, stdio, `.mcp.json`), 6 outils, compte dédié créé et rattaché au
+  foyer par Olivier, `mcp/.env` rempli, chaîne VALIDÉE sur la vraie base
+  (15 tables OK, 2 membres, tous les outils justes). Doc :
+  `docs/technique/mcp.md`. Le serveur se charge au prochain démarrage de
+  session Claude Code dans le projet.
 - **B2 — Écritures métier** : les actions ci-dessus + dry-run + sauvegarde
   automatique + journal.
 - **B3 — Premier usage réel : lots Evernote 3-24** — l'import passe par le
