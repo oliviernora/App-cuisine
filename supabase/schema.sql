@@ -14,9 +14,24 @@ create table household_members (
   primary key (household_id, user_id)
 );
 
+-- Résidences (lot 5 du 16/07/2026, décision Q6) : chaque résidence du foyer
+-- (Argenteuil, Oulins, Montalivet…) a ses stocks, emplacements, courses et
+-- sa semaine. Recettes, sources, réalisations et master list restent au foyer.
+create table residences (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now(),
+  unique (household_id, name)
+);
+alter table residences enable row level security;
+create policy "résidences du foyer" on residences
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
 create table items (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid references residences(id) on delete cascade,
   name text not null,
   loc text not null default '',
   qty int not null default 1,
@@ -29,6 +44,7 @@ create table items (
 create table shopping (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid references residences(id) on delete cascade,
   item_id uuid references items(id) on delete cascade,
   name text not null,
   store text not null default '',
@@ -83,11 +99,12 @@ create policy "courses du foyer" on shopping
 create table locations (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid references residences(id) on delete cascade,
   name text not null,
   last_inventory_at timestamptz,
   dated boolean not null default false, -- « à dates » : chaque entrée forme un lot daté (N7)
   stale_months int not null default 6, -- ancienneté (mois) déclenchant le rappel des lots dans la Semaine (N10)
-  unique (household_id, name)
+  unique (household_id, residence_id, name)
 );
 alter table locations enable row level security;
 create policy "emplacements du foyer" on locations
@@ -99,6 +116,7 @@ create policy "emplacements du foyer" on locations
 create table item_lots (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid references residences(id) on delete cascade,
   item_id uuid not null references items(id) on delete cascade,
   qty int not null default 1,
   entered_on date not null default current_date,
@@ -174,6 +192,7 @@ create policy "réalisations du foyer" on realisations
 create table events (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid references residences(id) on delete cascade, -- la semaine est par résidence (Q6)
   day date not null,
   title text not null default 'Dîner maison',
   guests int not null default 4,

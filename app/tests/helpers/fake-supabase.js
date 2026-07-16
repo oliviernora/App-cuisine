@@ -5,7 +5,7 @@
 let counter = 0
 
 export const tables = {
-  items: [], shopping: [], households: [], household_members: [], locations: [],
+  items: [], shopping: [], households: [], household_members: [], residences: [], locations: [],
   sources: [], recipes: [], realisations: [], events: [], event_recipes: [],
   recipe_ingredients: [], ingredient_refs: [], ingredient_categories: [], recipe_photos: [], item_lots: []
 }

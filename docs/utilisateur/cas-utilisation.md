@@ -206,6 +206,20 @@ naturel ; la bibliothèque se construit au fil de l'eau ou par imports.
 liste et le planning de courses en découlent sans calcul mental ; aucune
 tournée oubliée, les commandes Internet passées assez tôt.
 
+### N12 — Mes trois maisons *(proposition, décision Q6 du 16/07/2026)*
+
+1. J'ai plusieurs résidences (Argenteuil, Oulins, Montalivet), chacune avec
+   ses placards, ses congélateurs et ses stocks.
+2. Sur place, mon appareil est réglé sur la résidence où je suis (menu
+   « Foyer et compte ») : le stock, les courses, les inventaires et la
+   semaine que je vois sont ceux de cette maison. L'appareil s'en souvient.
+3. Les recettes, la wish list, les réalisations et la master list sont les
+   mêmes partout : ce que je cuisine appartient au foyer, pas à la maison.
+4. J'ajoute une résidence ou la renomme en un geste.
+
+**Résultat attendu** : je passe d'une maison à l'autre sans mélanger les
+placards, et ma bibliothèque de cuisine me suit partout.
+
 ### N11 — La wish list et le beau produit *(proposition)*
 
 1. Je garde une wish list de recettes à faire un jour ; elles signalent

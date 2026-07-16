@@ -43,10 +43,15 @@ actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
    executer` après GO ; 8 fiches irrécupérables restent en l'état).
    « Récupérer la photo de la page » attend le redéploiement de
    rapatrier-page (commande dans EN ATTENTE d'Olivier).
-5. **Lot 5 à faire** — Résidences (Argenteuil, Oulins, Montalivet) :
-   stocks, courses, emplacements, inventaires ET Semaine par résidence
-   (Q6) ; recettes/sources/wishlist/réalisations communes ; sélecteur dans
-   « Foyer et compte » ; migration + RLS.
+5. **Lot 5 LIVRÉ (code + tests + docs) — MIGRATION EN ATTENTE DE GO** —
+   Résidences (Q6) : table `residences` + `residence_id` sur
+   items/shopping/locations/item_lots/events (unicité des emplacements par
+   résidence), sélecteur dans « Foyer et compte » (choix PAR APPAREIL),
+   titre « foyer · résidence », créer/renommer, inventaire en pause attaché
+   à sa résidence, sauvegarde/restauration compatibles. L'existant sera
+   repris dans « Argenteuil » (renommable). SQL :
+   `supabase/migration-en-attente.sql` (sauvegarde du 16/07 20:25 faite).
+   Après GO : check:schema, M54-M55 en réel, republication.
 
 ### L'essentiel
 - **L'app est EN LIGNE : https://garde-manger-chi.vercel.app** (étape 7

@@ -406,6 +406,13 @@ Il disparaît une fois rangé.
   stock et courses.
 - Ouvert, le panneau occupe l'écran **seul** : le contenu de l'onglet
   s'efface et revient dès qu'on choisit un onglet (16/07/2026).
+- **Résidences** (lot 5, 16/07/2026) : en tête du panneau, le menu déroulant
+  choisit la **résidence courante de cet appareil** — ses stocks, courses,
+  inventaires et sa semaine. Le titre de l'app l'affiche (« Notre foyer ·
+  Argenteuil »). Renommer et « Nouvelle résidence » à côté. Les recettes,
+  sources, réalisations, wish list et master list restent communes au foyer.
+  Un inventaire mis en pause reste attaché à sa résidence (une note
+  l'indique si on regarde depuis une autre maison).
 - L'icône silhouettes en haut à droite ouvre le **panneau Foyer** : code
   d'invitation à transmettre (l'invité crée son compte puis « Rejoindre ce
   foyer »), **sauvegarde des données** et déconnexion. Principe : les écrans

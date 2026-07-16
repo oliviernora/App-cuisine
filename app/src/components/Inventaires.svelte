@@ -4,7 +4,7 @@
     masterList, setIngredientCategory, isDatedLoc, setLocationDated, setLocationStaleMonths,
     addCategory, renameCategory, removeCategory, setCategorySourcing,
     setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
-    receivedEntries, receivedLoc, stashReceived,
+    receivedEntries, receivedLoc, stashReceived, invIsHere,
     SOURCING_TYPES } from '../lib/store.svelte.js'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
@@ -195,6 +195,12 @@
       la base de données doit être mise à jour (migration « locations » en attente).</p>
   {/if}
   {#if message}<p class="note manage-msg">{message}</p>{/if}
+
+  {#if store.inv && !invIsHere()}
+    <p class="note">Un inventaire est en pause dans une autre résidence
+      ({store.residences.find(r => r.id === store.inv.residenceId)?.name ?? 'autre maison'}) —
+      pour le reprendre, changer de résidence dans « Foyer et compte ».</p>
+  {/if}
 
   {#if received.length}
     <p class="group-title">À mettre en stock <span class="n">· {received.length}</span></p>

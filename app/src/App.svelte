@@ -1,5 +1,6 @@
 <script>
-  import { store, init, signOut, exportPayload, checkBackup, restoreBackup } from './lib/store.svelte.js'
+  import { store, init, signOut, exportPayload, checkBackup, restoreBackup,
+    switchResidence, addResidence, renameResidence, invIsHere } from './lib/store.svelte.js'
   import Auth from './components/Auth.svelte'
   import Onboarding from './components/Onboarding.svelte'
   import Stock from './components/Stock.svelte'
@@ -35,6 +36,10 @@
     menuOpen = false
     showFoyer = false
   }
+
+  /* Résidences (lot 5, 16/07/2026) : renommage et création dans le panneau. */
+  let resRename = $state('')
+  let resNew = $state('')
 
   /* Sauvegarde des données (exigence NFR, décision Olivier 08/07) : export
    * JSON manuel + rappel discret quand la dernière date de plus de 7 jours. */
@@ -111,7 +116,7 @@
   <header>
     <div class="header-inner">
       <div class="titlebar">
-        <h1>Garde-manger <small>{store.household.name}</small></h1>
+        <h1>Garde-manger <small>{store.household.name}{store.residence ? ' · ' + store.residence.name : ''}</small></h1>
         <button class="icon-btn danger account-btn" type="button" aria-label="Foyer et compte" title="Foyer et compte"
           onclick={() => showFoyer = !showFoyer}>
           <Icon d={USERS} />
@@ -142,6 +147,29 @@
       </div>
       {#if showFoyer}
         <div class="foyer-panel">
+          {#if store.residences.length}
+            <!-- Résidences (lot 5, Q6) : le choix vaut pour CET appareil. -->
+            <p>Résidence courante — ses stocks, courses, inventaires et sa
+              semaine (choix propre à cet appareil) :</p>
+            <div class="manage-row">
+              <select value={store.residence?.id} aria-label="Résidence courante"
+                onchange={e => switchResidence(e.target.value)}>
+                {#each store.residences as r (r.id)}
+                  <option value={r.id}>{r.name}</option>
+                {/each}
+              </select>
+              <input bind:value={resRename} placeholder="Renommer la résidence courante"
+                aria-label="Renommer la résidence courante">
+              <button type="button" class="inv-manage" disabled={!resRename.trim()}
+                onclick={async () => { await renameResidence(store.residence, resRename); resRename = '' }}>Renommer</button>
+            </div>
+            <div class="manage-row">
+              <input bind:value={resNew} placeholder="Nouvelle résidence (Oulins, Montalivet…)"
+                aria-label="Nouvelle résidence">
+              <button type="button" class="inv-manage" disabled={!resNew.trim()}
+                onclick={async () => { await addResidence(resNew); resNew = '' }}>Ajouter</button>
+            </div>
+          {/if}
           <p>Pour inviter un membre du foyer : il crée son compte, puis choisit
             « Rejoindre ce foyer » avec ce code :</p>
           <code>{store.household.id}</code>
@@ -198,8 +226,9 @@
       <Recettes />
     {:else if tab === 'semaine'}
       <Semaine />
-    {:else if store.inv}
-      <!-- Inventaire en cours : changer d'onglet met en pause, revenir reprend ici. -->
+    {:else if invIsHere()}
+      <!-- Inventaire en cours : changer d'onglet met en pause, revenir reprend ici.
+           Un inventaire en pause dans une AUTRE résidence n'apparaît pas (lot 5). -->
       <Inventory />
     {:else}
       <Inventaires />

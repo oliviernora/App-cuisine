@@ -12,6 +12,8 @@ export const store = $state({
   ready: false,
   session: null,
   household: null,
+  residences: [], // les maisons du foyer (Argenteuil, Oulins, Montalivet…) — lot 5, Q6
+  residence: null, // la résidence courante de CET appareil (stocks, courses, semaine)
   items: [],
   shop: [],
   locations: [],
@@ -36,12 +38,15 @@ let refreshTimer = null
 let restoring = false
 
 const CACHE_KEY = 'gm-cache-v1'
+const RES_KEY = 'gm-residence-v1' // résidence courante, mémorisée PAR APPAREIL
 
 /** Miroir local des données pour la consultation hors ligne (cas NP5). */
 export function saveCache() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       household: store.household,
+      residences: store.residences,
+      residence: store.residence,
       items: store.items,
       shop: store.shop
     }))
@@ -74,6 +79,8 @@ export async function init() {
 
 function reset() {
   store.household = null
+  store.residences = []
+  store.residence = null
   store.items = []
   store.shop = []
   store.recipesLoaded = false
@@ -90,6 +97,8 @@ async function bootstrap() {
     const cached = loadCache()
     if (cached?.household) {
       store.household = cached.household
+      store.residences = cached.residences ?? []
+      store.residence = cached.residence ?? null
       store.items = cached.items
       store.shop = cached.shop
       store.online = false
@@ -100,7 +109,58 @@ async function bootstrap() {
   if (store.household) await startData()
 }
 
+/* ----- Résidences (lot 5, décision Q6 du 16/07/2026) -----
+ * Chaque résidence a ses stocks, emplacements, courses et sa semaine ;
+ * recettes, sources, réalisations et master list restent au foyer. La
+ * résidence courante est un choix par appareil (localStorage). */
+
+async function loadResidences() {
+  const { data, error } = await supabase.from('residences')
+    .select().eq('household_id', store.household.id).order('created_at')
+  if (error) { store.schemaWarning = true; return } // migration pas encore passée
+  store.residences = data
+  if (!store.residences.length) {
+    // Foyer neuf : une première résidence, renommable dans Foyer et compte.
+    const { data: created, error: e2 } = await supabase.from('residences')
+      .insert({ household_id: store.household.id, name: 'Maison' }).select().single()
+    if (e2 || !created) { store.schemaWarning = true; return }
+    store.residences = [created]
+  }
+  let wanted = null
+  try { wanted = localStorage.getItem(RES_KEY) } catch { /* stockage indisponible */ }
+  store.residence = store.residences.find(r => r.id === wanted) ?? store.residences[0]
+}
+
+/** Change la résidence courante de cet appareil et recharge ses données. */
+export async function switchResidence(id) {
+  const r = store.residences.find(x => x.id === id)
+  if (!r || r.id === store.residence?.id) return
+  store.residence = r
+  try { localStorage.setItem(RES_KEY, r.id) } catch { /* stockage indisponible */ }
+  await refresh()
+  await loadRecipes() // la semaine (événements) est par résidence
+  await syncShop()
+}
+
+export async function addResidence(name) {
+  const n = name.trim()
+  if (!n || store.residences.some(r => r.name === n)) return
+  const { data, error } = await supabase.from('residences')
+    .insert({ household_id: store.household.id, name: n }).select().single()
+  if (error || !data) { store.schemaWarning = true; return }
+  store.residences.push(data)
+}
+
+export async function renameResidence(residence, name) {
+  const n = name.trim()
+  if (!n || n === residence.name) return
+  residence.name = n
+  const { error } = await supabase.from('residences').update({ name: n }).eq('id', residence.id)
+  if (error) store.schemaWarning = true
+}
+
 async function startData() {
+  await loadResidences()
   await refresh()
   await syncShop()
   await loadRecipes()
@@ -119,11 +179,14 @@ function scheduleRefresh() {
 
 async function refresh() {
   const hid = store.household.id
+  // Filtre par résidence courante (lot 5) ; sans résidence (tests, migration
+  // pas passée), tout le foyer comme avant.
+  const scoped = q => store.residence ? q.eq('residence_id', store.residence.id) : q
   const [i, s, l, lt] = await Promise.all([
-    supabase.from('items').select().eq('household_id', hid).order('created_at'),
-    supabase.from('shopping').select().eq('household_id', hid).order('created_at'),
-    supabase.from('locations').select().eq('household_id', hid),
-    supabase.from('item_lots').select().eq('household_id', hid)
+    scoped(supabase.from('items').select().eq('household_id', hid)).order('created_at'),
+    scoped(supabase.from('shopping').select().eq('household_id', hid)).order('created_at'),
+    scoped(supabase.from('locations').select().eq('household_id', hid)),
+    scoped(supabase.from('item_lots').select().eq('household_id', hid))
   ])
   if (i.data) store.items = i.data
   if (s.data) store.shop = s.data
@@ -262,7 +325,7 @@ export async function syncShop() {
     for (const g of stockGroups()) {
       const entry = shopEntryOf(g)
       if (g.total < g.min && !entry && !g.dismissed) {
-        inserts.push({ household_id: store.household.id, item_id: g.rows[0].id, name: g.name,
+        inserts.push({ ...scopeFields(), item_id: g.rows[0].id, name: g.name,
           store: g.rows.find(r => r.store)?.store || sourcingStore(g.name), manual: false })
       } else if (g.total >= g.min && entry && !entry.done && !entry.manual) {
         store.shop = store.shop.filter(s => s.id !== entry.id)
@@ -288,10 +351,17 @@ export async function syncShop() {
   await syncWeekShopping()
 }
 
+/** Champs communs de toute écriture rattachée à la résidence courante. */
+function scopeFields() {
+  const f = { household_id: store.household.id }
+  if (store.residence) f.residence_id = store.residence.id
+  return f
+}
+
 export async function addItem(fields) {
   const { data, error } = await supabase
     .from('items')
-    .insert({ ...fields, household_id: store.household.id })
+    .insert({ ...fields, ...scopeFields() })
     .select().single()
   if (error) throw error
   store.items.push(data)
@@ -315,7 +385,7 @@ export async function toggleOrder(target) {
     await setDismissed(target.name, false)
     const { data, error } = await supabase
       .from('shopping')
-      .insert({ household_id: store.household.id, item_id: rows[0].id, name: canonicalName(target.name),
+      .insert({ ...scopeFields(), item_id: rows[0].id, name: canonicalName(target.name),
         store: rows.find(r => r.store)?.store || '', manual: totalOf(target.name) >= minOf(target.name) })
       .select().single()
     if (!error) store.shop.push(data)
@@ -327,7 +397,7 @@ export async function toggleOrder(target) {
 export async function addShopEntry(name, storeName, qty = null, unit = '') {
   const { data, error } = await supabase
     .from('shopping')
-    .insert({ household_id: store.household.id, name, store: storeName, qty, unit })
+    .insert({ ...scopeFields(), name, store: storeName, qty, unit })
     .select().single()
   if (!error) store.shop.push(data)
 }
@@ -431,6 +501,7 @@ export function exportPayload() {
     version: 1,
     exportedAt: new Date().toISOString(),
     household: store.household,
+    residences: store.residences,
     items: store.items,
     shopping: store.shop,
     locations: store.locations,
@@ -454,16 +525,19 @@ export function exportPayload() {
  * membres) et les fichiers photos du bucket ne sont pas touchés. */
 
 // Ordre d'insertion : parents avant enfants (suppression en ordre inverse).
-const RESTORE_TABLES = ['locations', 'items', 'shopping', 'item_lots',
+const RESTORE_TABLES = ['residences', 'locations', 'items', 'shopping', 'item_lots',
   'sources', 'recipes', 'recipe_ingredients', 'realisations', 'events',
   'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos']
 
-/** Vérifie qu'un fichier est bien une sauvegarde exploitable (sinon lève). */
+/** Vérifie qu'un fichier est bien une sauvegarde exploitable (sinon lève).
+ * Une sauvegarde d'avant les résidences (16/07/2026) reste acceptée : ses
+ * lignes seront rattachées à une résidence recréée. */
 export function checkBackup(data) {
   if (!data || data.app !== 'garde-manger' || data.version !== 1) {
     throw new Error('ce fichier n’est pas une sauvegarde garde-manger (version 1 attendue).')
   }
   for (const table of RESTORE_TABLES) {
+    if (table === 'residences') continue // absente des sauvegardes antérieures au 16/07/2026
     if (!Array.isArray(data[table])) throw new Error(`sauvegarde incomplète (« ${table} » absent).`)
   }
 }
@@ -474,6 +548,14 @@ export function checkBackup(data) {
 export async function restoreBackup(data) {
   checkBackup(data)
   const hid = store.household.id
+  // Sauvegarde d'avant les résidences : tout rejoint une résidence recréée.
+  if (!Array.isArray(data.residences) || !data.residences.length) {
+    const rid = crypto.randomUUID()
+    data.residences = [{ id: rid, household_id: hid, name: store.residence?.name ?? 'Argenteuil' }]
+    for (const table of ['items', 'shopping', 'locations', 'item_lots', 'events']) {
+      for (const row of data[table]) row.residence_id ??= rid
+    }
+  }
   restoring = true
   try {
     for (const table of [...RESTORE_TABLES].reverse()) {
@@ -490,6 +572,7 @@ export async function restoreBackup(data) {
   } finally {
     restoring = false
   }
+  await loadResidences() // la résidence courante vient d'être remplacée
   await refresh()
   await loadRecipes()
   await syncShop()
@@ -501,11 +584,12 @@ export async function restoreBackup(data) {
 
 async function loadRecipes() {
   const hid = store.household.id
+  const scoped = q => store.residence ? q.eq('residence_id', store.residence.id) : q
   const [s, r, re, ev, er, ing, rf, ic, ph] = await Promise.all([
     supabase.from('sources').select().eq('household_id', hid),
     supabase.from('recipes').select().eq('household_id', hid),
     supabase.from('realisations').select().eq('household_id', hid),
-    supabase.from('events').select().eq('household_id', hid),
+    scoped(supabase.from('events').select().eq('household_id', hid)), // la semaine est par résidence (Q6)
     supabase.from('event_recipes').select().eq('household_id', hid),
     supabase.from('recipe_ingredients').select().eq('household_id', hid),
     supabase.from('ingredient_refs').select().eq('household_id', hid),
@@ -1107,7 +1191,7 @@ export async function syncWeekShopping() {
       const row = store.shop.find(s => s.origin === 'semaine' && sameIngredient(s.name, need.name))
       if (!row) {
         const { data, error } = await supabase.from('shopping')
-          .insert({ household_id: store.household.id, name: need.name, store: sourcingStore(need.name),
+          .insert({ ...scopeFields(), name: need.name, store: sourcingStore(need.name),
             origin: 'semaine', qty: part?.qty ?? null, unit: part?.unit ?? '' })
           .select().single()
         if (error) { store.schemaWarning = true; return }
@@ -1151,7 +1235,7 @@ export async function toggleAvailable(entry) {
 
 export async function addEvent(fields) {
   const { data, error } = await supabase.from('events')
-    .insert({ ...fields, household_id: store.household.id })
+    .insert({ ...fields, ...scopeFields() })
     .select().single()
   if (error) { store.schemaWarning = true; return }
   store.events.push(data)
@@ -1369,7 +1453,6 @@ export function isDatedLoc(name) {
 
 /** Marque un emplacement « à dates » (crée sa ligne si besoin). */
 export async function setLocationDated(name, flag) {
-  const hid = store.household.id
   const row = store.locations.find(l => l.name === name)
   if (row) {
     row.dated = flag
@@ -1377,7 +1460,7 @@ export async function setLocationDated(name, flag) {
     return
   }
   const { data, error } = await supabase.from('locations')
-    .insert({ household_id: hid, name, dated: flag }).select().single()
+    .insert({ ...scopeFields(), name, dated: flag }).select().single()
   if (error) { store.schemaWarning = true; return }
   store.locations.push(data)
 }
@@ -1423,7 +1506,7 @@ export function undatedCount(item) {
 export async function enterLot(item, qty, enteredOn) {
   const n = Math.max(1, Math.round(Number(qty) || 1))
   const { data, error } = await supabase.from('item_lots')
-    .insert({ household_id: store.household.id, item_id: item.id, qty: n, entered_on: enteredOn })
+    .insert({ ...scopeFields(), item_id: item.id, qty: n, entered_on: enteredOn })
     .select().single()
   if (error) { store.schemaWarning = true; return }
   store.lots.push(data)
@@ -1463,8 +1546,15 @@ export function resumeInventory() {
 }
 
 export function startInventory(loc) {
-  store.inv = { loc, startedAt: new Date().toISOString(), seen: {}, created: [] }
+  store.inv = { loc, residenceId: store.residence?.id ?? null,
+    startedAt: new Date().toISOString(), seen: {}, created: [] }
   saveInv()
+}
+
+/** L'inventaire en cours appartient-il à la résidence courante ? (Un
+ * inventaire en pause dans une autre maison n'apparaît pas ici.) */
+export function invIsHere() {
+  return store.inv && (!store.inv.residenceId || store.inv.residenceId === store.residence?.id)
 }
 
 /** Déclare un produit trouvé : item existant de l'emplacement, ou nom libre (création). */
@@ -1563,7 +1653,9 @@ export async function finishInventory() {
     if (totalOf(item.name) >= minOf(item.name)) await setDismissed(item.name, false)
   }
   const stamp = new Date().toISOString()
-  const { data } = await supabase.from('locations').select().eq('household_id', hid).eq('name', inv.loc)
+  let q = supabase.from('locations').select().eq('household_id', hid).eq('name', inv.loc)
+  if (store.residence) q = q.eq('residence_id', store.residence.id)
+  const { data } = await q
   let dateSaved = false
   if (data?.[0]) {
     await supabase.from('locations').update({ last_inventory_at: stamp }).eq('id', data[0].id)
@@ -1572,7 +1664,7 @@ export async function finishInventory() {
     dateSaved = true
   } else {
     const { data: created } = await supabase.from('locations')
-      .insert({ household_id: hid, name: inv.loc, last_inventory_at: stamp })
+      .insert({ ...scopeFields(), name: inv.loc, last_inventory_at: stamp })
       .select().single()
     if (created) { store.locations.push(created); dateSaved = true }
   }
