@@ -12,6 +12,10 @@ Règles de fond (décisions Olivier) :
 - un produit peut exister dans plusieurs emplacements à la fois ; chaque
   ligne est propre à son emplacement, et l'inventaire de chaque emplacement
   fait foi chez lui ;
+- le stock se lit **par ingrédient** : une seule liste alphabétique, la
+  somme de tous les emplacements ; le **rachat automatique** se déclenche
+  quand cette somme passe **sous la réserve minimum** de l'ingrédient
+  (1 par défaut) — jamais emplacement par emplacement (16/07/2026) ;
 - les écrans quotidiens restent libres des actions exceptionnelles.
 
 ---
@@ -24,12 +28,17 @@ Règles de fond (décisions Olivier) :
 
 1. En préparant un curry, je vide le pot de cumin. Je le signale à
    l'application en un geste, sans interrompre ma cuisine.
-2. Le cumin est désormais marqué « à racheter » ; il figure sur la liste de
-   courses, classé sous le magasin où je l'achète habituellement.
+2. S'il ne m'en reste plus **nulle part** (la somme de tous les emplacements
+   passe sous ma réserve minimum), le cumin est marqué « à racheter » ; il
+   figure sur la liste de courses, classé sous le magasin où je l'achète
+   habituellement. S'il m'en reste ailleurs, rien ne se passe.
 3. En fin de semaine, je fais mes courses : le cumin m'est proposé au bon
    magasin, je l'achète, je le coche.
-4. De retour à la maison, je range mes achats et je le signale : mon stock
-   affiche à nouveau du cumin, la liste de courses est vide.
+4. De retour à la maison, je range mes achats : les produits cochés quittent
+   la liste et m'attendent « à mettre en stock » ; je les intègre au bon
+   emplacement lors d'un inventaire, avec la vraie quantité reçue
+   *(décidé le 16/07/2026, livraison avec le lot Courses ; aujourd'hui le
+   rangement ajoute encore +1 directement au stock)*.
 
 **Résultat attendu** : à aucun moment je n'ai eu à « penser » au cumin ; le
 stock affiché correspond toujours à la réalité de mes placards.
@@ -209,12 +218,15 @@ ingrédients rares sont commandés à temps.
 
 ### NP1 — J'ai demandé de commander un produit… et je le retrouve dans mes réserves
 
-1. Le cumin est à zéro en cuisine, il est en liste de courses ; j'en
-   retrouve un pot dans la réserve de l'entrée.
-2. Je retire le cumin de la liste : il n'y revient pas tout seul, et côté
-   stock il s'affiche « manquant — à ajouter au panier » (un appui l'y
-   remettrait ; le retour automatique se réarme quand le stock remonte).
-   Je range le pot retrouvé avec « + » : tout est juste. *(Décision Olivier.)*
+1. Le cumin est à zéro partout, il est en liste de courses ; j'en retrouve
+   un pot non enregistré dans la réserve de l'entrée.
+2. Je range le pot retrouvé avec « + » (dans le détail des emplacements) :
+   la somme remonte, la ligne de courses se retire toute seule.
+3. Je peux aussi simplement retirer le cumin de la liste : il n'y revient
+   pas tout seul, et côté stock il s'affiche « manquant — à ajouter au
+   panier » (un appui l'y remettrait ; le retour automatique se réarme quand
+   le stock remonte). *(Décision Olivier ; niveau ingrédient depuis le
+   16/07/2026.)*
 
 ### NP2 — Le produit est introuvable (rupture en magasin)
 

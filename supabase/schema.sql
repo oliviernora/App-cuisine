@@ -20,9 +20,9 @@ create table items (
   name text not null,
   loc text not null default '',
   qty int not null default 1,
-  min int not null default 0,
+  min int not null default 0, -- hérité : remplacé par ingredient_refs.min (16/07/2026), plus lu
   store text not null default '',
-  dismissed boolean not null default false, -- épuisé mais retiré du panier par l'utilisateur (NP1)
+  dismissed boolean not null default false, -- hérité : remplacé par ingredient_refs.dismissed (16/07/2026), plus lu
   created_at timestamptz not null default now()
 );
 
@@ -206,6 +206,8 @@ create table ingredient_refs (
   category text not null default '', -- genre de rangement (master list)
   sourcing text not null default '', -- marché | internet | boutique ('' = hérite du genre)
   sourcing_note text not null default '', -- URL, nom du marché…
+  min int not null default 1, -- réserve minimum : rachat auto quand la somme des emplacements passe en dessous (16/07/2026)
+  dismissed boolean not null default false, -- épuisé mais retiré du panier par l'utilisateur (NP1, niveau ingrédient)
   created_at timestamptz not null default now(),
   unique (household_id, name)
 );

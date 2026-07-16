@@ -153,25 +153,137 @@ export async function joinHousehold(id) {
   await bootstrap()
 }
 
-/**
- * Garde la liste de courses alignée sur le stock : 0 pot restant = entrée
- * automatique — sauf si l'utilisateur l'a retirée du panier (`dismissed`,
- * décision NP1) ; le réarmement se fait quand le stock remonte.
- */
-export async function syncShop() {
-  const inserts = []
-  for (const it of store.items) {
-    const entry = store.shop.find(s => s.item_id === it.id)
-    if (it.qty <= it.min && !entry && !it.dismissed) {
-      inserts.push({ household_id: store.household.id, item_id: it.id, name: it.name, store: it.store || sourcingStore(it.name), manual: false })
-    } else if (it.qty > it.min && entry && !entry.done && !entry.manual) {
-      store.shop = store.shop.filter(s => s !== entry)
-      await supabase.from('shopping').delete().eq('id', entry.id)
-    }
+/* ----- Stock par ingrédient (commentaires Olivier du 16/07/2026) -----
+ * L'écran Stock et le rachat automatique raisonnent par ingrédient : la somme
+ * de tous les emplacements est comparée au minimum de réserve, porté par la
+ * fiche du référentiel (ingredient_refs.min, défaut 1 = rachat quand il n'en
+ * reste plus). L'état « retiré du panier » (NP1) vit au même niveau. */
+
+/** Minimum de réserve d'un ingrédient (sa fiche du référentiel ; 1 par défaut). */
+export function minOf(name) {
+  return refOf(name)?.min ?? 1
+}
+
+/** « Retiré du panier » (NP1) au niveau ingrédient. */
+export function isDismissed(name) {
+  return refOf(name)?.dismissed ?? false
+}
+
+/** Somme d'un ingrédient dans tous les emplacements (alias compris). */
+export function totalOf(name) {
+  return store.items.filter(i => sameIngredient(i.name, name)).reduce((n, i) => n + i.qty, 0)
+}
+
+/** Le stock vu par ingrédient : lignes d'emplacement regroupées sous le nom
+ * canonique, somme, minimum, lignes encore garnies (stocked). */
+export function stockGroups() {
+  const byKey = new Map()
+  for (const item of store.items) {
+    const name = canonicalName(item.name)
+    const key = fold(name)
+    let g = byKey.get(key)
+    if (!g) { g = { key, name, total: 0, rows: [] }; byKey.set(key, g) }
+    g.total += item.qty
+    g.rows.push(item)
   }
-  if (inserts.length) {
-    const { data } = await supabase.from('shopping').insert(inserts).select()
-    if (data) store.shop.push(...data)
+  for (const g of byKey.values()) {
+    g.min = minOf(g.name)
+    g.dismissed = isDismissed(g.name)
+    g.rows.sort((a, b) => a.loc.localeCompare(b.loc, 'fr'))
+    g.stocked = g.rows.filter(r => r.qty > 0)
+  }
+  return [...byKey.values()].toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
+}
+
+/** La ligne de courses (réappro ou réserve) d'un ingrédient du stock. */
+export function shopEntryOf(group) {
+  return store.shop.find(s => group.rows.some(i => i.id === s.item_id))
+}
+
+/** Fiche du référentiel d'un ingrédient, créée au besoin, puis champs appliqués. */
+async function upsertRef(name, fields) {
+  const ref = refOf(name)
+  if (!ref) {
+    const { data, error } = await supabase.from('ingredient_refs')
+      .insert({ household_id: store.household.id, name, ...fields }).select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    data.aliases ??= []; data.rejected ??= []
+    store.refs.push(data)
+    return
+  }
+  Object.assign(ref, fields)
+  const { error } = await supabase.from('ingredient_refs').update(fields).eq('id', ref.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Règle le minimum de réserve d'un ingrédient (0 = jamais racheté tout seul). */
+export async function setIngredientMin(name, min) {
+  await upsertRef(name, { min: Math.max(0, Math.round(Number(min) || 0)) })
+  await syncShop()
+}
+
+async function setDismissed(name, dismissed) {
+  if (isDismissed(name) === dismissed) return
+  await upsertRef(name, { dismissed })
+}
+
+/** Supprime un ingrédient du stock : toutes ses lignes d'emplacement, ses
+ * lots et sa ligne de courses. Uniquement via le panneau Modifier (décision
+ * Olivier 16/07/2026 : pas de suppression directe en liste principale). */
+export async function removeIngredient(name) {
+  const ids = store.items.filter(i => sameIngredient(i.name, name)).map(i => i.id)
+  store.items = store.items.filter(i => !ids.includes(i.id))
+  store.shop = store.shop.filter(s => !ids.includes(s.item_id))
+  store.lots = store.lots.filter(l => !ids.includes(l.item_id))
+  if (!ids.length) return
+  await supabase.from('shopping').delete().in('item_id', ids)
+  await supabase.from('item_lots').delete().in('item_id', ids)
+  await supabase.from('items').delete().in('id', ids)
+}
+
+/**
+ * Garde la liste de courses alignée sur le stock, par ingrédient : somme des
+ * emplacements sous le minimum = entrée automatique — sauf si l'utilisateur
+ * l'a retirée du panier (`dismissed`, décision NP1) ; le réarmement se fait
+ * quand le stock remonte.
+ */
+/* Même verrou que syncWeekShopping (leçon du 07/07/2026, constatée à
+ * nouveau le 16/07 sur les retraits en série) : chaque écriture déclenche
+ * un écho temps réel qui relance refresh() → syncShop() — sans verrou, des
+ * passages concurrents se marchent dessus. */
+let shopSyncRunning = false
+let shopSyncQueued = false
+
+export async function syncShop() {
+  if (shopSyncRunning) { shopSyncQueued = true; return }
+  shopSyncRunning = true
+  try {
+    const inserts = []
+    for (const g of stockGroups()) {
+      const entry = shopEntryOf(g)
+      if (g.total < g.min && !entry && !g.dismissed) {
+        inserts.push({ household_id: store.household.id, item_id: g.rows[0].id, name: g.name,
+          store: g.rows.find(r => r.store)?.store || sourcingStore(g.name), manual: false })
+      } else if (g.total >= g.min && entry && !entry.done && !entry.manual) {
+        store.shop = store.shop.filter(s => s.id !== entry.id)
+        const { error } = await supabase.from('shopping').delete().eq('id', entry.id)
+        if (error) store.schemaWarning = true
+      }
+    }
+    if (inserts.length) {
+      const { data, error } = await supabase.from('shopping').insert(inserts).select()
+      // 23505 : un autre appareil a inséré la même ligne en même temps —
+      // l'index unique a fait son travail, rien à signaler.
+      if (error && error.code !== '23505') store.schemaWarning = true
+      if (data) store.shop.push(...data)
+    }
+  } finally {
+    shopSyncRunning = false
+  }
+  if (shopSyncQueued) {
+    shopSyncQueued = false
+    await syncShop()
+    return
   }
   await syncWeekShopping()
 }
@@ -188,33 +300,23 @@ export async function addItem(fields) {
 
 export async function changeQty(item, delta) {
   item.qty = Math.max(0, item.qty + delta)
-  const changes = { qty: item.qty }
-  if (item.qty > item.min && item.dismissed) {
-    item.dismissed = false
-    changes.dismissed = false
-  }
-  await supabase.from('items').update(changes).eq('id', item.id)
+  await supabase.from('items').update({ qty: item.qty }).eq('id', item.id)
+  if (totalOf(item.name) >= minOf(item.name)) await setDismissed(item.name, false)
   await syncShop()
 }
 
-export async function removeItem(item) {
-  store.items = store.items.filter(i => i.id !== item.id)
-  store.shop = store.shop.filter(s => s.item_id !== item.id)
-  store.lots = store.lots.filter(l => l.item_id !== item.id)
-  await supabase.from('items').delete().eq('id', item.id)
-}
-
-/** Le panier bascule la présence en liste : ajout (réserve ou manquant) ou retrait. */
-export async function toggleOrder(item) {
-  const entry = store.shop.find(s => s.item_id === item.id)
+/** Le panier bascule la présence en liste : ajout (réserve ou manquant) ou
+ * retrait — au niveau ingrédient. Accepte une ligne d'emplacement ou un
+ * groupe de stockGroups() (les deux portent name). */
+export async function toggleOrder(target) {
+  const rows = store.items.filter(i => sameIngredient(i.name, target.name))
+  const entry = store.shop.find(s => rows.some(i => i.id === s.item_id))
   if (!entry) {
-    if (item.dismissed) {
-      item.dismissed = false
-      await supabase.from('items').update({ dismissed: false }).eq('id', item.id)
-    }
+    await setDismissed(target.name, false)
     const { data, error } = await supabase
       .from('shopping')
-      .insert({ household_id: store.household.id, item_id: item.id, name: item.name, store: item.store || '', manual: item.qty > item.min })
+      .insert({ household_id: store.household.id, item_id: rows[0].id, name: canonicalName(target.name),
+        store: rows.find(r => r.store)?.store || '', manual: totalOf(target.name) >= minOf(target.name) })
       .select().single()
     if (!error) store.shop.push(data)
   } else if (!entry.done) {
@@ -241,10 +343,7 @@ export async function removeShopEntry(entry) {
   await supabase.from('shopping').delete().eq('id', entry.id)
   if (entry.item_id) {
     const item = store.items.find(i => i.id === entry.item_id)
-    if (item && item.qty <= item.min && !item.dismissed) {
-      item.dismissed = true
-      await supabase.from('items').update({ dismissed: true }).eq('id', item.id)
-    }
+    if (item && totalOf(item.name) < minOf(item.name)) await setDismissed(item.name, true)
   }
 }
 
@@ -1150,9 +1249,7 @@ export async function moveItem(item, destLoc) {
     i.name.toLowerCase() === item.name.toLowerCase())
   if (target) {
     target.qty += item.qty
-    if (target.qty > target.min && target.dismissed) target.dismissed = false
-    await supabase.from('items')
-      .update({ qty: target.qty, dismissed: target.dismissed }).eq('id', target.id)
+    await supabase.from('items').update({ qty: target.qty }).eq('id', target.id)
     store.items = store.items.filter(i => i.id !== item.id)
     store.shop = store.shop.filter(s => s.item_id !== item.id)
     await supabase.from('items').delete().eq('id', item.id)
@@ -1369,10 +1466,9 @@ export async function finishInventory() {
   for (const item of store.items.filter(i => i.loc === inv.loc)) {
     const count = inv.seen[item.id]
     if (count !== undefined) {
-      if (item.qty !== count || item.dismissed) {
+      if (item.qty !== count) {
         item.qty = count
-        item.dismissed = false
-        await supabase.from('items').update({ qty: count, dismissed: false }).eq('id', item.id)
+        await supabase.from('items').update({ qty: count }).eq('id', item.id)
       }
       if (dated) await trimLotsTo(item, count)
     } else if (item.qty !== 0) {
@@ -1382,7 +1478,11 @@ export async function finishInventory() {
     }
   }
   for (const c of inv.created) {
-    await addItem({ name: c.name, qty: c.qty, min: 0, loc: inv.loc, store: '' })
+    await addItem({ name: c.name, qty: c.qty, loc: inv.loc, store: '' })
+  }
+  // Réarmement NP1 : un ingrédient recompté au-dessus de son minimum redevient rachetable.
+  for (const item of store.items.filter(i => i.loc === inv.loc)) {
+    if (totalOf(item.name) >= minOf(item.name)) await setDismissed(item.name, false)
   }
   const stamp = new Date().toISOString()
   const { data } = await supabase.from('locations').select().eq('household_id', hid).eq('name', inv.loc)

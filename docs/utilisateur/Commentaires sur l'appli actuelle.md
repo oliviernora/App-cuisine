@@ -42,7 +42,6 @@ Recettes
 - en bas mettre la zone "commentaires" juste après la recette, dans toute la largeur. mettre ensuite le bouton "modifier" qui permet de tout modifier (ingrédient, recette, photo). Laisse juste le terme "modifier". 
 - à quoi sert la date ? à supprimer.
 - il faut pouvoir importer les photos de plate des URL
-- dans le menu "sources"
 
 Gestion de différentes résidences
 - pour la gestion des stocks, des repas, etc., il peut y avoir différentes résidences. Il faudrait pouvoir définir différentes résidences et changer de résidence via un menu déroulant lorsque nécessaire. cela peut se faire via le menu "compte".

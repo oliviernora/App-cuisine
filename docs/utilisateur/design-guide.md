@@ -31,7 +31,8 @@ l'appareil. Les jetons sont définis dans `app/src/app.css`.
 | `--warn` | #C97B12 | #E8A33B | alerte « à racheter » |
 | `--line` | #E6E4DC | #2E3639 | filets, bordures |
 
-Couleurs d'emplacement (chips, repères) :
+Couleurs d'emplacement (repères — plus utilisées à l'écran depuis la
+disparition des chips d'emplacement le 16/07/2026, conservées en réserve) :
 
 | Emplacement | Clair | Sombre |
 |---|---|---|
@@ -62,17 +63,25 @@ Règles :
 
 - Coins arrondis : 14 px (`--radius`) pour champs, boutons, onglets ;
   10 px (`--radius-s`) pour les petits boutons carrés ; pastilles en 999 px.
-- Largeur de contenu : max 640 px centré ; l'application reste une colonne.
+- Largeur de contenu : max 960 px centré (élargie le 16/07/2026, demande
+  Olivier — l'application reste une colonne ; téléphone et tablette
+  inchangés, le max ne fait que plafonner).
 - Cibles tactiles : 30 px minimum, 42 px pour les actions fréquentes (micro).
 - Zone d'ajout fixée en bas de l'écran (pouce), en-tête collant en haut.
 
 ## Composants établis
 
-- **Ligne d'inventaire** : une ligne par produit, jamais plus. Nom tronqué
-  avec ellipse (jamais sur deux lignes), compteur − n +, panier, poubelle.
-  État « à racheter » : liseré orange à gauche + nom et compteur orange.
-- **Chips d'emplacement** : filtre horizontal défilant, couleur du lieu,
-  chip active = fond teinté à 14 %.
+- **Ligne de stock par ingrédient** (16/07/2026) : une ligne par
+  **ingrédient**, jamais plus. Nom tronqué avec ellipse (jamais sur deux
+  lignes), le compteur montre la **somme de tous les emplacements**.
+  Un seul emplacement garni : son nom en note grise ; plusieurs : bouton
+  « ▸ n emplacements » qui déplie le détail (un endroit par ligne avec ses
+  + / −). Panier, puis crayon ✎ « Modifier » (panneau : renommer/fusionner,
+  genre, réserve minimum, supprimer en deux touches — la poubelle a disparu
+  de la ligne). État « à racheter » (somme sous la réserve minimum) :
+  liseré orange à gauche + nom et compteur orange.
+- Les chips d'emplacement ont disparu avec la vue par emplacement
+  (16/07/2026) ; le filtre du stock est la recherche + le genre.
 - **Onglets** : segmentés pleine largeur sous le titre ; pastille orange =
   nombre de courses restantes. Sur écran étroit (≤ 560 px, iPhone), les
   onglets **collapsent en menu déroulant** (pratique responsive classique,
@@ -203,16 +212,13 @@ Règles :
   coin du bouton Foyer quand la dernière sauvegarde de l'appareil date de
   plus de 7 jours ; l'explication et le bouton d'export vivent dans le
   panneau Foyer (action exceptionnelle).
-- **Détail des lots datés** (07/07/2026 soir, emplacements « à dates ») :
-  sur la ligne du produit, une flèche « ▸ / ▾ » (avant le panier) déplie un
-  panneau à liseré pointillé sous la ligne : un lot par ligne (« 2 × entrés
-  le 1 mai 2026 », le plus ancien annoté), bouton « Sortir 1 » par lot,
-  note « n sans date » si besoin, et formulaire quantité + date (+ date en
-  toutes lettres) pour entrer un lot. Les gestes rapides restent sur la
-  ligne : + entre un lot du jour, − sort du plus ancien.
-- **Sélecteur de tri** : deux segments à droite de la recherche —
-  « Emplacement » (groupes par lieu, ordre fixe) et « A→Z » (liste unique
-  alphabétique, le lieu s'affiche en note grise sur chaque ligne).
+- **Détail des lots datés** (07/07/2026 soir, revu 16/07 avec le stock par
+  ingrédient) : le détail déplié de la ligne (« ▸ n emplacements » ou flèche
+  seule) liste, sous chaque emplacement « à dates », un lot par ligne
+  (« 2 × entrés le 1 mai 2026 », le plus ancien annoté), bouton « Sortir 1 »
+  par lot, note « n sans date » si besoin, et formulaire quantité + date
+  (+ date en toutes lettres) pour entrer un lot. Les gestes rapides restent
+  sur la ligne : + entre un lot du jour, − sort du plus ancien.
 - **Bandeau hors ligne** : barre pleine largeur sous l'en-tête, fond
   `--warn-bg`, texte `--warn`, message « Hors ligne — dernières données
   connues, consultation seule. » Pendant ce temps, les commandes de
@@ -221,9 +227,9 @@ Règles :
 
 ## Comportements
 
-- **Stabilité** : tri alphabétique dans chaque emplacement, emplacements en
-  ordre fixe. Une ligne modifiée ne change jamais de place ; pas d'animation
-  de réordonnancement.
+- **Stabilité** : une seule liste alphabétique d'ingrédients (16/07/2026).
+  Une ligne modifiée ne change jamais de place ; pas d'animation de
+  réordonnancement.
 - **Feedback immédiat** : toute action se reflète à l'écran sans attendre le
   réseau (mise à jour optimiste), la synchronisation suit.
 - **Réversibilité** : les gestes fréquents sont annulables par le geste

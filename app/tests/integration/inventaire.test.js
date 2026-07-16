@@ -12,7 +12,7 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, declare, adjustSeen, startInventory, finishInventory,
-  abandonInventory, resumeInventory
+  abandonInventory, resumeInventory, removeShopEntry, isDismissed
 } from '../../src/lib/store.svelte.js'
 
 const mem = new Map()
@@ -28,11 +28,12 @@ beforeEach(() => {
   store.household = { id: 'h-test', name: 'Foyer test' }
   store.items = []
   store.shop = []
+  store.refs = []
   store.inv = null
 })
 
 async function seed(name, qty, loc = 'Cuisine') {
-  await addItem({ name, qty, min: 0, loc, store: '' })
+  await addItem({ name, qty, loc, store: '' })
   return store.items.find(i => i.name === name && i.loc === loc)
 }
 
@@ -84,17 +85,15 @@ describe('N2 — mode inventaire', () => {
 
   test('un produit vu épuisé retrouve son retour automatique (dismissed remis à zéro)', async () => {
     const cumin = await seed('Cumin', 0)
-    const entry = store.shop.find(s => s.item_id === cumin.id)
-    cumin.dismissed = true // retiré du panier avant l'inventaire
-    store.shop = []
-    tables.shopping.length = 0
+    await removeShopEntry(store.shop.find(s => s.item_id === cumin.id)) // retiré du panier avant l'inventaire
+    expect(isDismissed('Cumin')).toBe(true)
 
     startInventory('Cuisine')
     declare(cumin, 2)
     await finishInventory()
 
     expect(cumin.qty).toBe(2)
-    expect(cumin.dismissed).toBe(false)
+    expect(isDismissed('Cumin')).toBe(false)
   })
 })
 

@@ -48,7 +48,7 @@ function from(table) {
         : table === 'items' ? { dismissed: false }
         : table === 'event_recipes' ? { scale_pct: 100, qty_overrides: {} }
         : table === 'ingredient_categories' ? { sourcing: '', sourcing_note: '' }
-        : table === 'ingredient_refs' ? { sourcing: '', sourcing_note: '', category: '' } : {}
+        : table === 'ingredient_refs' ? { sourcing: '', sourcing_note: '', category: '', min: 1, dismissed: false } : {}
       const inserted = (Array.isArray(payload) ? payload : [payload])
         .map(r => ({ id: 'row-' + ++counter, created_at: 'T' + counter, ...defaults, ...r }))
       rows.push(...inserted)

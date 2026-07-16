@@ -2,6 +2,40 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
+### Chantier en cours (16/07/2026) : commentaires Olivier, 5 lots
+Les commentaires du 16/07 (docs/utilisateur/Commentaires sur l'appli
+actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
+(Q5 abandonnée). État :
+1. **Lot 1 LIVRÉ, MIGRÉ ET EN PRODUCTION (16/07 au soir)** : stock PAR
+   INGRÉDIENT (liste alphabétique unique, somme des emplacements, détail
+   « ▸ n emplacements », minimum de réserve au niveau ingrédient —
+   `ingredient_refs.min`, défaut 1, rachat quand la somme passe en dessous —,
+   NP1 par ingrédient, panneau Modifier ✎ : renommer-fusion, genre, minimum,
+   suppression ; poubelle retirée de la liste) + écrans PC élargis (960 px).
+   Migration appliquée (sauvegarde préalable sur OneDrive/Téléchargement,
+   check:schema 15/15), prod publiée par Olivier, M9/M43/M44 déroulés en
+   réel. Reste : chaque appareil du foyer doit RECHARGER l'app une fois
+   (service worker — un appareil resté sur l'ancienne version réinsère des
+   lignes de courses selon l'ancienne règle, constaté et résolu le 16/07).
+2. **Lot 2 à faire** — Inventaires : noms complets au clic (réconciliation),
+   alignement Gérer/Inventaire, saisie cachée par le clavier iPhone,
+   corriger une ligne « Vu », rapprocher les orthographes proches
+   (clou/clous de girofle), micro iPhone (2e appui = stop — à investiguer).
+3. **Lot 3 à faire** — Courses : lieu d'achat définissable/modifiable par
+   ligne ; réception via l'inventaire (décision Q2 : « Ranger » envoie vers
+   une liste « à mettre en stock », l'inventaire intègre — remplace le +1
+   direct et règle NP4).
+4. **Lot 4 à faire** — Fiche recette : sauts de ligne perdus à l'import URL
+   (investiguer sur « Gazpacho d'asperge »), ★ wishlist à droite de la
+   source, boutons en bas, zone commentaires pleine largeur COMMUNE aux
+   réalisations (Q3 : la date disparaît, réalisation datée du jour de
+   saisie), un seul bouton photo du plat (Q4, plusieurs photos possibles),
+   « Récupérer la photo depuis la page » pour les fiches existantes.
+5. **Lot 5 à faire** — Résidences (Argenteuil, Oulins, Montalivet) :
+   stocks, courses, emplacements, inventaires ET Semaine par résidence
+   (Q6) ; recettes/sources/wishlist/réalisations communes ; sélecteur dans
+   « Foyer et compte » ; migration + RLS.
+
 ### L'essentiel
 - **L'app est EN LIGNE : https://garde-manger-chi.vercel.app** (étape 7
   faite le 07/07 au soir, avancée à la demande d'Olivier). Dernière version
@@ -69,6 +103,14 @@
   « eau », « ficelle de cuisine »).
 
 ### EN ATTENTE d'Olivier (relancer poliment)
+- **Recharger l'app sur l'iPhone/iPad** (et tout appareil où elle est
+  ouverte) après la publication du 16/07 : un appareil resté sur l'ancienne
+  version réinsère des lignes de courses selon l'ancienne règle par
+  emplacement (procédure de rafraîchissement iOS dans exploitation.md ;
+  contrôler la ligne « Version publiée le … »).
+- (Migration du 16/07 appliquée et prod publiée le 16/07 au soir.)
+- **Décision NP4 réglée le 16/07 (Q2)** : réception des achats via
+  l'inventaire — sera livrée avec le lot 3 Courses.
 - **Redéployer l'Edge Function** `rapatrier-page` (photo du plat à l'import
   URL, livrée le 14/07) : `npx supabase functions deploy rapatrier-page
   --project-ref esvhefwihcjfvvvazykd`, puis dérouler M42 et republier la
@@ -76,8 +118,8 @@
 - Tri Evernote : 12 douteuses restantes — preview
   `Evernote/preview-douteuses.html` (double-clic), cocher dans
   `Evernote/tri.md`.
-- Décision NP4 (acheter plusieurs pots d'un coup) : (a) compteur sur la
-  ligne de courses, (b) question au « Ranger », ou (c) correction au stock.
+- (NP4 tranché le 16/07 via Q2 : la quantité reçue se saisit à
+  l'inventaire — livraison avec le lot 3 Courses.)
 - Connecteur Google Calendar à réautoriser sur claude.ai (le calendrier
   « marchés » est la référence des créneaux — décision 07/07).
 - « épinards ≈ épinard » à trancher dans Ingrédients à rapprocher

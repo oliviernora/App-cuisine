@@ -20,7 +20,7 @@ const CHECKS = {
   realisations: 'id,recipe_id,made_on,comment',
   events: 'id,day,title,guests,contraintes',
   event_recipes: 'event_id,recipe_id,scale_pct,qty_overrides',
-  ingredient_refs: 'id,name,aliases,rejected,category,sourcing,sourcing_note',
+  ingredient_refs: 'id,name,aliases,rejected,category,sourcing,sourcing_note,min,dismissed',
   ingredient_categories: 'id,name,sourcing,sourcing_note',
   recipe_photos: 'id,recipe_id,realisation_id,kind,path'
 }

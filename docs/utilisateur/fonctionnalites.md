@@ -22,18 +22,31 @@ bout en bout) : voir `cas-utilisation.md`.
 
 ## Onglet Stock
 
-### Bouton −
+Refondu le 16/07/2026 (commentaires Olivier) : le stock se lit **par
+ingrédient**, une seule liste alphabétique. Chaque ligne montre la **somme
+de tous les emplacements** :
 
-Retire un pot du compteur (il ne descend jamais sous 0). Si le compteur
-atteint la réserve minimum : la ligne passe en orange « à racheter »,
-l'ingrédient s'ajoute automatiquement à la liste de courses dans le groupe de
-son magasin (mention « auto »), la pastille de l'onglet Courses s'incrémente.
+- **un seul emplacement garni** : son nom s'affiche en gris sur la ligne ;
+- **plusieurs emplacements garnis** : une flèche « ▸ n emplacements »
+  déplie le détail — chaque endroit avec sa quantité et ses propres
+  boutons + / − ; les emplacements à zéro n'apparaissent pas ;
+- **plus rien nulle part** : aucun emplacement n'est indiqué.
 
-### Bouton +
+### Boutons + / −
 
-Ajoute un pot. Si l'ingrédient était « à racheter » et repasse au-dessus du
-seuil, son entrée automatique disparaît de la liste de courses — sauf si elle
-y a été ajoutée volontairement (panier) ou déjà cochée.
+Sur la ligne principale quand l'ingrédient ne vit que dans un endroit ;
+dans le détail déplié sinon. Le compteur de la ligne reste la somme, jamais
+sous 0.
+
+### Rachat automatique — réserve minimum
+
+Chaque ingrédient a une **réserve minimum** (1 par défaut, réglable dans le
+panneau Modifier ; 0 = jamais racheté tout seul). Quand la **somme de tous
+les emplacements passe en dessous**, la ligne passe en orange « à racheter »
+et l'ingrédient s'ajoute à la liste de courses (mention « auto », pastille
+de l'onglet Courses). Quand la somme remonte au niveau de la réserve,
+l'entrée automatique disparaît — sauf ajoutée volontairement (panier) ou
+déjà cochée.
 
 ### Bouton panier — trois états
 
@@ -45,19 +58,30 @@ y a été ajoutée volontairement (panier) ou déjà cochée.
   liste. Le retour automatique se réarme quand le stock remonte.
 
 Supprimer un produit lié depuis la liste de courses a le même effet qu'un
-retrait par le panier.
+retrait par le panier. Tout est au niveau de l'ingrédient, pas de
+l'emplacement.
+
+### Bouton Modifier (crayon ✎)
+
+Ouvre le panneau de l'ingrédient :
+- **Renommer** — un nom déjà connu **fusionne** les deux (confirmation en
+  deux touches) ; stock, courses et recettes suivent ;
+- **Genre** (master list) ;
+- **Réserve minimum** (voir ci-dessus) ;
+- **Supprimer** — toutes ses lignes d'emplacement, ses lots et sa ligne de
+  courses, en deux touches. C'est la **seule** voie de suppression : plus de
+  poubelle dans la liste principale.
 
 ### Emplacements « à dates » (congélateur, cave…)
 
-Si l'emplacement du produit est marqué « à dates » (réglage dans le panneau
+Si un emplacement du produit est marqué « à dates » (réglage dans le panneau
 « Gérer » de l'onglet Inventaire), chaque entrée forme un **lot daté** :
-- **+** entre un lot d'un produit daté du jour ; **−** sort du **lot le plus
-  ancien** (proposé d'abord).
-- Une **flèche ▸** sur la ligne déplie le détail : les lots avec leur date en
-  toutes lettres (« 2 × entrés le 1 mai 2026 »), un bouton « Sortir 1 » par
-  lot (pour désigner un autre lot que le proposé), et un petit formulaire
-  **quantité + date** pour entrer un lot à une autre date (la caisse de 6
-  bouteilles, la côte congelée la semaine dernière).
+- **+** entre un lot daté du jour ; **−** sort du **lot le plus ancien**
+  (proposé d'abord).
+- Le détail déplié de la ligne montre les lots avec leur date en toutes
+  lettres (« 2 × entrés le 1 mai 2026 »), un bouton « Sortir 1 » par lot, et
+  un petit formulaire **quantité + date** pour entrer un lot à une autre
+  date (la caisse de 6 bouteilles, la côte congelée la semaine dernière).
 - Au quotidien la ligne montre le **total simple** (« 3 »), comme partout.
 - Les produits présents avant le suivi apparaissent « n sans date » dans le
   détail.
@@ -69,18 +93,11 @@ Si l'emplacement du produit est marqué « à dates » (réglage dans le panneau
   réglable dans « Gérer ») sont rappelés dans l'onglet Semaine, bloc
   « **À utiliser** ».
 
-### Tri du stock
-
-Deux vues, au choix à droite de la recherche : **Emplacement** (groupes par
-lieu, ordre fixe) ou **A→Z** (liste unique alphabétique, le lieu en gris sur
-chaque ligne). La recherche par lettres fonctionne dans les deux vues.
-
 ### Formulaire d'ajout
 
 Nom, nombre de pots, emplacement, où acheter, puis Ajouter. L'emplacement se
 choisit dans une **liste déroulante** des emplacements existants (avec
-« Nouvel emplacement… » pour en créer un). Si un emplacement est filtré
-(chip active), il préremplit le champ. Le champ nom **suggère les
+« Nouvel emplacement… » pour en créer un). Le champ nom **suggère les
 ingrédients déjà connus** (stock et recettes) pour éviter les orthographes
 différentes du même produit.
 
@@ -94,14 +111,8 @@ iPhone/iPad fonctionne aussi dans chaque champ.
 - Un déroulant « **Tous genres** » (dès qu'un genre existe) restreint la
   liste au **genre d'ingrédient** choisi (Épices, Légumes… — les genres de
   la master list).
-- Les chips filtrent par emplacement, chacune a sa couleur.
-- Tri alphabétique dans chaque emplacement, emplacements dans un ordre fixe.
-  Une ligne modifiée ne change jamais de place.
-
-### Bouton poubelle
-
-Supprime la fiche et son éventuelle entrée en liste de courses. Définitif :
-pour une erreur de saisie, pas pour un pot vide (pour ça, − suffit).
+- Il n'y a plus ni vue par emplacement ni chips d'emplacement : la recherche
+  se fait par ingrédient (décision Olivier 16/07/2026).
 
 ## Onglet Inventaire
 

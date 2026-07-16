@@ -1,25 +1,17 @@
 <script>
   import { onMount } from 'svelte'
-  import { store, addItem, changeQty, removeItem, toggleOrder, knownNames,
-    isDatedLoc, lotsOf, undatedCount, enterLot, takeLot, categoryOf } from '../lib/store.svelte.js'
+  import { store, addItem, changeQty, toggleOrder, stockGroups, shopEntryOf,
+    setIngredientMin, renameIngredient, removeIngredient, setIngredientCategory, categoryOf,
+    knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
-  import { MINUS, PLUS, TRASH, CART, CART_PLUS, MIC } from '../lib/icons.js'
+  import { MINUS, PLUS, CART, CART_PLUS, MIC } from '../lib/icons.js'
 
   const DEFAULT_LOCS = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
     'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
   const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
-  const LOC_COLORS = {
-    'Cuisine': '--loc-cuisine',
-    'Sous chauffage': '--loc-chauffage',
-    'Réserve entrée': '--loc-reserve',
-    'Autre': '--loc-autre',
-    'Vegan': '--loc-vegan'
-  }
 
   let search = $state('')
-  let currentLoc = $state('Tous')
   let genreFilter = $state('')
-  let viewMode = $state('loc')
 
   /* Filtre par genre d'ingrédient (master list) dans la recherche (demande Olivier 08/07). */
   const genreNames = $derived([...new Set([...store.categories.map(c => c.name),
@@ -45,39 +37,33 @@
     return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   }
 
-  const locs = $derived(['Tous', ...new Set([...Object.keys(LOC_COLORS), ...store.items.map(i => i.loc).filter(Boolean)])])
-
-  // Tri stable : alphabétique dans chaque emplacement, emplacements dans l'ordre habituel.
-  // En vue « A→Z », une seule liste alphabétique tous emplacements confondus.
-  const filtered = $derived.by(() => {
-    let items = store.items.filter(i => currentLoc === 'Tous' || i.loc === currentLoc)
-    if (search) items = items.filter(i => fold(i.name).includes(fold(search)))
-    if (genreFilter) items = items.filter(i => categoryOf(i.name) === genreFilter)
-    return items.toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
-  })
-
+  /* Le stock se lit par ingrédient (commentaires Olivier du 16/07/2026) : une
+   * seule liste alphabétique, la somme de tous les emplacements sur la ligne ;
+   * le détail par endroit se déplie quand il y a plusieurs emplacements. */
   const groups = $derived.by(() => {
-    if (viewMode === 'az') return filtered.length ? [['Tous mes produits', filtered]] : []
-    const rank = loc => {
-      const i = DEFAULT_LOCS.indexOf(loc)
-      return i === -1 ? DEFAULT_LOCS.length : i
-    }
-    return [...Map.groupBy(filtered, i => i.loc || 'Sans emplacement')]
-      .sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0], 'fr'))
+    let list = stockGroups()
+    if (search) list = list.filter(g => fold(g.name).includes(fold(search)))
+    if (genreFilter) list = list.filter(g => categoryOf(g.name) === genreFilter)
+    return list
   })
 
-  function ordered(item) {
-    return store.shop.some(s => s.item_id === item.id)
+  let open = $state(null) // clé du groupe dont le détail des emplacements est déplié
+
+  /** L'unique ligne d'emplacement visée par les + / − de la ligne principale
+   * (une seule ligne, ou une seule encore garnie), sinon null : le détail tranche. */
+  function soloRow(g) {
+    if (g.rows.length === 1) return g.rows[0]
+    if (g.stocked.length === 1) return g.stocked[0]
+    return null
   }
 
   /* Emplacements datés (N7) : « + » entre un lot daté du jour, « − » sort du
-   * lot le plus ancien ; la flèche déplie les dates (autre lot, autre date). */
-  let lotOpen = $state(null)
+   * lot le plus ancien ; le détail déplié montre les dates. */
   let lotQty = $state(1)
   let lotDate = $state('')
 
-  function toggleLots(item) {
-    lotOpen = lotOpen === item.id ? null : item.id
+  function toggleDetail(g) {
+    open = open === g.key ? null : g.key
     lotQty = 1
     lotDate = new Date().toISOString().slice(0, 10)
   }
@@ -103,13 +89,58 @@
     lotQty = 1
   }
 
+  /* Panneau Modifier (décision Olivier 16/07/2026) : renommer (fusion en deux
+   * touches), genre, minimum de réserve, suppression — seule voie de
+   * suppression d'un ingrédient. */
+  let edit = $state(null)
+  let edName = $state('')
+  let edMin = $state(1)
+  let edConfirmFusion = $state(false)
+  let edConfirmDelete = $state(false)
+  let busy = $state(false)
+  let message = $state('')
+
+  function toggleEdit(g) {
+    edit = edit === g.key ? null : g.key
+    edName = g.name
+    edMin = g.min
+    edConfirmFusion = false
+    edConfirmDelete = false
+    message = ''
+  }
+
+  async function saveName(g) {
+    const n = edName.trim()
+    if (!n || fold(n) === fold(g.name)) return
+    const fusion = groups.some(x => x.key !== g.key && sameIngredient(x.name, n))
+    if (fusion && !edConfirmFusion) { edConfirmFusion = true; return }
+    busy = true
+    await renameIngredient(g.name, n)
+    message = fusion ? `« ${g.name} » fusionné dans « ${n} ».` : `Renommé en « ${n} ».`
+    busy = false
+    edit = null
+  }
+
+  async function saveMin(g) {
+    busy = true
+    await setIngredientMin(g.name, edMin)
+    busy = false
+  }
+
+  async function doDelete(g) {
+    busy = true
+    await removeIngredient(g.name)
+    message = `« ${g.name} » supprimé du stock.`
+    busy = false
+    edit = null
+  }
+
   async function submit(e) {
     e.preventDefault()
     await addItem({
       name: name.trim(),
       qty: Number(qty) || 0,
-      min: 0,
-      loc: itemLoc.trim() || (currentLoc !== 'Tous' ? currentLoc : ''),
+      loc: itemLoc.trim(),
       store: itemStore.trim()
     })
     name = ''; qty = 1; itemLoc = ''; itemStore = ''
@@ -154,6 +185,10 @@
 </script>
 
 <section>
+  {#if store.schemaWarning}
+    <p class="offline-banner">La base de données doit être mise à jour (migration en
+      attente) : la dernière modification n'a pas pu être enregistrée.</p>
+  {/if}
   <div class="filters">
     <div class="searchrow">
       <input id="search" type="search" bind:value={search} placeholder="Rechercher une épice, un ingrédient…" aria-label="Rechercher">
@@ -163,80 +198,133 @@
           {#each genreNames as g (g)}<option value={g}>{g}</option>{/each}
         </select>
       {/if}
-      <div class="sortsel" role="group" aria-label="Tri">
-        <button type="button" class:active={viewMode === 'loc'} onclick={() => viewMode = 'loc'}>Emplacement</button>
-        <button type="button" class:active={viewMode === 'az'} onclick={() => viewMode = 'az'}>A→Z</button>
-      </div>
-    </div>
-    <div class="chips">
-      {#each locs as loc (loc)}
-        {@const colorVar = LOC_COLORS[loc]}
-        <button type="button"
-          class:active={loc === currentLoc}
-          style:color={colorVar ? `var(${colorVar})` : null}
-          style:border-color={colorVar ? `var(${colorVar})` : null}
-          style:background={colorVar && loc === currentLoc ? `color-mix(in srgb, var(${colorVar}) 14%, transparent)` : null}
-          onclick={() => currentLoc = loc}>{loc}</button>
-      {/each}
     </div>
   </div>
 
+  {#if message}<p class="note manage-msg">{message}</p>{/if}
+
   {#if groups.length === 0}
     <p class="empty">{search ? `Aucun résultat pour « ${search} ».` : 'Aucun ingrédient ici. Ajoutez-en un ci-dessous, au clavier ou au micro.'}</p>
+  {:else}
+    <p class="group-title">Mes produits <span class="n">· {groups.length}</span></p>
   {/if}
 
-  {#each groups as [loc, group] (loc)}
-    <p class="group-title">{loc} <span class="n">· {group.length}</span></p>
-    <ul>
-      {#each group as item (item.id)}
-        {@const inList = ordered(item)}
-        {@const missing = !inList && item.qty <= item.min}
-        <li class="row" class:low={item.qty <= item.min}>
-          <span class="name" title={item.name}>{item.name}</span>
-          {#if viewMode === 'az'}<span class="note">{item.loc}</span>{/if}
-          {#if isDatedLoc(item.loc)}
-            <button class="icon-btn" type="button" aria-label="Détail des dates" aria-expanded={lotOpen === item.id}
-              title="Détail des dates (lots)" onclick={() => toggleLots(item)}>{lotOpen === item.id ? '▾' : '▸'}</button>
+  <ul>
+    {#each groups as g (g.key)}
+      {@const entry = shopEntryOf(g)}
+      {@const inList = !!entry}
+      {@const missing = !inList && g.total < g.min}
+      {@const solo = soloRow(g)}
+      {@const expandable = g.stocked.length > 1 || (solo && isDatedLoc(solo.loc) && g.total > 0)}
+      <li class="row" class:low={g.total < g.min}>
+        <span class="name" title={g.name}>{g.name}</span>
+        {#if g.stocked.length === 1 && !expandable}
+          <span class="note">{g.stocked[0].loc || 'sans emplacement'}</span>
+        {/if}
+        {#if expandable}
+          <button class="icon-btn loc-toggle" type="button" aria-expanded={open === g.key}
+            title="Détail par emplacement"
+            onclick={() => toggleDetail(g)}>{open === g.key ? '▾' : '▸'}{g.stocked.length > 1 ? ' ' + g.stocked.length + ' emplacements' : ''}</button>
+        {/if}
+        <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
+          aria-label="Commander"
+          title={inList ? 'Dans le panier — appuyer pour retirer' : missing ? 'Produit manquant — ajouter au panier' : 'Commander (réserve)'}
+          onclick={() => toggleOrder(g)}><Icon d={missing ? CART_PLUS : CART} /></button>
+        <div class="qty">
+          {#if solo}
+            <button type="button" aria-label="Un pot de moins" onclick={() => moins(solo)}><Icon d={MINUS} /></button>
+            <output title="pots — tous emplacements">{g.total}</output>
+            <button type="button" aria-label="Un pot de plus" onclick={() => plus(solo)}><Icon d={PLUS} /></button>
+          {:else}
+            <output title="pots — tous emplacements">{g.total}</output>
           {/if}
-          <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
-            aria-label="Commander"
-            title={inList ? 'Dans le panier — appuyer pour retirer' : missing ? 'Produit manquant — ajouter au panier' : 'Commander (réserve)'}
-            onclick={() => toggleOrder(item)}><Icon d={missing ? CART_PLUS : CART} /></button>
-          <div class="qty">
-            <button type="button" aria-label="Un pot de moins" onclick={() => moins(item)}><Icon d={MINUS} /></button>
-            <output title="pots">{item.qty}</output>
-            <button type="button" aria-label="Un pot de plus" onclick={() => plus(item)}><Icon d={PLUS} /></button>
-          </div>
-          <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeItem(item)}><Icon d={TRASH} /></button>
-        </li>
-        {#if lotOpen === item.id}
-          <li class="lot-panel">
-            {#if lotsOf(item.id).length}
-              <ul class="manage-items">
+        </div>
+        <button class="icon-btn" type="button" aria-expanded={edit === g.key}
+          aria-label={'Modifier ' + g.name} title="Modifier (nom, genre, minimum, suppression)"
+          onclick={() => toggleEdit(g)}>✎</button>
+      </li>
+      {#if open === g.key}
+        <li class="lot-panel">
+          <ul class="manage-items">
+            {#each g.stocked as item (item.id)}
+              <li class="row">
+                <span class="name">{item.loc || 'Sans emplacement'}</span>
+                <div class="qty">
+                  <button type="button" aria-label={'Un pot de moins — ' + (item.loc || 'sans emplacement')}
+                    onclick={() => moins(item)}><Icon d={MINUS} /></button>
+                  <output title="pots">{item.qty}</output>
+                  <button type="button" aria-label={'Un pot de plus — ' + (item.loc || 'sans emplacement')}
+                    onclick={() => plus(item)}><Icon d={PLUS} /></button>
+                </div>
+              </li>
+              {#if isDatedLoc(item.loc)}
                 {#each lotsOf(item.id) as lot, i (lot.id)}
                   <li class="row">
-                    <span class="name">{lot.qty} × {lot.qty > 1 ? 'entrés' : 'entré'} le {dateFr(lot.entered_on)}</span>
+                    <span class="name lot-line">{lot.qty} × {lot.qty > 1 ? 'entrés' : 'entré'} le {dateFr(lot.entered_on)}</span>
                     {#if i === 0}<span class="note">le plus ancien</span>{/if}
                     <button type="button" class="inv-manage" onclick={() => takeLot(item, lot)}>Sortir 1</button>
                   </li>
                 {/each}
-              </ul>
-            {/if}
-            {#if undatedCount(item) > 0}
-              <p class="note">{undatedCount(item)} sans date (entrés avant le suivi par dates —
-                le prochain inventaire les datera)</p>
-            {/if}
-            <form class="manage-row" onsubmit={e => enter(item, e)}>
-              <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={lotQty} aria-label="Quantité entrée">
-              <input type="date" bind:value={lotDate} aria-label="Date d'entrée">
-              <span class="note">{lotDate ? dateFr(lotDate) : ''}</span>
-              <button class="inv-start">Entrer</button>
-            </form>
-          </li>
-        {/if}
-      {/each}
-    </ul>
-  {/each}
+                {#if undatedCount(item) > 0}
+                  <li class="row"><p class="note">{undatedCount(item)} sans date (entrés avant le suivi par dates —
+                    le prochain inventaire les datera)</p></li>
+                {/if}
+                <li>
+                  <form class="manage-row" onsubmit={e => enter(item, e)}>
+                    <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={lotQty} aria-label="Quantité entrée">
+                    <input type="date" bind:value={lotDate} aria-label="Date d'entrée">
+                    <span class="note">{lotDate ? dateFr(lotDate) : ''}</span>
+                    <button class="inv-start">Entrer</button>
+                  </form>
+                </li>
+              {/if}
+            {/each}
+          </ul>
+        </li>
+      {/if}
+      {#if edit === g.key}
+        <li class="manage-panel">
+          <div class="manage-block">
+            <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
+            <div class="manage-row">
+              <input bind:value={edName} oninput={() => edConfirmFusion = false} aria-label="Nouveau nom">
+              <button type="button" class="inv-start" class:danger-btn={edConfirmFusion} disabled={busy}
+                onclick={() => saveName(g)}>{edConfirmFusion ? 'Confirmer la fusion' : 'Renommer'}</button>
+            </div>
+          </div>
+          <div class="manage-block">
+            <p>Genre (master list) :</p>
+            <div class="manage-row">
+              <select value={categoryOf(g.name)} onchange={e => setIngredientCategory(g.name, e.target.value)}
+                aria-label={'Genre de ' + g.name}>
+                <option value="">Non classé</option>
+                {#each genreNames as c (c)}<option value={c}>{c}</option>{/each}
+              </select>
+            </div>
+          </div>
+          <div class="manage-block">
+            <p>Réserve minimum — racheté dès que la somme de tous les emplacements
+              passe en dessous (0 = jamais racheté tout seul) :</p>
+            <div class="manage-row">
+              <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={edMin} aria-label="Réserve minimum">
+              <button type="button" class="inv-start" disabled={busy} onclick={() => saveMin(g)}>Enregistrer</button>
+            </div>
+          </div>
+          <div class="manage-block">
+            <p>Supprimer l'ingrédient — toutes ses lignes d'emplacement et sa ligne de courses :</p>
+            <div class="manage-row">
+              {#if edConfirmDelete}
+                <button type="button" class="inv-start danger-btn" disabled={busy} onclick={() => doDelete(g)}>Confirmer la suppression</button>
+                <button type="button" class="inv-manage" onclick={() => edConfirmDelete = false}>Non, garder</button>
+              {:else}
+                <button type="button" class="inv-manage" onclick={() => edConfirmDelete = true}>Supprimer</button>
+              {/if}
+            </div>
+          </div>
+        </li>
+      {/if}
+    {/each}
+  </ul>
 </section>
 
 <div class="addbar">

@@ -12,7 +12,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 
 | Cas | Validation | Couverture | Notes |
 |---|---|---|---|
-| N1 épuiser/racheter | validé | couvert, testé | |
+| N1 épuiser/racheter | validé, amendé 16/07 (rachat sur la SOMME des emplacements, réserve minimum par ingrédient) | couvert, testé, EN PRODUCTION (16/07 au soir, migration appliquée) | l'étape 4 (réception via inventaire, Q2) viendra avec le lot 3 Courses |
 | N2 inventaire | dicté par Olivier | couvert, testé | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complété le 08/07 : emplacement « à dates » — le comptage ajuste les lots (sortie du plus ancien, excédent « sans date »), bilan annoncé avant application (décision Olivier 08/07) |
 | N3 je prépare mes courses | reformulé par Olivier 06/07 | partiel | le panier « réserve » existe ; **manque : quantité voulue à l'ajout** (recoupe NP4) |
 | N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
@@ -23,10 +23,10 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N9 retrouver une recette | proposition | **couvert** (07/07) | recherche multicritère (titre, ingrédient, pays, source, mot du texte) dans Recettes ET dans la Semaine ; filtre par source (chips) ; sources gérées (renommer/fusionner/créer) ; pays à remplir (proposition en attente de validation) |
 | N10 planifier ma semaine | fusionné par Olivier 06/07 (inclut courses et planning) | **partiel** (incréments 1-4, 07/07) | fait : événements, recettes associées, consignation, quantités à l'échelle avec **ajustement % et corrections par recette et par événement**, bloc semaine **déroulant**, courses **synchronisées automatiquement** (somme réappro + repas, bascule « je l'ai », dédoublonnage) ; reste : planning des tournées (attend créneaux + décision), agenda Google |
 | N11 wish list / beau produit | proposition | **couvert** (07/07 soir) | étoile « wish list » sur la fiche, filtre ★ dans Recettes (cumulable avec « Par ingrédient » = beau produit), ingrédients difficiles à sourcer (« ! » en tête de ligne, mention « à commander à l'avance ») ; l'anticipation des commandes viendra avec le planning (N10/étape 3) |
-| NP1 produit retrouvé | décidé par Olivier | couvert, testé | |
+| NP1 produit retrouvé | décidé par Olivier, reformulé 16/07 (niveau ingrédient : ranger le pot retrouvé retire la ligne tout seul) | couvert, testé | |
 | NP2 rupture en magasin | validé | couvert, testé | |
 | NP3 coché par erreur | validé | couvert, testé | |
-| NP4 plusieurs pots d'un coup | **décision en attente** | partiel (+1 fixe) | recoupe N3 reformulé : quantités à l'ajout et à l'achat côté stock ; les quantités semaine → courses sont couvertes depuis le 07/07 |
+| NP4 plusieurs pots d'un coup | **décidé le 16/07 (Q2)** : la quantité reçue se saisit à l'inventaire | à couvrir avec le lot 3 Courses | recoupe N3 reformulé ; les quantités semaine → courses sont couvertes depuis le 07/07 |
 | NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
 | NP6 inventaire interrompu | validé | couvert, testé | |
 | NP8 produit après planning | proposition | non couvert | avec N10 |

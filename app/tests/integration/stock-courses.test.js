@@ -11,7 +11,8 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, addItem, changeQty, toggleOrder, setDone, clearDone, removeShopEntry, syncShop
+  store, addItem, changeQty, toggleOrder, setDone, clearDone, removeShopEntry, syncShop,
+  isDismissed, setIngredientMin, totalOf, stockGroups, removeIngredient
 } from '../../src/lib/store.svelte.js'
 
 beforeEach(() => {
@@ -19,15 +20,17 @@ beforeEach(() => {
   store.household = { id: 'h-test', name: 'Foyer test' }
   store.items = []
   store.shop = []
+  store.refs = []
+  store.categories = []
 })
 
 async function seed(name, qty, extra = {}) {
-  await addItem({ name, qty, min: 0, loc: 'Cuisine', store: '', ...extra })
-  return store.items.find(i => i.name === name)
+  await addItem({ name, qty, loc: 'Cuisine', store: '', ...extra })
+  return store.items.findLast(i => i.name === name)
 }
 
 function entryFor(item) {
-  return store.shop.find(s => s.item_id === item.id)
+  return store.shop.find(s => s.name === item.name || s.item_id === item.id)
 }
 
 describe('N1 — je cuisine, j\'épuise un ingrédient, il revient tout seul', () => {
@@ -146,8 +149,8 @@ describe('NP1 — retirer du panier un produit épuisé (décision Olivier du 06
 
     expect(entryFor(cumin)).toBeUndefined()
     expect(tables.shopping).toHaveLength(0)
-    expect(cumin.dismissed).toBe(true)
-    expect(tables.items.find(r => r.id === cumin.id).dismissed).toBe(true)
+    expect(isDismissed('Cumin')).toBe(true)
+    expect(tables.ingredient_refs.find(r => r.name === 'Cumin').dismissed).toBe(true)
   })
 
   test('le panier remet un produit « manquant » en liste', async () => {
@@ -159,7 +162,7 @@ describe('NP1 — retirer du panier un produit épuisé (décision Olivier du 06
     const entry = entryFor(cumin)
     expect(entry).toBeDefined()
     expect(entry.manual).toBe(false)
-    expect(cumin.dismissed).toBe(false)
+    expect(isDismissed('Cumin')).toBe(false)
   })
 
   test('le retour automatique se réarme quand le stock remonte puis s\'épuise', async () => {
@@ -167,7 +170,7 @@ describe('NP1 — retirer du panier un produit épuisé (décision Olivier du 06
     await removeShopEntry(entryFor(cumin))
 
     await changeQty(cumin, 1)
-    expect(cumin.dismissed).toBe(false)
+    expect(isDismissed('Cumin')).toBe(false)
 
     await changeQty(cumin, -1)
     expect(entryFor(cumin)).toBeDefined()
@@ -180,7 +183,78 @@ describe('NP1 — retirer du panier un produit épuisé (décision Olivier du 06
     await toggleOrder(cumin)
 
     expect(entryFor(cumin)).toBeUndefined()
-    expect(cumin.dismissed).toBe(true)
+    expect(isDismissed('Cumin')).toBe(true)
+  })
+})
+
+describe('Stock par ingrédient (commentaires Olivier du 16/07/2026)', () => {
+  test('le rachat auto se déclenche sur la somme des emplacements, pas par emplacement', async () => {
+    await seed('Cumin moulu', 1)
+    const reserve = await seed('Cumin moulu', 1, { loc: 'Réserve entrée' })
+    expect(store.shop).toHaveLength(0)
+
+    await changeQty(reserve, -1)
+    // Il en reste 1 en Cuisine : rien à racheter.
+    expect(totalOf('Cumin moulu')).toBe(1)
+    expect(store.shop).toHaveLength(0)
+
+    const cuisine = store.items.find(i => i.loc === 'Cuisine')
+    await changeQty(cuisine, -1)
+    // Plus nulle part : une seule ligne de courses pour l'ingrédient.
+    expect(store.shop).toHaveLength(1)
+    expect(tables.shopping).toHaveLength(1)
+  })
+
+  test('le minimum de réserve vit au niveau ingrédient et compare la somme', async () => {
+    await seed('Safran', 2)
+    await seed('Safran', 1, { loc: 'Réserve entrée' })
+    await setIngredientMin('Safran', 3)
+    // Somme 3, minimum 3 : rien à racheter.
+    expect(store.shop).toHaveLength(0)
+
+    await changeQty(store.items[0], -1)
+    // Somme 2 < 3 : rachat automatique.
+    expect(store.shop).toHaveLength(1)
+    expect(store.shop[0].manual).toBe(false)
+
+    await changeQty(store.items[0], 1)
+    // La somme remonte au minimum : la ligne repart.
+    expect(store.shop).toHaveLength(0)
+  })
+
+  test('la vue groupée additionne les emplacements et cache ceux à zéro', async () => {
+    await seed('Coriandre moulue', 2)
+    await seed('Coriandre moulue', 1, { loc: 'Réserve entrée' })
+    await seed('Coriandre moulue', 0, { loc: 'Sous chauffage' })
+
+    const g = stockGroups().find(x => x.name === 'Coriandre moulue')
+    expect(g.total).toBe(3)
+    expect(g.rows).toHaveLength(3)
+    expect(g.stocked.map(r => r.loc).sort()).toEqual(['Cuisine', 'Réserve entrée'])
+  })
+
+  test('deux synchros concurrentes ne créent qu\'une ligne de courses (verrou)', async () => {
+    await seed('Cumin', 1)
+    const cumin = store.items[0]
+    cumin.qty = 0
+    await Promise.all([syncShop(), syncShop()])
+    // le second passage attend le premier (verrou + re-queue) : pas de doublon
+    expect(tables.shopping).toHaveLength(1)
+    expect(store.shop).toHaveLength(1)
+  })
+
+  test('supprimer un ingrédient retire toutes ses lignes et sa ligne de courses', async () => {
+    await seed('Anis vert', 0)
+    await seed('Anis vert', 0, { loc: 'Réserve entrée' })
+    expect(store.shop).toHaveLength(1)
+
+    await removeIngredient('Anis vert')
+    await syncShop()
+
+    expect(store.items).toHaveLength(0)
+    expect(store.shop).toHaveLength(0)
+    expect(tables.items).toHaveLength(0)
+    expect(tables.shopping).toHaveLength(0)
   })
 })
 
