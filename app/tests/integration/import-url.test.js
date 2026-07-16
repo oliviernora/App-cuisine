@@ -10,10 +10,10 @@ vi.mock('../../src/lib/supabase.js', async () => {
   return { supabase: fakeSupabase }
 })
 
-import { tables, resetFake, edgeFunctions } from '../helpers/fake-supabase.js'
+import { tables, resetFake, edgeFunctions, storageFiles } from '../helpers/fake-supabase.js'
 import {
   store, fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, ingredientsOf,
-  parseIngredientLine
+  parseIngredientLine, attachImportedPhoto
 } from '../../src/lib/store.svelte.js'
 import { parseRecipeFromHtml } from '../../src/lib/jsonld-recipe.js'
 import {
@@ -27,6 +27,7 @@ beforeEach(() => {
   store.recipes = []
   store.ingredients = []
   store.realisations = []
+  store.photos = []
   store.recipesLoaded = false
   store.schemaWarning = false
 })
@@ -43,6 +44,7 @@ describe('Parsing du JSON-LD schema.org/Recipe', () => {
     expect(p.ingredientLines[1]).toBe("1/2 botte d'oignons nouveaux")
     expect(p.steps).toContain('Préchauffez votre four à 180 °C')
     expect(p.steps.split('\n\n')).toHaveLength(4)
+    expect(p.imageUrl).toBe('https://cache.marieclaire.fr/data/photo/w1200_h630_c17/6h/salade-poulet.jpg')
   })
 
   test('variante @graph : type multiple, HowToSection, yield « 6 personnes », tableau d\'ingrédients', () => {
@@ -52,6 +54,14 @@ describe('Parsing du JSON-LD schema.org/Recipe', () => {
     expect(p.sourceName).toBe('exemple-cuisine.fr')
     expect(p.ingredientLines).toEqual(['1 pâte feuilletée', '6 tomates', '2 c. à s. de moutarde'])
     expect(p.steps.split('\n\n')).toHaveLength(2)
+    expect(p.imageUrl).toBe('https://exemple-cuisine.fr/img/tarte-tomates.jpg')
+  })
+
+  test('page sans champ image : imageUrl vide, l\'import reste possible', () => {
+    const html = MARIE_CLAIRE_HTML.replace(/"image":\s*{[^}]*"url":[^}]*},/, '')
+    const p = parseRecipeFromHtml(html, MARIE_CLAIRE_URL)
+    expect(p.title).toBe('Salade de poulet aux herbes')
+    expect(p.imageUrl).toBe('')
   })
 
   test('page sans recette structurée : null', () => {
@@ -142,5 +152,41 @@ describe('N8 — j\'importe une recette depuis une URL', () => {
     expect(proposal).toBeUndefined()
     expect(error).toContain('n\'a pas pu être récupérée')
     expect(tables.recipes).toHaveLength(0)
+  })
+})
+
+describe('Photo du plat à l\'import par URL (décisions Olivier 14/07/2026)', () => {
+  async function importAvecPhoto() {
+    const { proposal } = await fetchRecipeFromUrl(MARIE_CLAIRE_URL)
+    const res = await createImportedRecipe({
+      url: MARIE_CLAIRE_URL, title: proposal.title, sourceTitle: proposal.sourceName,
+      ingredientsText: '', steps: '', servings: 4, country: '', category: ''
+    })
+    return { recipe: res.recipe, imageUrl: proposal.imageUrl }
+  }
+
+  test('la photo annoncée par la page est rattachée à la fiche en « plat »', async () => {
+    edgeFunctions['rapatrier-page'] = ({ image }) => image
+      ? { image: btoa('faux-jpeg'), contentType: 'image/jpeg' }
+      : { html: MARIE_CLAIRE_HTML }
+
+    const { recipe, imageUrl } = await importAvecPhoto()
+    expect(await attachImportedPhoto(recipe, imageUrl)).toBe(true)
+    expect(tables.recipe_photos).toHaveLength(1)
+    expect(tables.recipe_photos[0]).toMatchObject({ recipe_id: recipe.id, kind: 'plat' })
+    expect(storageFiles.size).toBe(1)
+  })
+
+  test('photo introuvable : la recette reste enregistrée, aucune photo fantôme', async () => {
+    edgeFunctions['rapatrier-page'] = ({ image }) => {
+      if (image) throw new Error('image injoignable')
+      return { html: MARIE_CLAIRE_HTML }
+    }
+
+    const { recipe, imageUrl } = await importAvecPhoto()
+    expect(await attachImportedPhoto(recipe, imageUrl)).toBe(false)
+    expect(tables.recipes).toHaveLength(1)
+    expect(tables.recipe_photos).toHaveLength(0)
+    expect(storageFiles.size).toBe(0)
   })
 })

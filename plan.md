@@ -69,6 +69,10 @@
   « eau », « ficelle de cuisine »).
 
 ### EN ATTENTE d'Olivier (relancer poliment)
+- **Redéployer l'Edge Function** `rapatrier-page` (photo du plat à l'import
+  URL, livrée le 14/07) : `npx supabase functions deploy rapatrier-page
+  --project-ref esvhefwihcjfvvvazykd`, puis dérouler M42 et republier la
+  prod (`mettre-en-ligne.cmd`).
 - Tri Evernote : 12 douteuses restantes — preview
   `Evernote/preview-douteuses.html` (double-clic), cocher dans
   `Evernote/tri.md`.
@@ -463,6 +467,12 @@ difficiles : pages de biais, mises en page chargées, manuscrit).
   d'ingrédients corrigé (« 2/3 de c. à c. de X » reconnaît l'unité).
   Question ouverte à Olivier : vider automatiquement la catégorie « Plat »
   à l'import (convention : vide = plat) ?
+  **Complété le 14/07/2026 — photo du plat** (décisions Olivier : jointe
+  par défaut, décochable à la relecture ; échec non bloquant) : le parseur
+  lit le champ `image` du JSON-LD, l'Edge Function rapatrie aussi l'image
+  (8 Mo max), rattachement en « Plat ». RESTE : redéploiement de
+  `rapatrier-page` par Olivier puis M42 en réel, et republication de la
+  prod.
 - **A2 — POC Ollama sur le PC** — FAIT le 10/07/2026, CONCLUANT. Verdict :
   **qwen3-vl:4b-instruct** (~33 s par page, 61 s pour une double page de
   livre, fractions ½/1½ intactes, étapes quasi verbatim ; défauts du

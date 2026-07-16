@@ -318,6 +318,12 @@ li.row, .loc-item .row {
   border: none; border-radius: 50%; cursor: pointer;
   background: rgba(0, 0, 0, .55); color: #fff; font-size: 15px; line-height: 1;
 }
+/* photo du plat proposée à la relecture d'un import URL : aperçu + case à cocher */
+.import-photo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+.import-photo img {
+  height: 110px; max-width: 160px; object-fit: cover;
+  border-radius: var(--radius); display: block;
+}
 /* emplacements datés (N7) : détail des lots sous la ligne du produit */
 .lot-panel {
   padding: 8px 12px; margin: 0 0 6px;

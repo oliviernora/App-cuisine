@@ -2,7 +2,8 @@
   import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails,
     fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
-    fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage } from '../lib/store.svelte.js'
+    fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
+    attachImportedPhoto } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
@@ -174,6 +175,7 @@
   let ollamaOk = $state(false) // IA locale disponible sur ce PC (A3)
   let importPhotoBusy = $state(false)
   let importFiles = [] // photos de la page, rattachées à la fiche après enregistrement
+  let importKeepImage = $state(true) // photo du plat annoncée par la page : jointe par défaut (décision Olivier 14/07/2026)
 
   function toggleImport() {
     importOpen = !importOpen
@@ -221,6 +223,7 @@
     const { proposal, error } = await fetchRecipeFromUrl(url)
     busy = false
     if (error) { importError = error; return }
+    importKeepImage = true
     importProposal = {
       url,
       title: proposal.title,
@@ -229,7 +232,8 @@
       category: proposal.category,
       country: '',
       ingredientsText: proposal.ingredientLines.join('\n'),
-      steps: proposal.steps
+      steps: proposal.steps,
+      imageUrl: proposal.imageUrl
     }
   }
 
@@ -240,11 +244,18 @@
     if (res.error) { importError = res.error; busy = false; return }
     if (res.duplicate) { importProposal = null; importDuplicate = res.duplicate; busy = false; return }
     for (const f of importFiles) await addRecipePhoto(res.recipe, f, 'page') // copie privée de la page
+    // Photo du plat trouvée sur la page : rattachée si la case est restée cochée ;
+    // un échec n'annule pas la recette, déjà enregistrée (décision Olivier 14/07/2026).
+    const photoManquee = Boolean(p.imageUrl) && importKeepImage
+      && !(await attachImportedPhoto(res.recipe, p.imageUrl))
     busy = false
     importProposal = null
     importFiles = []
     importUrl = ''
-    importOpen = false
+    importError = photoManquee
+      ? 'La recette est enregistrée, mais sa photo n\'a pas pu être récupérée — l\'ajouter à la main depuis la fiche.'
+      : ''
+    importOpen = photoManquee
     open = res.recipe.id
   }
 
@@ -370,6 +381,12 @@
         {#if importError}<p class="message">{importError}</p>{/if}
       {:else}
         <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
+        {#if importProposal.imageUrl}
+          <div class="import-photo">
+            <img src={importProposal.imageUrl} alt="Photo du plat proposée par la page">
+            <label><input type="checkbox" bind:checked={importKeepImage}> Joindre la photo du plat</label>
+          </div>
+        {/if}
         <p class="manage-row">
           <label>Titre <input bind:value={importProposal.title} aria-label="Titre de la recette"></label>
           <label>Source <input bind:value={importProposal.sourceTitle} list="import-sources"

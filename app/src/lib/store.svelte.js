@@ -480,6 +480,18 @@ export async function fetchRecipeFromUrl(url) {
   return { proposal }
 }
 
+/** Rapatrie la photo du plat annoncée par la page (même Edge Function,
+ * body { url, image: true }) et la rattache à la fiche en « plat ».
+ * Renvoie true, ou false si la photo n'a pas pu être récupérée — la
+ * recette, elle, est déjà enregistrée. */
+export async function attachImportedPhoto(recipe, imageUrl) {
+  const { data, error } = await supabase.functions.invoke('rapatrier-page', { body: { url: imageUrl, image: true } })
+  if (error || !data?.image) return false
+  const bytes = Uint8Array.from(atob(data.image), c => c.charCodeAt(0))
+  const blob = new Blob([bytes], { type: data.contentType || 'image/jpeg' })
+  return Boolean(await addRecipePhoto(recipe, blob, 'plat'))
+}
+
 /** Enregistre la fiche relue : crée la source (site) si besoin, refuse les
  * doublons (URL, sinon titre + source), puis insère recette et ingrédients.
  * Renvoie { recipe }, { duplicate } ou { error }. */

@@ -177,6 +177,10 @@ Règles :
   (le nom du fichier choisi s'affiche sur le bouton). Vignettes 110 px à
   coins arrondis, légende « Plat » / « Page », **×** rond sombre en coin pour
   supprimer (avec confirmation). Jamais d'image pleine page imposée.
+- **Photo proposée à la relecture d'un import** (14/07/2026) : aperçu au
+  format vignette (110 px, coins arrondis) accompagné d'une **case à
+  cocher** « Joindre la photo du plat », cochée d'avance ; la rangée passe
+  à la ligne sur écran étroit (`flex-wrap`), rien ne déborde.
 - **Wish list** (07/07/2026 soir) : étoile `--accent` devant le titre des
   recettes « à faire un jour » ; bouton-filtre « ★ Wish list » près des
   filtres (état actif = liseré et texte accent, classe `chip-on`) ; sur la

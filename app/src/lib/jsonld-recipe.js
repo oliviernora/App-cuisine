@@ -57,6 +57,17 @@ function stepTexts(v) {
   }).filter(Boolean)
 }
 
+/** Photo du plat : chaîne, tableau ou ImageObject ({ url } / { contentUrl }),
+ * URL relative résolue contre la page. Vide si la page n'en donne pas. */
+function imageUrlOf(recipe, pageUrl) {
+  for (const item of asList(recipe.image)) {
+    const raw = typeof item === 'string' ? item : item?.url ?? item?.contentUrl ?? ''
+    if (!raw) continue
+    try { return new URL(raw, pageUrl).href } catch { /* URL malformée : suivante */ }
+  }
+  return ''
+}
+
 /** « 4 », ["6 personnes"], 8 → premier entier trouvé. */
 function servingsOf(v) {
   for (const item of asList(v)) {
@@ -68,7 +79,7 @@ function servingsOf(v) {
 
 /**
  * Cherche la première recette schema.org/Recipe des blocs JSON-LD de la page.
- * Renvoie { title, servings, category, sourceName, ingredientLines, steps, url }
+ * Renvoie { title, servings, category, sourceName, ingredientLines, steps, url, imageUrl }
  * ou null si la page n'en contient pas.
  */
 export function parseRecipeFromHtml(html, url) {
@@ -87,7 +98,8 @@ export function parseRecipeFromHtml(html, url) {
       sourceName: clean(asList(recipe.publisher)[0]?.name ?? '') || new URL(url).hostname.replace(/^www\./, ''),
       ingredientLines: ingredientLines(recipe),
       steps: stepTexts(recipe.recipeInstructions).join('\n\n'),
-      url
+      url,
+      imageUrl: imageUrlOf(recipe, url)
     }
   }
   return null

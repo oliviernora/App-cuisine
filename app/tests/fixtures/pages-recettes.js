@@ -59,6 +59,7 @@ export const GRAPH_HTML = `<html><head>
   {"@type":"WebSite","name":"Exemple Cuisine"},
   {"@type":["Recipe","Article"],"name":"Tarte aux tomates",
    "recipeYield":["6 personnes"],
+   "image":["/img/tarte-tomates.jpg"],
    "recipeIngredient":["1 pâte feuilletée","6 tomates","2 c. à s. de moutarde"],
    "recipeInstructions":[{"@type":"HowToSection","name":"Préparation","itemListElement":[
      {"@type":"HowToStep","text":"Étaler la pâte et la piquer."},

@@ -248,9 +248,14 @@ Il disparaît une fois rangé.
     publiée par le site** (aucune IA) : titre, source (créée si nouvelle),
     « pour N personnes », catégorie, ingrédients un par ligne, étapes. Une
     adresse **déjà importée** est signalée (« Voir la fiche ») — même chose
-    pour un titre déjà présent chez la même source. Si la page ne publie
-    pas de recette structurée (ex. Marmiton), un message l'explique —
-    passer par les photos ou la saisie. Nécessite la fonction
+    pour un titre déjà présent chez la même source. Si la page annonce une
+    **photo du plat**, elle s'affiche à la relecture avec une case
+    « **Joindre la photo du plat** » cochée d'avance (la décocher pour ne
+    pas la prendre) ; à l'enregistrement elle est rattachée en « Plat ». Si
+    la photo ne peut pas être récupérée, la recette est enregistrée quand
+    même et un message propose de l'ajouter à la main. Si la page ne
+    publie pas de recette structurée (ex. Marmiton), un message
+    l'explique — passer par les photos ou la saisie. Nécessite la fonction
     « rapatrier-page » côté serveur (voir exploitation.md).
   - **Depuis des photos (IA locale)** : le bouton « Depuis des photos de la
     recette — IA locale sur ce PC » n'apparaît que si **Ollama** tourne sur
