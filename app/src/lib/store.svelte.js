@@ -347,27 +347,76 @@ export async function removeShopEntry(entry) {
   }
 }
 
-/** Chaque ligne cochée ajoute un pot au stock lié, puis sort de la liste.
- * Une ligne « semaine » achetée devient « je l'ai » (le besoin est couvert). */
+/** Ranger les achats (décision Olivier 16/07/2026, Q2) : chaque ligne cochée
+ * devient « reçue, à mettre en stock » — l'intégration au stock (quantité
+ * réelle, emplacement) se fait depuis l'onglet Inventaire, ce qui règle
+ * aussi NP4 (plusieurs pots d'un coup). Une ligne « semaine » achetée
+ * devient « je l'ai » (le besoin est couvert). */
 export async function clearDone() {
-  const done = store.shop.filter(s => s.done)
+  const done = store.shop.filter(s => s.done && !s.received)
   const semaine = done.filter(s => s.origin === 'semaine')
   const autres = done.filter(s => s.origin !== 'semaine')
-  for (const entry of autres) {
-    const item = store.items.find(i => i.id === entry.item_id)
-    if (item) {
-      item.qty += 1
-      await supabase.from('items').update({ qty: item.qty }).eq('id', item.id)
-    }
+  for (const entry of autres) entry.received = true
+  if (autres.length) {
+    const { error } = await supabase.from('shopping').update({ received: true }).in('id', autres.map(d => d.id))
+    if (error) store.schemaWarning = true
   }
   for (const entry of semaine) {
     entry.done = false
     entry.available = true
     await supabase.from('shopping').update({ done: false, available: true }).eq('id', entry.id)
   }
-  store.shop = store.shop.filter(s => !autres.includes(s))
-  if (autres.length) await supabase.from('shopping').delete().in('id', autres.map(d => d.id))
   await syncShop()
+}
+
+/* ----- Réception des achats (Q2, décision Olivier 16/07/2026) -----
+ * Les lignes « reçues » (received) attendent leur rangement dans l'onglet
+ * Inventaire : quantité réelle et emplacement se choisissent au moment de
+ * ranger. Tant qu'une ligne est reçue, le besoin est couvert : la synchro
+ * n'en recrée pas (elle est done, jamais retirée ni doublonnée). */
+
+/** Les achats reçus, à mettre en stock. */
+export function receivedEntries() {
+  return store.shop.filter(s => s.received)
+    .toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
+}
+
+/** Emplacement proposé pour ranger un achat : celui du produit lié, sinon
+ * celui d'une ligne du même ingrédient. */
+export function receivedLoc(entry) {
+  const linked = store.items.find(i => i.id === entry.item_id)
+    ?? store.items.find(i => sameIngredient(i.name, entry.name))
+  return linked?.loc ?? ''
+}
+
+/** Range un achat reçu : +n au stock à l'emplacement choisi (lot daté si
+ * l'emplacement l'est), la ligne quitte « à mettre en stock ». */
+export async function stashReceived(entry, qty, loc) {
+  const n = Math.max(1, Math.round(Number(qty) || 1))
+  const dest = loc.trim()
+  store.shop = store.shop.filter(s => s.id !== entry.id)
+  await supabase.from('shopping').delete().eq('id', entry.id)
+  const today = new Date().toISOString().slice(0, 10)
+  let item = store.items.find(i => i.loc === dest && sameIngredient(i.name, entry.name))
+  if (!item) {
+    await addItem({ name: entry.name, qty: isDatedLoc(dest) ? 0 : n, loc: dest, store: entry.store || '' })
+    if (!isDatedLoc(dest)) return
+    item = store.items[store.items.length - 1]
+  }
+  if (isDatedLoc(dest)) await enterLot(item, n, today)
+  else await changeQty(item, n)
+}
+
+/** Définit ou change le lieu d'achat d'une ligne de courses ; mémorisé sur
+ * toutes les lignes de stock de l'ingrédient pour les prochaines fois
+ * (commentaire Olivier 16/07/2026). */
+export async function setEntryStore(entry, storeName) {
+  const s = storeName.trim()
+  entry.store = s
+  await supabase.from('shopping').update({ store: s }).eq('id', entry.id)
+  const rows = store.items.filter(i => sameIngredient(i.name, entry.name))
+  for (const it of rows) it.store = s
+  if (rows.length) await supabase.from('items').update({ store: s }).in('id', rows.map(i => i.id))
 }
 
 export async function signOut() {

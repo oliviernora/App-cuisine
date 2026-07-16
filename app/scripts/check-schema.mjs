@@ -11,7 +11,7 @@ const CHECKS = {
   households: 'id,name',
   household_members: 'household_id,user_id',
   items: 'id,qty,min,dismissed',
-  shopping: 'id,done,manual,item_id,qty,unit,origin,available',
+  shopping: 'id,done,manual,item_id,qty,unit,origin,available,received',
   locations: 'id,name,last_inventory_at,dated,stale_months',
   item_lots: 'id,item_id,qty,entered_on',
   sources: 'id,kind,title,isbn',

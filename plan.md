@@ -25,10 +25,13 @@ actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
    rapprochement = menu), micro : 2e appui = stop. Vérifié sur 5173 ;
    M47 (clavier/micro/dépliage) à faire par Olivier sur iPhone après
    republication (`app/mettre-en-ligne.cmd`).
-3. **Lot 3 à faire** — Courses : lieu d'achat définissable/modifiable par
-   ligne ; réception via l'inventaire (décision Q2 : « Ranger » envoie vers
-   une liste « à mettre en stock », l'inventaire intègre — remplace le +1
-   direct et règle NP4).
+3. **Lot 3 LIVRÉ ET MIGRÉ (16/07 au soir) — À REPUBLIER** — Courses :
+   lieu d'achat par ligne (crayon ✎, mémorisé sur l'ingrédient) ; réception
+   via l'inventaire (Q2) : « Ranger les achats » passe les lignes cochées
+   « à mettre en stock » (onglet Inventaire, quantité réelle + emplacement,
+   lot daté si congélateur) — plus de +1 direct, NP4 réglé et testé.
+   Migration `shopping.received` appliquée (GO Olivier). Parcours réel
+   complet vérifié sur 5173. Après republication : M48-M50 (+M47 iPhone).
 4. **Lot 4 à faire** — Fiche recette : sauts de ligne perdus à l'import URL
    (investiguer sur « Gazpacho d'asperge »), ★ wishlist à droite de la
    source, boutons en bas, zone commentaires pleine largeur COMMUNE aux

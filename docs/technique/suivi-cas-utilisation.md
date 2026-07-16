@@ -14,7 +14,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 |---|---|---|---|
 | N1 épuiser/racheter | validé, amendé 16/07 (rachat sur la SOMME des emplacements, réserve minimum par ingrédient) | couvert, testé, EN PRODUCTION (16/07 au soir, migration appliquée) | l'étape 4 (réception via inventaire, Q2) viendra avec le lot 3 Courses |
 | N2 inventaire | dicté par Olivier | couvert, testé | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complété le 08/07 : emplacement « à dates » — le comptage ajuste les lots (sortie du plus ancien, excédent « sans date »), bilan annoncé avant application (décision Olivier 08/07) |
-| N3 je prépare mes courses | reformulé par Olivier 06/07 | partiel | le panier « réserve » existe ; **manque : quantité voulue à l'ajout** (recoupe NP4) |
+| N3 je prépare mes courses | reformulé par Olivier 06/07, complété 16/07 (lieu d'achat par ligne) | quasi couvert (16/07) | panier « réserve », lieu d'achat modifiable et mémorisé, quantité réelle confirmée au rangement ; reste : quantité voulue à l'AJOUT en liste |
 | N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
 | N5 foyer | validé | couvert | test manuel M4 à dérouler |
 | N6 rangements + déplacements | fusionné par Olivier 06/07 | **couvert, testé** (06/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire |
@@ -26,7 +26,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | NP1 produit retrouvé | décidé par Olivier, reformulé 16/07 (niveau ingrédient : ranger le pot retrouvé retire la ligne tout seul) | couvert, testé | |
 | NP2 rupture en magasin | validé | couvert, testé | |
 | NP3 coché par erreur | validé | couvert, testé | |
-| NP4 plusieurs pots d'un coup | **décidé le 16/07 (Q2)** : la quantité reçue se saisit à l'inventaire | à couvrir avec le lot 3 Courses | recoupe N3 reformulé ; les quantités semaine → courses sont couvertes depuis le 07/07 |
+| NP4 plusieurs pots d'un coup | décidé le 16/07 (Q2) | **couvert, testé** (lot 3 du 16/07) | la quantité reçue se confirme au rangement (« à mettre en stock », onglet Inventaire) |
 | NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
 | NP6 inventaire interrompu | validé | couvert, testé | |
 | NP8 produit après planning | proposition | non couvert | avec N10 |

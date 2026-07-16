@@ -27,9 +27,13 @@
   ]
   const currentTab = $derived(TABS.find(t => t.id === tab))
 
+  /* Le panneau « Foyer et compte » est un écran à part entière (demande
+   * Olivier 16/07/2026) : ouvert, il remplace le contenu de l'onglet ;
+   * choisir un onglet le referme. */
   function pick(id) {
     tab = id
     menuOpen = false
+    showFoyer = false
   }
 
   /* Sauvegarde des données (exigence NFR, décision Olivier 08/07) : export
@@ -160,19 +164,19 @@
         </div>
       {/if}
       <nav class="tabs">
-        <button type="button" class:active={tab === 'stock'} onclick={() => tab = 'stock'}>
+        <button type="button" class:active={tab === 'stock'} onclick={() => pick('stock')}>
           <Icon d={BOX} /><span class="tlabel">Stock</span>
         </button>
-        <button type="button" class:active={tab === 'shop'} onclick={() => tab = 'shop'}>
+        <button type="button" class:active={tab === 'shop'} onclick={() => pick('shop')}>
           <Icon d={CART} /><span class="tlabel">Courses</span>{#if shopCount > 0}<span class="count">{shopCount}</span>{/if}
         </button>
-        <button type="button" class:active={tab === 'recettes'} onclick={() => tab = 'recettes'}>
+        <button type="button" class:active={tab === 'recettes'} onclick={() => pick('recettes')}>
           <Icon d={BOOK} /><span class="tlabel">Recettes</span>
         </button>
-        <button type="button" class:active={tab === 'semaine'} onclick={() => tab = 'semaine'}>
+        <button type="button" class:active={tab === 'semaine'} onclick={() => pick('semaine')}>
           <Icon d={CALENDAR} /><span class="tlabel">Semaine</span>
         </button>
-        <button type="button" class:active={tab === 'inv'} onclick={() => tab = 'inv'}>
+        <button type="button" class:active={tab === 'inv'} onclick={() => pick('inv')}>
           <Icon d={CLIPBOARD} /><span class="tlabel">Inventaire</span>
         </button>
       </nav>
@@ -184,7 +188,9 @@
   {/if}
 
   <main class:offline={!store.online}>
-    {#if tab === 'stock'}
+    {#if showFoyer}
+      <!-- Écran Foyer et compte ouvert : le contenu de l'onglet s'efface (16/07/2026). -->
+    {:else if tab === 'stock'}
       <Stock />
     {:else if tab === 'shop'}
       <Shopping />

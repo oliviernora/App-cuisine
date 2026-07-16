@@ -38,6 +38,7 @@ create table shopping (
   unit text not null default '',
   origin text not null default 'reappro', -- 'reappro' ou 'semaine' (synchronisé depuis les repas)
   available boolean not null default false, -- « je l'ai déjà » : à ne pas acheter
+  received boolean not null default false, -- achetée et rangée « à mettre en stock » via l'inventaire (16/07/2026)
   created_at timestamptz not null default now()
 );
 

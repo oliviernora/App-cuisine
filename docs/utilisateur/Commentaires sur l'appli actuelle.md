@@ -50,3 +50,5 @@ Gestion de différentes résidences
 
 Autres remarques :
 - sur le PC, on peut élargir encore plus les écrans.
+
+

@@ -165,16 +165,27 @@
     }
     rec = new SR()
     rec.lang = 'fr-FR'
-    rec.interimResults = false
-    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
-    rec.onend = () => { listening = false }
-    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + '). Utilisez la dictée du clavier.' }
-    rec.onresult = ev => {
-      const text = ev.results[0][0].transcript
+    /* interimResults : sur iPhone, couper le micro à la main ne délivre
+     * jamais de résultat « final » — on garde le dernier texte entendu et
+     * on le traite à la fin (retour Olivier 16/07/2026). */
+    rec.interimResults = true
+    let heard = ''
+    const applyVoice = text => {
       const parsed = parseVoice(text)
       name = parsed.name.charAt(0).toUpperCase() + parsed.name.slice(1)
       qty = parsed.qty
-      hint = 'Entendu : « ' + text + ' ». Vérifiez puis touchez Ajouter.'
+      hint = 'Entendu : « ' + text.trim() + ' ». Vérifiez puis touchez Ajouter.'
+    }
+    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
+    rec.onend = () => {
+      listening = false
+      if (heard.trim()) { applyVoice(heard); heard = '' }
+      else if (hint === 'Je vous écoute…') hint = 'Rien entendu — réessayez, ou utilisez la dictée du clavier.'
+    }
+    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + '). Utilisez la dictée du clavier.' }
+    rec.onresult = ev => {
+      heard = [...ev.results].map(r => r[0].transcript).join(' ')
+      if (ev.results[ev.results.length - 1].isFinal) { applyVoice(heard); heard = '' }
     }
   })
 

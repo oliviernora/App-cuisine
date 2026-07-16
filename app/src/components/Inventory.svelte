@@ -82,17 +82,30 @@
     if (!SR) { voiceAvailable = false; hint = 'Pas de reconnaissance vocale ici : tapez quelques lettres puis touchez la ligne.'; return }
     rec = new SR()
     rec.lang = 'fr-FR'
-    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
-    rec.onend = () => { listening = false }
-    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + ').' }
-    rec.onresult = ev => {
-      let words = ev.results[0][0].transcript.trim().toLowerCase().split(/\s+/)
+    /* interimResults : sur iPhone, couper le micro à la main ne délivre
+     * jamais de résultat « final » — on garde le dernier texte entendu et
+     * on le traite à la fin (retour Olivier 16/07/2026). */
+    rec.interimResults = true
+    let heard = ''
+    const applyVoice = text => {
+      let words = text.trim().toLowerCase().split(/\s+/)
       let n = 1
       if (/^\d+$/.test(words[0])) { n = Number(words[0]); words = words.slice(1) }
       else if (NUMBER_WORDS[words[0]]) { n = NUMBER_WORDS[words[0]]; words = words.slice(1) }
       const vu = declareByName(words.join(' '), n)
       hint = vu ? 'Vu : ' + vu + (n > 1 ? ' × ' + n : '')
         : 'Plusieurs produits correspondent — choisissez dans la liste.'
+    }
+    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
+    rec.onend = () => {
+      listening = false
+      if (heard.trim()) { applyVoice(heard); heard = '' }
+      else if (hint === 'Je vous écoute…') hint = 'Rien entendu — réessayez, ou tapez quelques lettres.'
+    }
+    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + ').' }
+    rec.onresult = ev => {
+      heard = [...ev.results].map(r => r[0].transcript).join(' ')
+      if (ev.results[ev.results.length - 1].isFinal) { applyVoice(heard); heard = '' }
     }
   })
 

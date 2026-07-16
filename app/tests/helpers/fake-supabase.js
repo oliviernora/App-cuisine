@@ -44,7 +44,7 @@ function from(table) {
       return chain
     },
     insert(payload) {
-      const defaults = table === 'shopping' ? { done: false, manual: false, origin: 'reappro', available: false, qty: null, unit: '' }
+      const defaults = table === 'shopping' ? { done: false, manual: false, origin: 'reappro', available: false, received: false, qty: null, unit: '' }
         : table === 'items' ? { dismissed: false }
         : table === 'event_recipes' ? { scale_pct: 100, qty_overrides: {} }
         : table === 'ingredient_categories' ? { sourcing: '', sourcing_note: '' }

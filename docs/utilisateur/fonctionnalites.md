@@ -116,6 +116,15 @@ iPhone/iPad fonctionne aussi dans chaque champ.
 
 ## Onglet Inventaire
 
+### À mettre en stock (réception des achats — 16/07/2026, décision Q2)
+
+En tête de l'onglet, les achats passés par « Ranger les achats » (Courses)
+attendent leur rangement : pour chaque produit, **quantité reçue** (le vrai
+nombre de pots — trois achetés = trois) et **emplacement** (proposé d'après
+l'existant, modifiable, nouveau possible), puis « **Ranger** » fait entrer
+le stock. Dans un emplacement « à dates », le rangement crée un **lot daté**
+du jour. Tant qu'un produit est là, il ne revient pas en courses.
+
 Liste des emplacements avec leur nombre de produits et la **date du dernier
 inventaire** (« jamais inventorié » sinon). Le bouton « Inventaire » de
 chaque ligne démarre le mode inventaire. **L'inventaire se met en pause tout
@@ -136,7 +145,8 @@ déjà vue ouvre un panneau « ce n'était pas le bon produit ? » — choisir l
 bonne variante (le comptage se transfère) ou « remettre à vérifier ».
 
 **Micro** (16/07/2026) : un deuxième appui sur le micro arrête toujours la
-dictée, y compris sur iPhone.
+dictée, y compris sur iPhone — et ce qui a été entendu jusqu'à la coupure
+est traité (message « Rien entendu » sinon).
 
 ### Master list des ingrédients
 
@@ -220,10 +230,20 @@ Cocher = acheté (la ligne se barre). La pastille de l'onglet compte ce qui
 reste à acheter (les « je l'ai » ne comptent pas). Décocher est possible
 tant que les achats ne sont pas rangés.
 
-### Bouton « Ranger les achats »
+### Bouton « Ranger les achats » (revu le 16/07/2026, décision Q2)
 
-Pour chaque ligne cochée liée à un ingrédient du stock : +1 pot au stock,
-puis la ligne disparaît. Une ligne « semaine » achetée passe en « je l'ai ».
+Les lignes cochées quittent la liste et passent « **à mettre en stock** »
+en tête de l'onglet Inventaire — c'est là que la quantité réelle et
+l'emplacement se choisissent (plus de +1 automatique). Une ligne
+« semaine » achetée passe en « je l'ai ».
+
+### Crayon ✎ — lieu d'achat (16/07/2026)
+
+Sur chaque ligne, le crayon ouvre « Lieu d'achat » : définir ou changer le
+magasin (suggestions des lieux connus). La ligne se reclasse sous son
+magasin, et le lieu est **mémorisé sur l'ingrédient** pour les prochaines
+entrées en courses — y compris pour les lignes du groupe « Autre » (sans
+lieu).
 
 ### Formulaire d'ajout
 
@@ -375,6 +395,8 @@ Il disparaît une fois rangé.
 
 - Chacun a son compte personnel (email + mot de passe) ; le foyer partage
   stock et courses.
+- Ouvert, le panneau occupe l'écran **seul** : le contenu de l'onglet
+  s'efface et revient dès qu'on choisit un onglet (16/07/2026).
 - L'icône silhouettes en haut à droite ouvre le **panneau Foyer** : code
   d'invitation à transmettre (l'invité crée son compte puis « Rejoindre ce
   foyer »), **sauvegarde des données** et déconnexion. Principe : les écrans

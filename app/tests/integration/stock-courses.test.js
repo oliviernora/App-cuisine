@@ -12,7 +12,8 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, changeQty, toggleOrder, setDone, clearDone, removeShopEntry, syncShop,
-  isDismissed, setIngredientMin, totalOf, stockGroups, removeIngredient
+  isDismissed, setIngredientMin, totalOf, stockGroups, removeIngredient,
+  receivedEntries, stashReceived, setEntryStore, setLocationDated
 } from '../../src/lib/store.svelte.js'
 
 beforeEach(() => {
@@ -22,6 +23,8 @@ beforeEach(() => {
   store.shop = []
   store.refs = []
   store.categories = []
+  store.locations = []
+  store.lots = []
 })
 
 async function seed(name, qty, extra = {}) {
@@ -47,7 +50,7 @@ describe('N1 — je cuisine, j\'épuise un ingrédient, il revient tout seul', (
     expect(tables.shopping).toHaveLength(1)
   })
 
-  test('acheter puis ranger remet le stock et vide la liste', async () => {
+  test('acheter, ranger, puis mettre en stock via l\'inventaire (Q2, 16/07/2026)', async () => {
     const cumin = await seed('Cumin', 0)
     const entry = entryFor(cumin)
     expect(entry).toBeDefined()
@@ -55,10 +58,54 @@ describe('N1 — je cuisine, j\'épuise un ingrédient, il revient tout seul', (
     await setDone(entry, true)
     await clearDone()
 
+    // le stock n'a pas bougé : la ligne attend « à mettre en stock »
+    expect(cumin.qty).toBe(0)
+    expect(receivedEntries()).toHaveLength(1)
+    expect(tables.shopping[0].received).toBe(true)
+
+    await stashReceived(entry, 1, 'Cuisine')
+
     expect(cumin.qty).toBe(1)
     expect(store.shop).toHaveLength(0)
     expect(tables.shopping).toHaveLength(0)
     expect(tables.items.find(r => r.id === cumin.id).qty).toBe(1)
+  })
+
+  test('une ligne « reçue » couvre le besoin : la synchro n\'en recrée pas', async () => {
+    const cumin = await seed('Cumin', 0)
+    await setDone(entryFor(cumin), true)
+    await clearDone()
+
+    await syncShop()
+
+    expect(tables.shopping).toHaveLength(1) // la reçue seulement, pas de doublon
+    expect(tables.shopping[0].received).toBe(true)
+  })
+
+  test('ranger dans un emplacement inconnu du produit crée sa ligne là-bas', async () => {
+    const safran = await seed('Safran', 0)
+    await setDone(entryFor(safran), true)
+    await clearDone()
+
+    await stashReceived(receivedEntries()[0], 2, 'Réserve entrée')
+
+    const reserve = store.items.find(i => i.name === 'Safran' && i.loc === 'Réserve entrée')
+    expect(reserve.qty).toBe(2)
+    expect(safran.qty).toBe(0) // la ligne Cuisine n'a pas bougé
+    expect(store.shop).toHaveLength(0) // somme 2 >= minimum : rien à racheter
+  })
+
+  test('ranger dans un emplacement « à dates » crée un lot daté', async () => {
+    await setLocationDated('Congélateur 1', true)
+    const saumon = await seed('Saumon', 0, { loc: 'Congélateur 1' })
+    await setDone(entryFor(saumon), true)
+    await clearDone()
+
+    await stashReceived(receivedEntries()[0], 2, 'Congélateur 1')
+
+    expect(saumon.qty).toBe(2)
+    expect(store.lots).toHaveLength(1)
+    expect(store.lots[0].qty).toBe(2)
   })
 
   test('remonter le stock à la main retire l\'entrée automatique', async () => {
@@ -84,12 +131,13 @@ describe('N3 — je constitue une réserve d\'un produit précieux', () => {
     expect(safran.qty).toBe(1)
   })
 
-  test('acheter la réserve porte le stock à deux pots', async () => {
+  test('acheter la réserve puis la ranger porte le stock à deux pots', async () => {
     const safran = await seed('Safran', 1)
     await toggleOrder(safran)
 
     await setDone(entryFor(safran), true)
     await clearDone()
+    await stashReceived(receivedEntries()[0], 1, 'Cuisine')
 
     expect(safran.qty).toBe(2)
     expect(store.shop).toHaveLength(0)
@@ -115,10 +163,11 @@ describe('NP2 — le produit est introuvable (rupture en magasin)', () => {
     await setDone(entryFor(cumin), true)
     await clearDone()
 
-    expect(cumin.qty).toBe(1)
-    expect(store.shop).toHaveLength(1)
+    // le cumin acheté attend « à mettre en stock », le poivre reste à acheter
+    expect(receivedEntries().map(e => e.name)).toEqual(['Cumin'])
     const restant = entryFor(poivre)
     expect(restant.done).toBe(false)
+    expect(restant.received).toBe(false)
     expect(poivre.qty).toBe(0)
   })
 })
@@ -258,4 +307,33 @@ describe('Stock par ingrédient (commentaires Olivier du 16/07/2026)', () => {
   })
 })
 
-test.todo('NP4 — j\'ai acheté plusieurs pots d\'un coup (amélioration décidée : à spécifier)')
+describe('NP4 — j\'ai acheté plusieurs pots d\'un coup (décision Q2 du 16/07/2026)', () => {
+  test('la quantité réelle se saisit au rangement : trois pots entrent au stock', async () => {
+    const cumin = await seed('Cumin', 0)
+    await setDone(entryFor(cumin), true)
+    await clearDone()
+
+    await stashReceived(receivedEntries()[0], 3, 'Cuisine')
+
+    expect(cumin.qty).toBe(3)
+    expect(tables.shopping).toHaveLength(0)
+  })
+})
+
+describe('Lieu d\'achat par ligne (commentaire Olivier 16/07/2026)', () => {
+  test('définir le lieu d\'une ligne le mémorise sur l\'ingrédient', async () => {
+    const cumin = await seed('Cumin', 0)
+    const entry = entryFor(cumin)
+    expect(entry.store).toBe('')
+
+    await setEntryStore(entry, 'Grand Frais')
+
+    expect(entry.store).toBe('Grand Frais')
+    expect(cumin.store).toBe('Grand Frais')
+    expect(tables.items.find(r => r.id === cumin.id).store).toBe('Grand Frais')
+    // la prochaine entrée automatique arrive au bon endroit
+    await removeShopEntry(entry)
+    await toggleOrder(cumin)
+    expect(entryFor(cumin).store).toBe('Grand Frais')
+  })
+})

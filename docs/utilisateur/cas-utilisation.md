@@ -35,10 +35,10 @@ Règles de fond (décisions Olivier) :
 3. En fin de semaine, je fais mes courses : le cumin m'est proposé au bon
    magasin, je l'achète, je le coche.
 4. De retour à la maison, je range mes achats : les produits cochés quittent
-   la liste et m'attendent « à mettre en stock » ; je les intègre au bon
-   emplacement lors d'un inventaire, avec la vraie quantité reçue
-   *(décidé le 16/07/2026, livraison avec le lot Courses ; aujourd'hui le
-   rangement ajoute encore +1 directement au stock)*.
+   la liste et m'attendent « **à mettre en stock** » en tête de l'onglet
+   Inventaire ; pour chacun je vérifie la quantité reçue, je choisis
+   l'emplacement (proposé d'après l'existant) et je range — mon stock
+   affiche à nouveau du cumin. *(Décision Q2 du 16/07/2026.)*
 
 **Résultat attendu** : à aucun moment je n'ai eu à « penser » au cumin ; le
 stock affiché correspond toujours à la réalité de mes placards.
@@ -74,9 +74,12 @@ tous emplacements évolue, et les achats automatiques suivent.
    l'application n'aurait pas repéré, ou en **prévoyant un ingrédient à
    acheter** (réserve, besoin à venir).
 2. J'indique la **quantité** voulue, notamment si j'achète en gros (trois
-   pots de cumin en promotion, un carton de conserves).
+   pots de cumin en promotion, un carton de conserves) — la quantité
+   réellement reçue se confirme au rangement (« à mettre en stock »).
 3. Ces produits rejoignent la liste de courses, chacun sous son magasin,
-   avec leur quantité ; à l'achat et au rangement, le stock en tient compte.
+   avec leur quantité ; je peux **définir ou changer le lieu d'achat**
+   d'une ligne (crayon) — il est mémorisé pour les prochaines fois
+   (16/07/2026).
 
 **Résultat attendu** : la liste de courses combine ce que l'application
 détecte toute seule et ce que je décide d'y mettre, quantités comprises.

@@ -4,6 +4,7 @@
     masterList, setIngredientCategory, isDatedLoc, setLocationDated, setLocationStaleMonths,
     addCategory, renameCategory, removeCategory, setCategorySourcing,
     setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
+    receivedEntries, receivedLoc, stashReceived,
     SOURCING_TYPES } from '../lib/store.svelte.js'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
@@ -81,6 +82,24 @@
   }
 
   const merges = $derived(pendingMerges())
+
+  /* Réception des achats (Q2, 16/07/2026) : les lignes « reçues » depuis
+   * « Ranger les achats » se mettent en stock ici, avec la vraie quantité
+   * et l'emplacement — c'est aussi la réponse à NP4. */
+  const received = $derived(receivedEntries())
+  let stashQty = $state({})
+  let stashLoc = $state({})
+
+  function defaultQty(entry) {
+    return entry.qty ? Math.max(1, Math.round(Number(entry.qty))) : 1
+  }
+
+  async function ranger(entry) {
+    busy = true
+    await stashReceived(entry, stashQty[entry.id] ?? defaultQty(entry), stashLoc[entry.id] ?? receivedLoc(entry))
+    busy = false
+    message = `« ${entry.name} » rangé.`
+  }
 
   /* Les deux noms peuvent être longs et tronqués (iPhone surtout) : un
    * toucher sur la question la déplie en entier (demande Olivier 16/07). */
@@ -176,6 +195,31 @@
       la base de données doit être mise à jour (migration « locations » en attente).</p>
   {/if}
   {#if message}<p class="note manage-msg">{message}</p>{/if}
+
+  {#if received.length}
+    <p class="group-title">À mettre en stock <span class="n">· {received.length}</span></p>
+    <p class="note">Achats rangés depuis les courses : vérifier la quantité reçue,
+      choisir l'emplacement, puis « Ranger ».</p>
+    <ul>
+      {#each received as entry (entry.id)}
+        <li class="row">
+          <span class="name" title={entry.name}>{entry.name}</span>
+          <div class="manage-row" style="flex: 0 1 auto">
+            <input class="f-qty" type="number" inputmode="numeric" min="1" style="flex: 0 1 64px"
+              value={stashQty[entry.id] ?? defaultQty(entry)}
+              oninput={e => stashQty[entry.id] = e.target.value}
+              aria-label={'Quantité reçue de ' + entry.name}>
+            <input list="manage-locs" placeholder="Emplacement" style="flex: 0 1 150px"
+              value={stashLoc[entry.id] ?? receivedLoc(entry)}
+              oninput={e => stashLoc[entry.id] = e.target.value}
+              aria-label={'Emplacement de rangement de ' + entry.name}>
+            <button type="button" class="inv-start" disabled={busy || !(stashLoc[entry.id] ?? receivedLoc(entry)).trim()}
+              onclick={() => ranger(entry)}>Ranger</button>
+          </div>
+        </li>
+      {/each}
+    </ul>
+  {/if}
 
   {#if merges.length}
     <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
@@ -375,8 +419,8 @@
       </li>
     {/each}
   </ul>
+  {/if}
   <datalist id="manage-locs">
     {#each locs as l (l)}<option value={l}></option>{/each}
   </datalist>
-  {/if}
 </section>
