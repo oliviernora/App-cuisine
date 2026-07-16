@@ -1,5 +1,6 @@
--- Migration du 16/07/2026 nuit — EN ATTENTE (SQL Editor, puis npm run
--- check:schema). Lot 5 des commentaires Olivier du 16/07/2026 (décision
+-- Migration du 16/07/2026 nuit — APPLIQUÉE le 16/07/2026 (SQL Editor piloté
+-- en session, GO d'Olivier, sauvegarde préalable, check:schema 16/16).
+-- Lot 5 des commentaires Olivier du 16/07/2026 (décision
 -- Q6) : les RÉSIDENCES (Argenteuil, Oulins, Montalivet…). Chaque résidence
 -- a ses stocks, ses emplacements, ses courses et sa semaine ; les recettes,
 -- sources, réalisations, wish list et master list restent communes au foyer.
