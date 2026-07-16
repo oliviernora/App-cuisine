@@ -326,6 +326,10 @@ li.row, .loc-item .row {
 /* wish list (N11) */
 .chip-on { border-color: var(--accent); color: var(--accent); }
 .wish-star { color: var(--accent); }
+/* fiche recette (16/07/2026) : ★ à droite de la source, ligne sans filet */
+.manage-panel .source-row { border-bottom: none; padding: 0; min-height: 0; }
+.icon-btn.wish-btn { width: auto; padding: 0 10px; font-size: 1.15rem; color: var(--muted); }
+.icon-btn.wish-btn.wish-on { color: var(--accent); border-color: var(--accent); }
 .hard-note { color: var(--accent); font-size: 13px; }
 .manage-panel {
   display: flex; flex-direction: column; gap: 14px;

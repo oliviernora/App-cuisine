@@ -537,6 +537,24 @@ export async function setWishlist(recipe, flag) {
   await supabase.from('recipes').update({ wishlist: flag }).eq('id', recipe.id)
 }
 
+/** Commentaires de la recette — une seule zone, commune à toutes les
+ * réalisations (décision Q3 d'Olivier, 16/07/2026). */
+export async function saveRecipeNotes(recipe, notes) {
+  recipe.notes = notes.trim()
+  const { error } = await supabase.from('recipes').update({ notes: recipe.notes }).eq('id', recipe.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Récupère la photo du plat annoncée par la page d'une fiche existante
+ * (commentaire Olivier 16/07/2026). Renvoie true si une photo a été jointe. */
+export async function fetchPagePhotoFor(recipe) {
+  const { data, error } = await supabase.functions.invoke('rapatrier-page', { body: { url: recipe.url } })
+  if (error || !data?.html) return false
+  const proposal = parseRecipeFromHtml(data.html, recipe.url)
+  if (!proposal?.imageUrl) return false
+  return attachImportedPhoto(recipe, proposal.imageUrl)
+}
+
 /** Remplace les ingrédients (un par ligne), le texte, « pour N personnes », le pays et la catégorie. */
 export async function saveRecipeDetails(recipe, ingredientsText, steps, servings = recipe.servings ?? null, country = recipe.country ?? '', category = recipe.category ?? '') {
   const hid = store.household.id

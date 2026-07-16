@@ -219,6 +219,12 @@ Règles :
   par lot, note « n sans date » si besoin, et formulaire quantité + date
   (+ date en toutes lettres) pour entrer un lot. Les gestes rapides restent
   sur la ligne : + entre un lot du jour, − sort du plus ancien.
+- **Fiche recette** (16/07/2026) : la wish list est une **étoile ★/☆ à
+  droite de la ligne source** (jamais un bouton pleine ligne) ; la zone
+  « Commentaires » est un textarea pleine largeur juste après la recette
+  (bouton Enregistrer visible seulement si le texte a changé) ; **toutes
+  les actions vivent en bas de la fiche**, « Modifier » en dernier et sans
+  qualificatif.
 - **Nom tronqué déplié au toucher** (16/07/2026) : quand un libellé long est
   coupé par l'ellipse (question de rapprochement, iPhone surtout), le
   toucher bascule l'affichage complet sur plusieurs lignes (classe

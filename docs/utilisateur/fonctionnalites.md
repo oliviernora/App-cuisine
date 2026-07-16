@@ -313,11 +313,20 @@ Il disparaît une fois rangé.
     (« Page », copie privée du foyer). Au premier usage depuis le site en
     ligne, Chrome demande l'autorisation d'accéder au réseau local
     (bulle près de la barre d'adresse) : cliquer « Autoriser », une fois.
-- Toucher une ligne déplie la fiche : source, lien « Voir en ligne » (avec le
-  nom du site), nom de la vidéo locale, **ingrédients**, **texte de la
-  recette**, historique des réalisations, et « **J'ai fait cette recette** »
-  (date du jour proposée, commentaire facultatif).
-- « Ajouter/Modifier ingrédients et recette » : les ingrédients se saisissent
+- Toucher une ligne déplie la fiche (réorganisée le 16/07/2026, commentaires
+  Olivier) : **source avec l'étoile ★ wish list à sa droite**, lien « Voir
+  en ligne », vignettes photos, **ingrédients**, **texte de la recette**,
+  puis la zone « **Commentaires** » en pleine largeur — une seule, commune
+  à toutes les réalisations (décision Q3) —, les dates des réalisations, et
+  **tous les boutons en bas** : « J'ai fait cette recette » (consignée au
+  jour même, la date a disparu), « Ajouter la photo du plat » (un seul
+  bouton — rattachée à la réalisation du jour s'il y en a une), « Photo de
+  la recette (page du livre) », « **Récupérer la photo de la page** » (pour
+  les fiches importées sans photo du plat ; nécessite la fonction
+  rapatrier-page à jour), et « **Modifier** ».
+- Les recettes importées d'une page web gardent la **lisibilité du site** :
+  étapes séparées et numérotées (16/07/2026).
+- « Modifier » : les ingrédients se saisissent
   un par ligne (« 500 g asperges vertes ») — quantité, unité et nom sont
   compris automatiquement ; un « **!** » en tête de ligne marque l'ingrédient
   **difficile à sourcer** (« ! 20 g morilles ») : la fiche l'affiche « à
@@ -328,14 +337,14 @@ Il disparaît une fois rangé.
   générique reste « beurre ») ; « **(facultatif)** » en fin de ligne marque
   l'ingrédient facultatif. Le texte de la recette est libre. Le champ
   « **Pour N personnes** » sert au calcul des quantités de la semaine.
-- **Photos** : sur la fiche, « Ajouter la photo du plat » et « Photo de la
-  recette (page du livre) » ouvrent l'appareil photo (ou le sélecteur de
-  fichier). Les vignettes s'affichent sur la fiche (× pour supprimer, avec
-  confirmation). Le formulaire « J'ai fait cette recette » accepte aussi une
-  **photo du plat**, liée à cette réalisation. Les images sont compressées
-  sur l'appareil avant l'envoi et stockées dans un espace **privé du foyer**
-  (copie privée — jamais public). Limite actuelle : les photos ne sont pas
-  encore consultables hors ligne.
+- **Photos** : les boutons du bas ouvrent l'appareil photo (ou le sélecteur
+  de fichier) ; plusieurs photos possibles — pages du livre et plats des
+  réalisations. Les vignettes s'affichent sur la fiche (× pour supprimer,
+  avec confirmation). La photo du plat ajoutée le jour d'une réalisation
+  lui est rattachée. Les images sont compressées sur l'appareil avant
+  l'envoi et stockées dans un espace **privé du foyer** (copie privée —
+  jamais public). Limite actuelle : les photos ne sont pas encore
+  consultables hors ligne.
 - État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
   (série Le Point, dont 91 avec article et 5 déjà cuisinées).
 - Limite actuelle : les recettes ne se synchronisent pas en temps réel entre

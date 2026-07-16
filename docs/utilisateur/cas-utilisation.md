@@ -163,9 +163,12 @@ date ; quand je bois une bouteille, j'indique sa date.*
    ingrédients et étapes ; je relis, je corrige, j'enregistre. C'est ma
    copie privée — consultable hors ligne, jamais publique, partagée
    seulement avec le foyer.
-3. Je **consigne la date** de réalisation, avec commentaire et photo du
-   plat ; la recette porte tout son historique, et je peux amender ma copie
-   (mes doses, mes tours de main) sans perdre le texte d'origine.
+3. Je **consigne mes réalisations** d'un geste (« J'ai fait cette
+   recette », datée du jour) et j'ajoute la photo du plat ; la recette
+   porte tout son historique. Mes **commentaires** (doses, tours de main,
+   avis des convives) vivent dans une zone unique de la fiche, commune à
+   toutes les réalisations (décision Q3 du 16/07/2026), et je peux amender
+   ma copie sans perdre le texte d'origine.
 4. En volume : je peux **importer une liste de livres ou de sites** (export
    d'un logiciel de scan de livres, avec ISBN) et **capturer des recettes
    par lot** (scan de plusieurs pages d'un livre).

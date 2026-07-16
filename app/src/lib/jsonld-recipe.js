@@ -48,13 +48,22 @@ function ingredientLines(recipe) {
     .filter(Boolean)
 }
 
-/** Étapes : chaînes, HowToStep ({ text }) ou HowToSection ({ itemListElement }). */
+/** Étapes : chaînes, HowToStep ({ text }) ou HowToSection ({ itemListElement }).
+ * Une chaîne unique avec des retours à la ligne est découpée en étapes
+ * (certains sites livrent tout le texte d'un bloc — lisibilité, 16/07/2026). */
 function stepTexts(v) {
   return asList(v).flatMap(step => {
-    if (typeof step === 'string') return [clean(step)]
+    if (typeof step === 'string') return String(step).split(/\r?\n/).map(clean)
     if (step?.itemListElement) return stepTexts(step.itemListElement)
     return step?.text ? [clean(step.text)] : []
   }).filter(Boolean)
+}
+
+/** Étapes numérotées comme en ligne (« 1. … ») quand il y en a plusieurs et
+ * qu'elles ne le sont pas déjà (commentaire Olivier 16/07/2026). */
+export function numberedSteps(steps) {
+  if (steps.length < 2 || steps.some(s => /^\d+[.)]/.test(s))) return steps.join('\n\n')
+  return steps.map((s, i) => (i + 1) + '. ' + s).join('\n\n')
 }
 
 /** Photo du plat : chaîne, tableau ou ImageObject ({ url } / { contentUrl }),
@@ -97,7 +106,7 @@ export function parseRecipeFromHtml(html, url) {
       category: clean(asList(recipe.recipeCategory)[0] ?? ''),
       sourceName: clean(asList(recipe.publisher)[0]?.name ?? '') || new URL(url).hostname.replace(/^www\./, ''),
       ingredientLines: ingredientLines(recipe),
-      steps: stepTexts(recipe.recipeInstructions).join('\n\n'),
+      steps: numberedSteps(stepTexts(recipe.recipeInstructions)),
       url,
       imageUrl: imageUrlOf(recipe, url)
     }

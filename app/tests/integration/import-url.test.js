@@ -13,7 +13,7 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake, edgeFunctions, storageFiles } from '../helpers/fake-supabase.js'
 import {
   store, fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, ingredientsOf,
-  parseIngredientLine, attachImportedPhoto
+  parseIngredientLine, attachImportedPhoto, fetchPagePhotoFor, saveRecipeNotes
 } from '../../src/lib/store.svelte.js'
 import { parseRecipeFromHtml } from '../../src/lib/jsonld-recipe.js'
 import {
@@ -55,6 +55,52 @@ describe('Parsing du JSON-LD schema.org/Recipe', () => {
     expect(p.ingredientLines).toEqual(['1 pâte feuilletée', '6 tomates', '2 c. à s. de moutarde'])
     expect(p.steps.split('\n\n')).toHaveLength(2)
     expect(p.imageUrl).toBe('https://exemple-cuisine.fr/img/tarte-tomates.jpg')
+  })
+
+  test('lisibilité (16/07/2026) : les étapes sont numérotées comme en ligne', () => {
+    const p = parseRecipeFromHtml(MARIE_CLAIRE_HTML, MARIE_CLAIRE_URL)
+    const etapes = p.steps.split('\n\n')
+    expect(etapes[0].startsWith('1. ')).toBe(true)
+    expect(etapes[3].startsWith('4. ')).toBe(true)
+  })
+
+  test('lisibilité (16/07/2026) : une chaîne unique avec retours à la ligne est découpée en étapes', () => {
+    const html = '<script type="application/ld+json">' + JSON.stringify({
+      '@type': 'Recipe', name: 'Soupe test',
+      recipeIngredient: ['1 oignon'],
+      recipeInstructions: 'Émincer l\'oignon.\nLe faire revenir.\nMouiller et laisser mijoter.'
+    }) + '</scr' + 'ipt>'
+    const p = parseRecipeFromHtml(html, 'https://exemple.fr/soupe')
+    expect(p.steps.split('\n\n')).toEqual([
+      '1. Émincer l\'oignon.', '2. Le faire revenir.', '3. Mouiller et laisser mijoter.'])
+  })
+
+  test('photo depuis la page pour une fiche déjà importée (16/07/2026)', async () => {
+    edgeFunctions['rapatrier-page'] = async body => body.image
+      ? { image: Buffer.from('JPG').toString('base64'), contentType: 'image/jpeg' }
+      : { html: MARIE_CLAIRE_HTML }
+    const { recipe } = await createImportedRecipe({
+      url: MARIE_CLAIRE_URL, title: 'Salade de poulet aux herbes', sourceTitle: 'Marie Claire',
+      ingredientsText: '', steps: '', servings: 4, country: '', category: ''
+    })
+    expect(store.photos).toHaveLength(0)
+
+    const ok = await fetchPagePhotoFor(recipe)
+
+    expect(ok).toBe(true)
+    expect(store.photos).toHaveLength(1)
+    expect(store.photos[0].kind).toBe('plat')
+    expect(storageFiles.size).toBe(1)
+  })
+
+  test('commentaires communs (Q3, 16/07/2026) : la zone s\'enregistre sur la recette', async () => {
+    const { recipe } = await createImportedRecipe({
+      url: 'https://exemple.fr/r', title: 'Recette à notes', sourceTitle: 'Exemple',
+      ingredientsText: '', steps: '', servings: null, country: '', category: ''
+    })
+    await saveRecipeNotes(recipe, ' Très bon — doubler les épices. ')
+    expect(recipe.notes).toBe('Très bon — doubler les épices.')
+    expect(tables.recipes.find(r => r.id === recipe.id).notes).toBe('Très bon — doubler les épices.')
   })
 
   test('page sans champ image : imageUrl vide, l\'import reste possible', () => {

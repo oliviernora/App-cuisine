@@ -32,12 +32,17 @@ actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
    lot daté si congélateur) — plus de +1 direct, NP4 réglé et testé.
    Migration `shopping.received` appliquée (GO Olivier). Parcours réel
    complet vérifié sur 5173. Après republication : M48-M50 (+M47 iPhone).
-4. **Lot 4 à faire** — Fiche recette : sauts de ligne perdus à l'import URL
-   (investiguer sur « Gazpacho d'asperge »), ★ wishlist à droite de la
-   source, boutons en bas, zone commentaires pleine largeur COMMUNE aux
-   réalisations (Q3 : la date disparaît, réalisation datée du jour de
-   saisie), un seul bouton photo du plat (Q4, plusieurs photos possibles),
-   « Récupérer la photo depuis la page » pour les fiches existantes.
+4. **Lot 4 LIVRÉ (16/07 soir) — À REPUBLIER ; réparation des étapes EN
+   ATTENTE DE GO** — Fiche recette : ★ à droite de la source, commentaires
+   communs (recipes.notes) pleine largeur, réalisations datées du jour,
+   boutons en bas (photo du plat unique rattachée à la réalisation du
+   jour, « Récupérer la photo de la page », « Modifier »), imports URL
+   lisibles (étapes découpées + numérotées). Investigation Gazpacho : bloc
+   unique = fiches extraites (Evernote), pas l'import URL ; réparation
+   prête pour 48/56 fiches (plan à blanc validé, `mcp/tmp-repare-etapes.mjs
+   executer` après GO ; 8 fiches irrécupérables restent en l'état).
+   « Récupérer la photo de la page » attend le redéploiement de
+   rapatrier-page (commande dans EN ATTENTE d'Olivier).
 5. **Lot 5 à faire** — Résidences (Argenteuil, Oulins, Montalivet) :
    stocks, courses, emplacements, inventaires ET Semaine par résidence
    (Q6) ; recettes/sources/wishlist/réalisations communes ; sélecteur dans
@@ -118,10 +123,9 @@ actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
 - (Migration du 16/07 appliquée et prod publiée le 16/07 au soir.)
 - **Décision NP4 réglée le 16/07 (Q2)** : réception des achats via
   l'inventaire — sera livrée avec le lot 3 Courses.
-- **Redéployer l'Edge Function** `rapatrier-page` (photo du plat à l'import
-  URL, livrée le 14/07) : `npx supabase functions deploy rapatrier-page
-  --project-ref esvhefwihcjfvvvazykd`, puis dérouler M42 et republier la
-  prod (`mettre-en-ligne.cmd`).
+- (Edge Function `rapatrier-page` redéployée le 16/07 au soir — M52 ✓ en
+  réel, la photo du Gaspacho est sur sa fiche ; M42 reste à dérouler à
+  l'occasion d'un vrai import URL.)
 - Tri Evernote : 12 douteuses restantes — preview
   `Evernote/preview-douteuses.html` (double-clic), cocher dans
   `Evernote/tri.md`.

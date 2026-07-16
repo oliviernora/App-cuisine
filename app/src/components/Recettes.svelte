@@ -3,7 +3,7 @@
     fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
-    attachImportedPhoto } from '../lib/store.svelte.js'
+    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
@@ -13,8 +13,6 @@
 
   let search = $state('')
   let open = $state(null)
-  let madeOn = $state(new Date().toISOString().slice(0, 10))
-  let comment = $state('')
   let busy = $state(false)
   let sourceFilter = $state('Toutes')
 
@@ -104,10 +102,18 @@
 
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
-    madeOn = new Date().toISOString().slice(0, 10)
-    comment = ''
-    faitPhotoName = ''
     editing = false
+    notesText = recipe.notes ?? ''
+    photoMsg = ''
+  }
+
+  /* Zone commentaires commune à toutes les réalisations (Q3, 16/07/2026). */
+  let notesText = $state('')
+
+  async function saveNotes(recipe) {
+    busy = true
+    await saveRecipeNotes(recipe, notesText)
+    busy = false
   }
 
   function startEdit(recipe) {
@@ -129,19 +135,18 @@
     editing = false
   }
 
-  let faitPhotoInput = $state(null)
-  let faitPhotoName = $state('')
-
-  async function fait(recipe, e) {
-    e.preventDefault()
+  /* « J'ai fait cette recette » : consignée au jour même — la date a disparu
+   * du formulaire, les commentaires sont communs (décision Q3, 16/07/2026). */
+  async function fait(recipe) {
     busy = true
-    const real = await addRealisation(recipe, madeOn, comment)
-    const file = faitPhotoInput?.files?.[0]
-    if (real && file) await addRecipePhoto(recipe, file, 'plat', real.id)
-    if (faitPhotoInput) faitPhotoInput.value = ''
-    faitPhotoName = ''
-    comment = ''
+    await addRealisation(recipe, new Date().toISOString().slice(0, 10), '')
     busy = false
+  }
+
+  /** Réalisation consignée aujourd'hui (la photo du plat s'y rattache). */
+  function realOfToday(recipe) {
+    const today = new Date().toISOString().slice(0, 10)
+    return store.realisations.find(r => r.recipe_id === recipe.id && r.made_on === today)
   }
 
   async function addPhoto(recipe, e, kind) {
@@ -149,7 +154,18 @@
     e.target.value = ''
     if (!file) return
     busy = true
-    await addRecipePhoto(recipe, file, kind)
+    await addRecipePhoto(recipe, file, kind, kind === 'plat' ? realOfToday(recipe)?.id ?? null : null)
+    busy = false
+  }
+
+  /* Photo du plat depuis la page de la recette (fiches déjà importées). */
+  let photoMsg = $state('')
+
+  async function pagePhoto(recipe) {
+    busy = true
+    photoMsg = 'Récupération de la photo…'
+    const ok = await fetchPagePhotoFor(recipe)
+    photoMsg = ok ? '' : 'La page n\'annonce pas de photo (ou n\'a pas pu être lue) — l\'ajouter à la main.'
     busy = false
   }
 
@@ -483,16 +499,21 @@
           {#if open === recipe.id}
             <div class="manage-panel">
               <div class="manage-block">
-                {#if sourceOf(recipe)}<p>Source : {sourceOf(recipe).title}{recipe.country ? ' · Pays : ' + recipe.country : ''}{recipe.category ? ' · ' + recipe.category : ''}</p>{/if}
+                <!-- ★ à droite de la source (économie d'une ligne — commentaire Olivier 16/07/2026) -->
+                <div class="row source-row">
+                  <span class="name">{sourceOf(recipe) ? 'Source : ' + sourceOf(recipe).title : 'Sans source'}{recipe.country ? ' · Pays : ' + recipe.country : ''}{recipe.category ? ' · ' + recipe.category : ''}</span>
+                  <button type="button" class="icon-btn wish-btn" class:wish-on={recipe.wishlist} disabled={busy}
+                    aria-label={recipe.wishlist ? 'Retirer de la wish list' : 'Ajouter à la wish list'}
+                    title={recipe.wishlist ? 'Dans la wish list — appuyer pour retirer' : 'Ajouter à la wish list'}
+                    onclick={async () => { busy = true; await setWishlist(recipe, !recipe.wishlist); busy = false }}>
+                    {recipe.wishlist ? '★' : '☆'}
+                  </button>
+                </div>
                 {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Voir en ligne ({new URL(recipe.url).hostname.replace('www.', '')})</a></p>{/if}
                 {#if recipe.video}<p class="note">Vidéo locale : {recipe.video}</p>{/if}
-                <button type="button" class="inv-manage" class:chip-on={recipe.wishlist} disabled={busy}
-                  onclick={async () => { busy = true; await setWishlist(recipe, !recipe.wishlist); busy = false }}>
-                  {recipe.wishlist ? '★ Dans la wish list — retirer' : '☆ Ajouter à la wish list'}
-                </button>
               </div>
-              <div class="manage-block">
-                {#if photosOf(recipe.id).length}
+              {#if photosOf(recipe.id).length}
+                <div class="manage-block">
                   <div class="photo-grid">
                     {#each photosOf(recipe.id) as photo (photo.id)}
                       <figure class="photo-thumb">
@@ -505,18 +526,8 @@
                       </figure>
                     {/each}
                   </div>
-                {/if}
-                <p class="manage-row">
-                  <label class="file-btn">Ajouter la photo du plat
-                    <input type="file" accept="image/*" hidden disabled={busy}
-                      onchange={e => addPhoto(recipe, e, 'plat')}>
-                  </label>
-                  <label class="file-btn">Photo de la recette (page du livre)
-                    <input type="file" accept="image/*" hidden disabled={busy}
-                      onchange={e => addPhoto(recipe, e, 'page')}>
-                  </label>
-                </p>
-              </div>
+                </div>
+              {/if}
               <div class="manage-block">
                 {#if editing}
                   <p class="manage-row">
@@ -560,34 +571,48 @@
                     </ul>
                   {/if}
                   {#if recipe.steps}<p class="steps">{recipe.steps}</p>{/if}
-                  <button type="button" class="inv-manage" onclick={() => startEdit(recipe)}>
-                    {ingredientsOf(recipe.id).length || recipe.steps ? 'Modifier ingrédients et recette' : 'Ajouter ingrédients et recette'}
-                  </button>
+                {/if}
+              </div>
+              <!-- Commentaires : une seule zone, pleine largeur, commune à toutes
+                   les réalisations (décision Q3 d'Olivier, 16/07/2026). -->
+              <div class="manage-block">
+                <p>Commentaires :</p>
+                <textarea class="notes-area" rows="3" bind:value={notesText}
+                  placeholder="Mes notes sur cette recette (doses, tours de main, avis des convives…)"
+                  aria-label="Commentaires de la recette"></textarea>
+                {#if notesText.trim() !== (recipe.notes ?? '').trim()}
+                  <div class="manage-row">
+                    <button type="button" class="inv-start" disabled={busy} onclick={() => saveNotes(recipe)}>Enregistrer le commentaire</button>
+                  </div>
                 {/if}
               </div>
               {#if realsOf(recipe).length}
                 <div class="manage-block">
-                  <p>Réalisations :</p>
-                  <ul>
-                    {#each realsOf(recipe) as real (real.id)}
-                      <li class="row">
-                        <span class="name">{real.made_on ? new Date(real.made_on + 'T00:00').toLocaleDateString('fr-FR') : 'date non notée'}</span>
-                        <span class="note" title={real.comment}>{real.comment}</span>
-                      </li>
-                    {/each}
-                  </ul>
+                  <p>Réalisations : {realsOf(recipe).map(real => real.made_on
+                    ? new Date(real.made_on + 'T00:00').toLocaleDateString('fr-FR')
+                    : 'date non notée').join(' · ')}</p>
                 </div>
               {/if}
-              <form class="manage-row" onsubmit={e => fait(recipe, e)}>
-                <input type="date" bind:value={madeOn} aria-label="Date de réalisation">
-                <input bind:value={comment} placeholder="Commentaire (facultatif)" aria-label="Commentaire">
-                <label class="file-btn">{faitPhotoName ? 'Photo : ' + faitPhotoName : 'Photo du plat'}
-                  <input type="file" accept="image/*" hidden bind:this={faitPhotoInput}
-                    onchange={e => faitPhotoName = e.target.files?.[0]?.name ?? ''}
-                    aria-label="Photo du plat (facultatif)">
+              {#if photoMsg}<p class="message">{photoMsg}</p>{/if}
+              <!-- Tous les boutons en bas (commentaire Olivier 16/07/2026) ; un seul
+                   bouton photo du plat (Q4), rattaché à la réalisation du jour. -->
+              <div class="manage-row">
+                <button type="button" class="inv-start" disabled={busy} onclick={() => fait(recipe)}>J'ai fait cette recette</button>
+                <label class="file-btn">Ajouter la photo du plat
+                  <input type="file" accept="image/*" hidden disabled={busy}
+                    onchange={e => addPhoto(recipe, e, 'plat')}>
                 </label>
-                <button class="inv-start" disabled={busy}>J'ai fait cette recette</button>
-              </form>
+                <label class="file-btn">Photo de la recette (page du livre)
+                  <input type="file" accept="image/*" hidden disabled={busy}
+                    onchange={e => addPhoto(recipe, e, 'page')}>
+                </label>
+                {#if recipe.url && !photosOf(recipe.id).some(p => p.kind === 'plat')}
+                  <button type="button" class="inv-manage" disabled={busy} onclick={() => pagePhoto(recipe)}>
+                    Récupérer la photo de la page
+                  </button>
+                {/if}
+                <button type="button" class="inv-manage" onclick={() => startEdit(recipe)}>Modifier</button>
+              </div>
             </div>
           {/if}
         </li>
