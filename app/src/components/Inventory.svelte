@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
-  import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory, lotAdjustments } from '../lib/store.svelte.js'
+  import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory,
+    lotAdjustments, looseMatch, sameIngredient } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { MINUS, PLUS, MIC } from '../lib/icons.js'
 
@@ -26,18 +27,40 @@
   const lotAdjs = $derived(lotAdjustments())
 
   /* Ambiguïté (demande Olivier 07/07) : « carvi » peut correspondre à carvi,
-   * carvi noir, carvi noir entier… → un menu de choix, jamais de pari. */
-  let choice = $state(null) // { name, n, candidates }
+   * carvi noir, carvi noir entier… → un menu de choix, jamais de pari.
+   * Depuis le 16/07 : les orthographes proches (« clou » ≈ « clous de
+   * girofle ») sont retrouvées aussi ; un rapprochement au singulier près
+   * passe toujours par le menu, jamais déclaré d'office. */
+  let choice = $state(null) // { name, n, candidates, from? (ligne « vue » à corriger) }
 
   function declareByName(name, n) {
     search = ''
     const exact = locItems.find(i => fold(i.name) === fold(name))
     if (exact) { declare(exact, n); return exact.name }
-    const candidates = locItems.filter(i => fold(i.name).includes(fold(name)))
-    if (candidates.length === 1) { declare(candidates[0], n); return candidates[0].name }
-    if (candidates.length > 1) { choice = { name, n, candidates }; return null }
+    const sures = locItems.filter(i => fold(i.name).includes(fold(name)) || sameIngredient(i.name, name))
+    if (sures.length === 1) { declare(sures[0], n); return sures[0].name }
+    const candidates = locItems.filter(i => looseMatch(i.name, name))
+    if (candidates.length >= 1) { choice = { name, n, candidates }; return null }
     declare(name, n)
     return name + ' (nouveau)'
+  }
+
+  /* Corriger une saisie « vue » (demande Olivier 16/07) : mauvaise variante
+   * choisie → le comptage se transfère sur le bon produit, ou repart
+   * « à vérifier ». */
+  function fixSeen(item) {
+    const n = store.inv.seen[item.id]
+    choice = {
+      name: item.name, n, from: item,
+      candidates: locItems.filter(i => i.id !== item.id && looseMatch(i.name, item.name))
+    }
+  }
+
+  function pickChoice(target) {
+    if (choice.from) adjustSeen(choice.from.id, -choice.n)
+    declare(target, choice.n)
+    hint = 'Vu : ' + (typeof target === 'object' ? target.name : target + ' (nouveau)')
+    choice = null
   }
 
   function submit(e) {
@@ -72,6 +95,17 @@
         : 'Plusieurs produits correspondent — choisissez dans la liste.'
     }
   })
+
+  /* Le 2e appui arrête TOUJOURS la dictée (demande Olivier 16/07) : l'état
+   * est posé au toucher, sans attendre l'événement onstart — sur iPhone il
+   * peut ne jamais venir, et le bouton restait « sourd ». */
+  function toggleMic() {
+    if (listening) { listening = false; rec.stop() }
+    else {
+      listening = true
+      try { rec.start() } catch { listening = false }
+    }
+  }
 </script>
 
 <section class="inventory">
@@ -82,20 +116,32 @@
 
   {#if choice}
     <div class="panel">
-      <p>« {choice.name} »{choice.n > 1 ? ' × ' + choice.n : ''} — plusieurs produits correspondent :</p>
+      {#if choice.from}
+        <p>« {choice.name} »{choice.n > 1 ? ' × ' + choice.n : ''} — ce n'était pas le bon produit ?</p>
+      {:else}
+        <p>« {choice.name} »{choice.n > 1 ? ' × ' + choice.n : ''} — plusieurs produits correspondent :</p>
+      {/if}
       <ul class="manage-items">
         {#each choice.candidates as c (c.id)}
           <li class="row">
-            <button type="button" class="rowbtn" onclick={() => { declare(c, choice.n); hint = 'Vu : ' + c.name; choice = null }}>
+            <button type="button" class="rowbtn" onclick={() => pickChoice(c)}>
               {c.name}
             </button>
           </li>
         {/each}
-        <li class="row">
-          <button type="button" class="rowbtn" onclick={() => { declare(choice.name, choice.n); hint = 'Vu : ' + choice.name + ' (nouveau)'; choice = null }}>
-            Nouveau produit « {choice.name} »
-          </button>
-        </li>
+        {#if choice.from}
+          <li class="row">
+            <button type="button" class="rowbtn" onclick={() => { adjustSeen(choice.from.id, -choice.n); hint = '« ' + choice.name + ' » est reparti à vérifier.'; choice = null }}>
+              Ce n'était rien — remettre « {choice.name} » à vérifier
+            </button>
+          </li>
+        {:else}
+          <li class="row">
+            <button type="button" class="rowbtn" onclick={() => pickChoice(choice.name)}>
+              Nouveau produit « {choice.name} »
+            </button>
+          </li>
+        {/if}
       </ul>
       <button type="button" class="inv-manage" onclick={() => choice = null}>Annuler</button>
     </div>
@@ -133,7 +179,10 @@
     <ul>
       {#each seenItems as item (item.id)}
         <li class="row seen">
-          <span class="name" title={item.name}>{item.name}</span>
+          <button type="button" class="rowbtn-full info" title="Corriger : ce n'était pas ce produit ?"
+            onclick={() => fixSeen(item)}>
+            <span class="name">{item.name}</span>
+          </button>
           <div class="qty">
             <button type="button" aria-label="Un pot de moins" onclick={() => adjustSeen(item.id, -1)}><Icon d={MINUS} /></button>
             <output>{store.inv.seen[item.id]}</output>
@@ -183,7 +232,7 @@
       <input class="f-name" bind:value={search} placeholder="Produit trouvé (quelques lettres suffisent)">
       {#if voiceAvailable}
         <button class="mic" class:listening type="button" aria-label="Déclarer à la voix"
-          onclick={() => listening ? rec.stop() : rec.start()}><Icon d={MIC} /></button>
+          onclick={toggleMic}><Icon d={MIC} /></button>
       {/if}
       <button class="submit">Vu</button>
       <p class="hint">{hint}</p>

@@ -12,7 +12,7 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, declare, adjustSeen, startInventory, finishInventory,
-  abandonInventory, resumeInventory, removeShopEntry, isDismissed
+  abandonInventory, resumeInventory, removeShopEntry, isDismissed, looseMatch
 } from '../../src/lib/store.svelte.js'
 
 const mem = new Map()
@@ -71,6 +71,30 @@ describe('N2 — mode inventaire', () => {
     expect(store.locations.find(l => l.name === 'Cuisine')?.last_inventory_at).toBeTruthy()
     expect(store.schemaWarning).toBe(false)
     expect(store.inv).toBeNull()
+  })
+
+  test('orthographes proches : « clou de girofle » retrouve « Clous de girofle » (16/07/2026)', () => {
+    expect(looseMatch('clou de girofle', 'Clous de girofle')).toBe(true)
+    expect(looseMatch('Clous de girofle', 'clou de girofle')).toBe(true)
+    expect(looseMatch('carvi', 'Carvi noir entier')).toBe(true) // sous-chaîne, comme avant
+    expect(looseMatch('épinards', 'Épinard')).toBe(true)
+    expect(looseMatch('poivre noir', 'Sel fin')).toBe(false)
+  })
+
+  test('correction d\'un vu : le comptage se transfère sur le bon produit', async () => {
+    const clous = await seed('Clous de girofle', 1)
+    const moulus = await seed('Clous de girofle moulus', 1)
+    startInventory('Cuisine')
+    declare(moulus, 3) // erreur : c'était les entiers
+    // correction (écran) : retirer du mauvais, déclarer le bon
+    adjustSeen(moulus.id, -3)
+    declare(clous, 3)
+    expect(store.inv.seen[moulus.id]).toBeUndefined()
+    expect(store.inv.seen[clous.id]).toBe(3)
+
+    await finishInventory()
+    expect(clous.qty).toBe(3)
+    expect(moulus.qty).toBe(0) // jamais recompté : à zéro
   })
 
   test('correction d\'erreur : redescendre un vu à zéro le remet à vérifier', async () => {

@@ -82,6 +82,10 @@
 
   const merges = $derived(pendingMerges())
 
+  /* Les deux noms peuvent être longs et tronqués (iPhone surtout) : un
+   * toucher sur la question la déplie en entier (demande Olivier 16/07). */
+  let mergeOpen = $state(null)
+
   async function answer(m, yes) {
     busy = true
     await (yes ? confirmIngredient(m.a, m.b) : rejectIngredient(m.a, m.b))
@@ -177,8 +181,12 @@
     <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
     <ul>
       {#each merges as m (m.a + '|' + m.b)}
+        {@const key = m.a + '|' + m.b}
         <li class="row">
-          <span class="name">« {m.b} » et « {m.a} » : même ingrédient ?</span>
+          <button type="button" class="rowbtn-full info" title="Afficher les noms en entier"
+            onclick={() => mergeOpen = mergeOpen === key ? null : key}>
+            <span class="name" class:name-full={mergeOpen === key}>« {m.b} » et « {m.a} » : même ingrédient ?</span>
+          </button>
           <button type="button" class="inv-start" disabled={busy} onclick={() => answer(m, true)}>Oui</button>
           <button type="button" class="inv-manage" disabled={busy} onclick={() => answer(m, false)}>Non</button>
         </li>

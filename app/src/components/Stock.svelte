@@ -178,9 +178,14 @@
     }
   })
 
+  /* Le 2e appui arrête TOUJOURS la dictée (demande Olivier 16/07) : l'état
+   * est posé au toucher, sans attendre onstart — absent parfois sur iPhone. */
   function toggleMic() {
-    if (listening) rec.stop()
-    else rec.start()
+    if (listening) { listening = false; rec.stop() }
+    else {
+      listening = true
+      try { rec.start() } catch { listening = false }
+    }
   }
 </script>
 

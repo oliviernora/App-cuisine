@@ -126,6 +126,17 @@ l'inventaire, revenir sur Inventaire reprend exactement où vous étiez
 Pendant l'inventaire, si un nom dicté ou tapé correspond à **plusieurs
 produits** (« carvi » → carvi, carvi noir, carvi noir entier), un menu
 propose de choisir — ou de créer un nouveau produit. Jamais de pari.
+Depuis le 16/07/2026, les **orthographes proches sont retrouvées aussi** :
+« clou de girofle » retrouve « Clous de girofle » (singulier/pluriel).
+Un alias déjà confirmé est déclaré directement ; un simple rapprochement
+passe toujours par le menu de choix.
+
+**Corriger une saisie « vue »** (16/07/2026) : toucher le nom d'une ligne
+déjà vue ouvre un panneau « ce n'était pas le bon produit ? » — choisir la
+bonne variante (le comptage se transfère) ou « remettre à vérifier ».
+
+**Micro** (16/07/2026) : un deuxième appui sur le micro arrête toujours la
+dictée, y compris sur iPhone.
 
 ### Master list des ingrédients
 
@@ -156,7 +167,9 @@ pluriel, majuscules) entre le stock et les recettes, une question apparaît en
 haut de l'onglet : « même ingrédient ? ». **Oui** relie les deux orthographes
 pour toujours : le stock, les recettes et la liste de courses les considèrent
 comme un seul ingrédient. **Non** est aussi mémorisé : la question ne revient
-jamais. Rien n'est jamais fusionné sans votre accord.
+jamais. Rien n'est jamais fusionné sans votre accord. Si les deux noms sont
+longs (tronqués sur iPhone), **toucher la question l'affiche en entier**
+(16/07/2026).
 
 ### Gérer un emplacement (bouton « Gérer »)
 

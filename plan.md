@@ -17,10 +17,14 @@ actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
    réel. Reste : chaque appareil du foyer doit RECHARGER l'app une fois
    (service worker — un appareil resté sur l'ancienne version réinsère des
    lignes de courses selon l'ancienne règle, constaté et résolu le 16/07).
-2. **Lot 2 à faire** — Inventaires : noms complets au clic (réconciliation),
-   alignement Gérer/Inventaire, saisie cachée par le clavier iPhone,
-   corriger une ligne « Vu », rapprocher les orthographes proches
-   (clou/clous de girofle), micro iPhone (2e appui = stop — à investiguer).
+2. **Lot 2 LIVRÉ (16/07 au soir) — À REPUBLIER puis M47 sur iPhone** —
+   Inventaires : question de rapprochement dépliable au toucher, boutons
+   Gérer/Inventaire alignés, barre d'ajout au-dessus du clavier
+   (visualViewport), correction d'une ligne « Vu » (transfert ou remise à
+   vérifier), orthographes proches retrouvées (alias = direct,
+   rapprochement = menu), micro : 2e appui = stop. Vérifié sur 5173 ;
+   M47 (clavier/micro/dépliage) à faire par Olivier sur iPhone après
+   republication (`app/mettre-en-ligne.cmd`).
 3. **Lot 3 à faire** — Courses : lieu d'achat définissable/modifiable par
    ligne ; réception via l'inventaire (décision Q2 : « Ranger » envoie vers
    une liste « à mettre en stock », l'inventaire intègre — remplace le +1

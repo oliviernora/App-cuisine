@@ -83,6 +83,18 @@
   }
 
   init()
+
+  /* iPhone : le clavier virtuel recouvre la barre d'ajout fixée en bas ;
+   * visualViewport donne la hauteur réellement visible et la barre remonte
+   * d'autant via --clavier (commentaire Olivier 16/07/2026). Sans clavier
+   * (PC), la valeur reste 0 : rien ne change. */
+  if (typeof window !== 'undefined' && window.visualViewport) {
+    const vv = window.visualViewport
+    const suivreClavier = () => document.documentElement.style.setProperty('--clavier',
+      Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 'px')
+    vv.addEventListener('resize', suivreClavier)
+    vv.addEventListener('scroll', suivreClavier)
+  }
 </script>
 
 {#if !store.ready}

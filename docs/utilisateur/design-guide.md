@@ -219,6 +219,13 @@ Règles :
   par lot, note « n sans date » si besoin, et formulaire quantité + date
   (+ date en toutes lettres) pour entrer un lot. Les gestes rapides restent
   sur la ligne : + entre un lot du jour, − sort du plus ancien.
+- **Nom tronqué déplié au toucher** (16/07/2026) : quand un libellé long est
+  coupé par l'ellipse (question de rapprochement, iPhone surtout), le
+  toucher bascule l'affichage complet sur plusieurs lignes (classe
+  `name-full`) ; un second toucher referme.
+- **Barre d'ajout au-dessus du clavier** (16/07/2026) : la barre fixée en
+  bas remonte de la hauteur du clavier virtuel (`--clavier`, posée par
+  visualViewport) — la saisie reste toujours visible sur iPhone.
 - **Bandeau hors ligne** : barre pleine largeur sous l'en-tête, fond
   `--warn-bg`, texte `--warn`, message « Hors ligne — dernières données
   connues, consultation seule. » Pendant ce temps, les commandes de

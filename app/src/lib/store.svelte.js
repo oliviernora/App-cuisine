@@ -655,6 +655,17 @@ function depluralize(name) {
   return fold(name).split(' ').map(w => w.length > 3 ? w.replace(/[sx]$/, '') : w).join(' ')
 }
 
+/** Deux noms se ressemblent : l'un contient l'autre (au singulier près) ou
+ * alias confirmé — pour retrouver « clous de girofle » en tapant « clou de
+ * girofle » à l'inventaire (commentaire Olivier 16/07/2026). */
+export function looseMatch(a, b) {
+  const fa = fold(a), fb = fold(b)
+  if (fa.includes(fb) || fb.includes(fa)) return true
+  const da = depluralize(a), db = depluralize(b)
+  if (da.includes(db) || db.includes(da)) return true
+  return sameIngredient(a, b)
+}
+
 /** Tous les noms d'ingrédients connus (stock + recettes), une graphie par nom replié. */
 export function knownNames() {
   const byFold = new Map()

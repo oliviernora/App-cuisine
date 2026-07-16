@@ -153,6 +153,8 @@ li.row, .loc-item .row {
 .row.low .name, .row.low output { color: var(--warn); }
 .row.done .name { text-decoration: line-through; color: var(--muted); }
 .row .note { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+/* nom tronqué déplié au toucher (réconciliation, lignes vues — 16/07/2026) */
+.row .name.name-full { white-space: normal; overflow: visible; text-overflow: clip; }
 
 .qty { display: flex; align-items: center; }
 .qty output {
@@ -178,7 +180,9 @@ li.row, .loc-item .row {
 .empty { padding: 32px 8px; text-align: center; color: var(--muted); }
 
 .addbar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  /* --clavier : hauteur du clavier virtuel (iPhone), posée par App.svelte —
+   * la barre remonte au-dessus du clavier au lieu d'être recouverte (16/07/2026) */
+  position: fixed; left: 0; right: 0; bottom: var(--clavier, 0px); z-index: 10;
   background: var(--surface); border-top: 1px solid var(--line);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
 }
@@ -261,7 +265,8 @@ li.row, .loc-item .row {
 :root { --ok: #3D8B4F; --ok-bg: #E7F2EA; }
 @media (prefers-color-scheme: dark) { :root { --ok: #6FBE8C; --ok-bg: #16281C; } }
 .inv-start {
-  align-self: flex-start; padding: 7px 14px; cursor: pointer;
+  /* align-self: center — aligné avec « Gérer » sur la même ligne (16/07/2026) */
+  align-self: center; padding: 7px 14px; cursor: pointer;
   border: 1px solid var(--accent); border-radius: var(--radius);
   background: var(--surface); color: var(--accent); font: inherit; font-weight: 600;
 }
