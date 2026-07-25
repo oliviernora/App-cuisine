@@ -50,27 +50,42 @@ iPhone / iPad / PC (navigateur ou icône écran d'accueil)
 |---|---|---|
 | `households` | foyers | |
 | `household_members` | qui appartient à quel foyer | clé (foyer, utilisateur) |
-| `items` | stock : nom, emplacement, pots (`qty`), seuil (`min`), magasin | un même produit peut exister dans plusieurs emplacements |
-| `shopping` | courses : libellé, magasin, `done`, `manual`, `qty`/`unit`, `origin` (`reappro`/`semaine`), `available` (« je l'ai »), lien `item_id` | une seule entrée par ingrédient lié (index unique) |
-| `locations` | emplacements : nom, date du dernier inventaire | |
+| `residences` | résidences du foyer (Argenteuil, Montalivet…) | 16/07/2026 ; la résidence courante est un choix PAR APPAREIL (localStorage) |
+| `items` | stock : nom, emplacement, pots (`qty`), magasin, `dismissed` (« manquant » retiré du panier), `residence_id` | un même produit peut exister dans plusieurs emplacements ; le stock se lit par ingrédient (somme des emplacements) |
+| `shopping` | courses : libellé, magasin, `done`, `manual`, `qty`/`unit`, `origin` (`reappro`/`semaine`), `available` (« je l'ai »), `received` (« à mettre en stock »), lien `item_id`, `residence_id` | une seule entrée par ingrédient lié (index unique) |
+| `locations` | emplacements : nom, date du dernier inventaire, `dated` (« à dates »), `stale_months` (seuil « à utiliser »), `residence_id` | unicité du nom PAR résidence |
+| `item_lots` | lots datés d'un produit dans un emplacement « à dates » | sortie du plus ancien proposée ; `residence_id` |
 | `sources` | livres et sites (liste courte, gérée) | |
-| `recipes` | recettes : titre, url, vidéo, texte (`steps`), « pour N » (`servings`), pays (`country`), notes | |
-| `recipe_ingredients` | ingrédients structurés : position, `qty`, `unit`, `name` | |
+| `recipes` | recettes : titre, url, vidéo, texte (`steps`), « pour N » (`servings`), pays (`country`), catégorie, `wishlist`, `notes` (commentaires communs, Q3 16/07) | communes au foyer, PAS par résidence |
+| `recipe_ingredients` | ingrédients structurés : position, `qty`, `unit`, `name`, `qty_raw` (fractions), `hard` (« ! » difficile à sourcer), `note`, `optional` | |
+| `recipe_photos` | photos plat/page (bucket privé « photos ») | rattachables à une réalisation |
 | `realisations` | dates où une recette a été faite + commentaire | `made_on` null = date non notée |
-| `events` | événements de la semaine : jour, type, convives, contraintes | |
+| `events` | événements de la semaine : jour, type, convives, contraintes, `residence_id` | |
 | `event_recipes` | recettes d'un événement + ajustements : `scale_pct`, `qty_overrides` | clé (événement, recette) |
-| `ingredient_refs` | master list : nom canonique, alias, refus, catégorie | rapprochements confirmés à la main |
+| `ingredient_refs` | master list : nom canonique, alias, refus, genre (`category`), sourcing, **réserve minimum** (`min`, défaut 1), `dismissed` | rapprochements confirmés à la main ; le rachat auto compare la SOMME des emplacements à `min` (16/07/2026) |
+| `ingredient_categories` | genres de la master list + sourcing par défaut | |
 
 Schéma complet : `supabase/schema.sql`. ATTENTION : Postgres renvoie les
 colonnes `numeric` en texte — toute comparaison de quantités passe par
 `sameQty` (leçon du 07/07/2026).
 
 Règles métier centrales (implémentées dans `store.svelte.js`) :
-- `qty <= min` → entrée automatique en courses ; remontée du stock → l'entrée
-  automatique non cochée disparaît.
+- Rachat automatique PAR INGRÉDIENT (16/07/2026) : quand la **somme des
+  emplacements** passe sous la réserve minimum de l'ingrédient
+  (`ingredient_refs.min`, 1 par défaut) → entrée automatique en courses ;
+  remontée de la somme → l'entrée automatique non cochée disparaît.
+  L'état « manquant » (retiré du panier, `dismissed`) vit aussi au niveau
+  ingrédient et se réarme quand le stock remonte (NP1).
 - Entrée `manual` (panier « réserve ») : ne disparaît que sur geste explicite.
-- « Ranger les achats » : entrée cochée liée → `qty + 1`, puis purge ; entrée
-  « semaine » cochée → `available = true` (le besoin est couvert).
+- « Ranger les achats » (Q2 16/07/2026) : entrée cochée liée →
+  `received = true` (« à mettre en stock » en tête de l'onglet Inventaire :
+  quantité réelle + emplacement confirmés au rangement, lot daté si
+  l'emplacement l'est — plus de `+1` direct) ; entrée « semaine » cochée →
+  `available = true` (le besoin est couvert).
+- Résidences (16/07/2026) : items, shopping, locations, item_lots et events
+  portent `residence_id` ; les lectures et écritures sont filtrées sur la
+  résidence courante de l'appareil. Recettes, sources, réalisations,
+  wish list et master list restent communes au foyer.
 - `syncWeekShopping()` : les ingrédients manquants des événements à venir ont
   chacun leur ligne `origin='semaine'`, créée/requantifiée/retirée à chaque
   changement (événements, recettes, stock, ajustements) ; jamais de doublon

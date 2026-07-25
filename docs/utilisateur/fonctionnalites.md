@@ -6,13 +6,16 @@ bout en bout) : voir `cas-utilisation.md`.
 
 ## Les concepts
 
-- Un **ingrédient** est une fiche : nom, emplacement (Cuisine, Réserve entrée…),
-  **nombre de pots**, réserve minimum, et où l'acheter.
+- Un **ingrédient** est une fiche : nom, **nombre de pots** (la somme de tous
+  ses emplacements), réserve minimum, genre et où l'acheter. Un même
+  ingrédient peut vivre dans plusieurs emplacements (Cuisine, Réserve
+  entrée…).
 - Le « pot » est l'unité de comptage : un bocal d'épice, un sachet, une boîte.
   Le pot entamé compte pour 1.
-- **Règle centrale** : quand le nombre de pots descend à la réserve minimum
-  (0 par défaut), l'ingrédient est considéré « à racheter » et entre
-  automatiquement dans la liste de courses.
+- **Règle centrale** (16/07/2026) : quand la **somme de tous les
+  emplacements** passe **sous la réserve minimum** de l'ingrédient (1 par
+  défaut), il est considéré « à racheter » et entre automatiquement dans la
+  liste de courses — jamais emplacement par emplacement.
 - Tout est partagé en temps réel entre les appareils du foyer : un pot décompté
   sur l'iPhone apparaît aussitôt sur l'iPad et le PC.
 - **Sur petit écran (iPhone)**, les onglets du haut collapsent en **menu
@@ -439,11 +442,10 @@ Il disparaît une fois rangé.
   consultation seule » ; les commandes de modification sont estompées.
   La synchronisation reprend automatiquement au retour du réseau.
 
-## Limites actuelles (v0.1)
+## Limites actuelles
 
-- La réserve minimum est fixée à 0 pour tous les ingrédients et n'est pas
-  modifiable dans l'interface : le réapprovisionnement se déclenche au dernier
-  pot vidé.
-- « Ranger les achats » ajoute toujours +1 pot, quel que soit le nombre acheté.
 - Hors ligne : consultation seule — cocher ses achats sans réseau viendra
   avec la file d'actions différées.
+- Les photos ne sont pas encore consultables hors ligne.
+- Les recettes ne se synchronisent pas en temps réel entre appareils
+  (rechargées à l'ouverture de l'application).

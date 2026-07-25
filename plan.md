@@ -2,6 +2,13 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
+### Vérification du 19/07/2026
+Les 5 lots ont été revérifiés point par point (code, docs, tests) : statut
+annoté dans « Commentaires sur l'appli actuelle.md » (tout est CORRIGÉ),
+139 tests verts, check:schema 16/16 ; fonctionnalites.md et architecture.md
+remis en cohérence (ils décrivaient encore l'ancienne règle v0.1). Reste
+inchangé : republier la prod (lot 5) puis M47/M48-M50/M55 par Olivier.
+
 ### Chantier en cours (16/07/2026) : commentaires Olivier, 5 lots
 Les commentaires du 16/07 (docs/utilisateur/Commentaires sur l'appli
 actuelle.md) sont découpés en 5 lots, questions Q1-Q6 répondues par Olivier
