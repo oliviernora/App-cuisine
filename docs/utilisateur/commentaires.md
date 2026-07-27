@@ -1,3 +1,12 @@
+> STATUT (25/07/2026) : toutes les remarques ci-dessous sont TRAITÉES et
+> vérifiées en local (144 tests verts, parcours réels sur 5173 — détail
+> dans docs/technique/cahier-de-tests.md, passage du 25/07/2026).
+> Reste : republier la prod (`app/mettre-en-ligne.cmd`) puis vérifier sur
+> iPhone (tests M56-M58 du cahier). Point 2 : les « emplacements sans
+> résidence » étaient une liste de 10 emplacements par défaut codée en dur
+> dans l'écran Stock — supprimée ; seuls les emplacements de la résidence
+> courante apparaissent désormais, partout.
+
 Je suis en train d'ajouter les réserves de Montalivet.
 Voici mes remarques sur l'application, sur la base de l'interface iPhone :
 

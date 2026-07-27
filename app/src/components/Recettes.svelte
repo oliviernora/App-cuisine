@@ -7,6 +7,7 @@
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import { PASSARD_FICHES } from '../lib/passard-fiches.js'
+  import SousEcran from './SousEcran.svelte'
 
   const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
   const fillable = $derived(passardFillableCount(ficheUrls))
@@ -15,6 +16,10 @@
   let open = $state(null)
   let busy = $state(false)
   let sourceFilter = $state('Toutes')
+
+  /* La fiche est un sous-écran dédié (commentaires Olivier 25/07/2026) :
+   * ouverte, elle remplace liste, recherche et import ; la croix ferme. */
+  const ficheRecipe = $derived(open ? store.recipes.find(r => r.id === open) : null)
 
   function fold(s) {
     return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -51,8 +56,10 @@
     return recipes.toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
   })
 
+  /* Gérer les sources : sous-écran, renommage au crayon sur le nom. */
   let manageSources = $state(false)
-  let sourceNames = $state({})
+  let srcEdit = $state(null)
+  let srcEditName = $state('')
   let newSource = $state('')
 
   /* Les filtres particuliers vivent dans un dépliant refermable (décision
@@ -63,10 +70,10 @@
     (ingFilter.trim() ? 1 : 0) + (wishFilter ? 1 : 0))
 
   async function renameOne(source) {
-    const title = (sourceNames[source.id] ?? '').trim()
+    const title = srcEditName.trim()
     if (!title) return
     await renameSource(source, title)
-    sourceNames = {}
+    srcEdit = null
   }
 
   function sourceOf(recipe) {
@@ -103,6 +110,7 @@
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
     editing = false
+    manageSources = false
     notesText = recipe.notes ?? ''
     photoMsg = ''
   }
@@ -268,11 +276,15 @@
     importProposal = null
     importFiles = []
     importUrl = ''
-    importError = photoManquee
-      ? 'La recette est enregistrée, mais sa photo n\'a pas pu être récupérée — l\'ajouter à la main depuis la fiche.'
-      : ''
-    importOpen = photoManquee
+    importError = ''
+    importOpen = false
+    // La fiche s'ouvre en sous-écran ; un raté de photo s'y signale.
     open = res.recipe.id
+    editing = false
+    notesText = res.recipe.notes ?? ''
+    photoMsg = photoManquee
+      ? 'La recette est enregistrée, mais sa photo n\'a pas pu être récupérée — l\'ajouter à la main ci-dessous.'
+      : ''
   }
 
   function cancelImport() {
@@ -307,6 +319,251 @@
       attente) : certaines fonctions sont indisponibles.</p>
   {/if}
 
+  {#if ficheRecipe}
+    {@const recipe = ficheRecipe}
+    <!-- Fiche recette : un écran dédié, une croix pour fermer — jamais mélangée
+         à la liste (commentaires Olivier 25/07/2026). -->
+    <SousEcran titre={recipe.title} fermer={() => { open = null; editing = false }}>
+      <div class="manage-panel">
+        {#if editing}
+          <div class="manage-block">
+            <p class="manage-row">
+              <label>Pour
+                <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={servingsText}
+                  aria-label="Nombre de personnes" placeholder="?">
+                personnes (sert au calcul des quantités de la semaine)</label>
+            </p>
+            <p class="manage-row">
+              <label>Pays d'origine
+                <input bind:value={countryText} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
+              </label>
+              <label>Catégorie
+                <input bind:value={categoryText} list="recipe-categories" placeholder="Boissons… (vide = plat)"
+                  aria-label="Catégorie">
+              </label>
+              <label>Source
+                <select bind:value={sourcePick} aria-label="Source">
+                  {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
+                    <option value={s.id}>{s.title}</option>
+                  {/each}
+                </select>
+              </label>
+            </p>
+            <p>Ingrédients — un par ligne (ex. « 500 g asperges vertes » ;
+              « ! » en tête = difficile à sourcer, à commander à l'avance) :</p>
+            <textarea bind:value={ingText} rows="6"></textarea>
+            <p>Recette (étapes) :</p>
+            <textarea bind:value={stepsText} rows="8"></textarea>
+            <div class="manage-row">
+              <button type="button" class="inv-start" disabled={busy} onclick={() => saveEdit(recipe)}>Enregistrer</button>
+              <button type="button" class="inv-manage" onclick={() => editing = false}>Annuler</button>
+            </div>
+          </div>
+        {:else}
+          <div class="manage-block">
+            <!-- ★ à droite de la source (économie d'une ligne — commentaire Olivier 16/07/2026) -->
+            <div class="row source-row">
+              <span class="name">{sourceOf(recipe) ? 'Source : ' + sourceOf(recipe).title : 'Sans source'}{recipe.country ? ' · Pays : ' + recipe.country : ''}{recipe.category ? ' · ' + recipe.category : ''}</span>
+              <button type="button" class="icon-btn wish-btn" class:wish-on={recipe.wishlist} disabled={busy}
+                aria-label={recipe.wishlist ? 'Retirer de la wish list' : 'Ajouter à la wish list'}
+                title={recipe.wishlist ? 'Dans la wish list — appuyer pour retirer' : 'Ajouter à la wish list'}
+                onclick={async () => { busy = true; await setWishlist(recipe, !recipe.wishlist); busy = false }}>
+                {recipe.wishlist ? '★' : '☆'}
+              </button>
+            </div>
+            <p class="note">{madeLabel(recipe)}</p>
+            {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Voir en ligne ({new URL(recipe.url).hostname.replace('www.', '')})</a></p>{/if}
+            {#if recipe.video}<p class="note">Vidéo locale : {recipe.video}</p>{/if}
+          </div>
+          {#if photosOf(recipe.id).length}
+            <div class="manage-block">
+              <div class="photo-grid">
+                {#each photosOf(recipe.id) as photo (photo.id)}
+                  <figure class="photo-thumb">
+                    {#await photoUrl(photo) then url}
+                      <img src={url} alt={photo.kind === 'page' ? 'Page du livre' : 'Photo du plat'} loading="lazy">
+                    {/await}
+                    <figcaption>{photo.kind === 'page' ? 'Page' : 'Plat'}</figcaption>
+                    <button type="button" class="photo-del" aria-label="Supprimer la photo"
+                      onclick={() => removePhoto(photo)}>×</button>
+                  </figure>
+                {/each}
+              </div>
+            </div>
+          {/if}
+          <div class="manage-block">
+            {#if ingredientsOf(recipe.id).length}
+              <p>Ingrédients{recipe.servings ? ' (pour ' + recipe.servings + ' personnes)' : ''} :</p>
+              <ul>
+                {#each ingredientsOf(recipe.id) as ing (ing.id)}
+                  <li class="row"><span class="name">{[ing.qty_raw || ing.qty, ing.unit, ing.name].filter(v => v !== null && v !== undefined && v !== '').join(' ')}{#if ing.note}<span class="note">, {ing.note}</span>{/if}{#if ing.optional}<span class="note"> (facultatif)</span>{/if}{#if ing.hard}<span class="hard-note"> — à commander à l'avance</span>{/if}</span></li>
+                {/each}
+              </ul>
+            {/if}
+            {#if recipe.steps}<p class="steps">{recipe.steps}</p>{/if}
+          </div>
+          <!-- Commentaires : une seule zone, pleine largeur, commune à toutes
+               les réalisations (décision Q3 d'Olivier, 16/07/2026). -->
+          <div class="manage-block">
+            <p>Commentaires :</p>
+            <textarea class="notes-area" rows="3" bind:value={notesText}
+              placeholder="Mes notes sur cette recette (doses, tours de main, avis des convives…)"
+              aria-label="Commentaires de la recette"></textarea>
+            {#if notesText.trim() !== (recipe.notes ?? '').trim()}
+              <div class="manage-row">
+                <button type="button" class="inv-start" disabled={busy} onclick={() => saveNotes(recipe)}>Enregistrer le commentaire</button>
+              </div>
+            {/if}
+          </div>
+          {#if realsOf(recipe).length}
+            <div class="manage-block">
+              <p>Réalisations : {realsOf(recipe).map(real => real.made_on
+                ? new Date(real.made_on + 'T00:00').toLocaleDateString('fr-FR')
+                : 'date non notée').join(' · ')}</p>
+            </div>
+          {/if}
+          {#if photoMsg}<p class="message">{photoMsg}</p>{/if}
+          <!-- Tous les boutons en bas (commentaire Olivier 16/07/2026) ; un seul
+               bouton photo du plat (Q4), rattaché à la réalisation du jour. -->
+          <div class="manage-row">
+            <button type="button" class="inv-start" disabled={busy} onclick={() => fait(recipe)}>J'ai fait cette recette</button>
+            <label class="file-btn">Ajouter la photo du plat
+              <input type="file" accept="image/*" hidden disabled={busy}
+                onchange={e => addPhoto(recipe, e, 'plat')}>
+            </label>
+            <label class="file-btn">Photo de la recette (page du livre)
+              <input type="file" accept="image/*" hidden disabled={busy}
+                onchange={e => addPhoto(recipe, e, 'page')}>
+            </label>
+            {#if recipe.url && !photosOf(recipe.id).some(p => p.kind === 'plat')}
+              <button type="button" class="inv-manage" disabled={busy} onclick={() => pagePhoto(recipe)}>
+                Récupérer la photo de la page
+              </button>
+            {/if}
+            <button type="button" class="inv-manage" onclick={() => startEdit(recipe)}>Modifier</button>
+          </div>
+        {/if}
+      </div>
+    </SousEcran>
+  {:else if manageSources}
+    <SousEcran titre="Gérer les sources" fermer={() => { manageSources = false; srcEdit = null }}>
+      <div class="manage-panel">
+        <p>Renommer une source (crayon) — un nom déjà existant <strong>fusionne</strong> les deux :</p>
+        <ul class="manage-items">
+          {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as source (source.id)}
+            <li class="row">
+              {#if srcEdit === source.id}
+                <input class="rename-input" bind:value={srcEditName} aria-label={'Nouveau nom de ' + source.title}>
+                <button type="button" class="inv-start" disabled={busy || !srcEditName.trim()}
+                  onclick={() => renameOne(source)}>OK</button>
+                <button type="button" class="inv-manage" onclick={() => srcEdit = null}>Annuler</button>
+              {:else}
+                <div class="info">
+                  <span class="name" title={source.title}>{source.title}</span>
+                  <span class="note">{store.recipes.filter(r => r.source_id === source.id).length} recette(s)</span>
+                </div>
+                <button type="button" class="icon-btn" aria-label={'Renommer ' + source.title} title="Renommer"
+                  onclick={() => { srcEdit = source.id; srcEditName = source.title }}>✎</button>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+        <div class="manage-row se-add">
+          <input bind:value={newSource} placeholder="Nouvelle source (livre, site…)" aria-label="Nouvelle source">
+          <button type="button" class="inv-start" disabled={busy || !newSource.trim()}
+            onclick={async () => { await addSource(newSource); newSource = '' }}>Ajouter</button>
+        </div>
+      </div>
+    </SousEcran>
+  {:else if importOpen}
+    <SousEcran titre="Importer une recette" fermer={toggleImport}>
+      <div class="manage-panel">
+        {#if !importProposal}
+          <form class="manage-row" onsubmit={e => { e.preventDefault(); fetchImport() }}>
+            <input type="url" bind:value={importUrl} placeholder="https://…"
+              aria-label="Adresse de la page de la recette" required>
+            <button class="inv-start" disabled={busy || !importUrl.trim()}>Récupérer la recette</button>
+          </form>
+          {#if ollamaOk}
+            <p class="manage-row">
+              <label class="file-btn">Depuis des photos de la recette — IA locale sur ce PC
+                <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={importPhotos}>
+              </label>
+            </p>
+            {#if importPhotoBusy}
+              <p class="note">Lecture des photos par l'IA locale — environ une minute…</p>
+            {/if}
+          {/if}
+          <p class="manage-row">
+            <button type="button" class="inv-manage" aria-expanded={importTextOpen}
+              onclick={() => importTextOpen = !importTextOpen}>
+              {importTextOpen ? '▾' : '▸'} Coller le texte de la recette
+            </button>
+          </p>
+          {#if importTextOpen}
+            <p class="note">Sur iPhone/iPad : photographier la page, sélectionner le texte sur la
+              photo (« Texte en direct »), le copier et le coller ici — tout reste sur l'appareil.</p>
+            <textarea bind:value={importText} rows="8" aria-label="Texte de la recette"
+              placeholder="Titre&#10;Pour 4 personnes&#10;200 g de farine&#10;…"></textarea>
+            <p class="manage-row">
+              <label class="file-btn">{importFiles.length ? importFiles.length + ' photo(s) à joindre' : 'Joindre les photos de la page (facultatif)'}
+                <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={keepPhotos}>
+              </label>
+              <button type="button" class="inv-start" disabled={busy || !importText.trim()}
+                onclick={prepareFromText}>Préparer la fiche</button>
+            </p>
+          {/if}
+          {#if importDuplicate}
+            <p class="message">Cette recette est déjà là : « {importDuplicate.title} ».
+              <button type="button" class="inv-manage"
+                onclick={() => { const r = importDuplicate; importOpen = false; cancelImport(); toggleOpen(r) }}>Voir la fiche</button>
+            </p>
+          {/if}
+          {#if importError}<p class="message">{importError}</p>{/if}
+        {:else}
+          <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
+          {#if importProposal.imageUrl}
+            <div class="import-photo">
+              <img src={importProposal.imageUrl} alt="Photo du plat proposée par la page">
+              <label><input type="checkbox" bind:checked={importKeepImage}> Joindre la photo du plat</label>
+            </div>
+          {/if}
+          <p class="manage-row">
+            <label>Titre <input bind:value={importProposal.title} aria-label="Titre de la recette"></label>
+            <label>Source <input bind:value={importProposal.sourceTitle} list="import-sources"
+              placeholder="Livre, site…" aria-label="Source"></label>
+            <datalist id="import-sources">
+              {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
+                <option value={s.title}></option>
+              {/each}
+            </datalist>
+          </p>
+          <p class="manage-row">
+            <label>Pour
+              <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={importProposal.servings}
+                aria-label="Nombre de personnes" placeholder="?">
+              personnes</label>
+            <label>Pays d'origine
+              <input bind:value={importProposal.country} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
+            </label>
+            <label>Catégorie
+              <input bind:value={importProposal.category} list="recipe-categories" placeholder="Boissons… (vide = plat)"
+                aria-label="Catégorie">
+            </label>
+          </p>
+          <p>Ingrédients — un par ligne (« ! » en tête = difficile à sourcer) :</p>
+          <textarea bind:value={importProposal.ingredientsText} rows="8" aria-label="Ingrédients"></textarea>
+          <p>Recette (étapes) :</p>
+          <textarea bind:value={importProposal.steps} rows="8" aria-label="Recette"></textarea>
+          {#if importError}<p class="message">{importError}</p>{/if}
+          <div class="manage-row">
+            <button type="button" class="inv-start" disabled={busy} onclick={saveImport}>Enregistrer la recette</button>
+            <button type="button" class="inv-manage" onclick={cancelImport}>Annuler</button>
+          </div>
+        {/if}
+      </div>
+    </SousEcran>
+  {:else}
   <div class="filters">
     <div class="searchrow">
       <input id="search" type="search" bind:value={search} placeholder="Rechercher une recette…" aria-label="Rechercher">
@@ -347,127 +604,10 @@
     {/if}
   </div>
   <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
-    <button type="button" class="inv-manage" aria-expanded={importOpen} onclick={toggleImport}>
-      {importOpen ? '▾' : '▸'} Importer une recette (URL, photos)
+    <button type="button" class="inv-manage" onclick={toggleImport}>
+      Importer une recette (URL, photos, texte)
     </button>
   </div>
-  {#if importOpen}
-    <div class="manage-panel">
-      {#if !importProposal}
-        <form class="manage-row" onsubmit={e => { e.preventDefault(); fetchImport() }}>
-          <input type="url" bind:value={importUrl} placeholder="https://…"
-            aria-label="Adresse de la page de la recette" required>
-          <button class="inv-start" disabled={busy || !importUrl.trim()}>Récupérer la recette</button>
-        </form>
-        {#if ollamaOk}
-          <p class="manage-row">
-            <label class="file-btn">Depuis des photos de la recette — IA locale sur ce PC
-              <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={importPhotos}>
-            </label>
-          </p>
-          {#if importPhotoBusy}
-            <p class="note">Lecture des photos par l'IA locale — environ une minute…</p>
-          {/if}
-        {/if}
-        <p class="manage-row">
-          <button type="button" class="inv-manage" aria-expanded={importTextOpen}
-            onclick={() => importTextOpen = !importTextOpen}>
-            {importTextOpen ? '▾' : '▸'} Coller le texte de la recette
-          </button>
-        </p>
-        {#if importTextOpen}
-          <p class="note">Sur iPhone/iPad : photographier la page, sélectionner le texte sur la
-            photo (« Texte en direct »), le copier et le coller ici — tout reste sur l'appareil.</p>
-          <textarea bind:value={importText} rows="8" aria-label="Texte de la recette"
-            placeholder="Titre&#10;Pour 4 personnes&#10;200 g de farine&#10;…"></textarea>
-          <p class="manage-row">
-            <label class="file-btn">{importFiles.length ? importFiles.length + ' photo(s) à joindre' : 'Joindre les photos de la page (facultatif)'}
-              <input type="file" accept="image/*" multiple hidden disabled={busy} onchange={keepPhotos}>
-            </label>
-            <button type="button" class="inv-start" disabled={busy || !importText.trim()}
-              onclick={prepareFromText}>Préparer la fiche</button>
-          </p>
-        {/if}
-        {#if importDuplicate}
-          <p class="message">Cette recette est déjà là : « {importDuplicate.title} ».
-            <button type="button" class="inv-manage"
-              onclick={() => { open = importDuplicate.id; importOpen = false; cancelImport() }}>Voir la fiche</button>
-          </p>
-        {/if}
-        {#if importError}<p class="message">{importError}</p>{/if}
-      {:else}
-        <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
-        {#if importProposal.imageUrl}
-          <div class="import-photo">
-            <img src={importProposal.imageUrl} alt="Photo du plat proposée par la page">
-            <label><input type="checkbox" bind:checked={importKeepImage}> Joindre la photo du plat</label>
-          </div>
-        {/if}
-        <p class="manage-row">
-          <label>Titre <input bind:value={importProposal.title} aria-label="Titre de la recette"></label>
-          <label>Source <input bind:value={importProposal.sourceTitle} list="import-sources"
-            placeholder="Livre, site…" aria-label="Source"></label>
-          <datalist id="import-sources">
-            {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
-              <option value={s.title}></option>
-            {/each}
-          </datalist>
-        </p>
-        <p class="manage-row">
-          <label>Pour
-            <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={importProposal.servings}
-              aria-label="Nombre de personnes" placeholder="?">
-            personnes</label>
-          <label>Pays d'origine
-            <input bind:value={importProposal.country} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
-          </label>
-          <label>Catégorie
-            <input bind:value={importProposal.category} list="recipe-categories" placeholder="Boissons… (vide = plat)"
-              aria-label="Catégorie">
-          </label>
-        </p>
-        <p>Ingrédients — un par ligne (« ! » en tête = difficile à sourcer) :</p>
-        <textarea bind:value={importProposal.ingredientsText} rows="8" aria-label="Ingrédients"></textarea>
-        <p>Recette (étapes) :</p>
-        <textarea bind:value={importProposal.steps} rows="8" aria-label="Recette"></textarea>
-        {#if importError}<p class="message">{importError}</p>{/if}
-        <div class="manage-row">
-          <button type="button" class="inv-start" disabled={busy} onclick={saveImport}>Enregistrer la recette</button>
-          <button type="button" class="inv-manage" onclick={cancelImport}>Annuler</button>
-        </div>
-      {/if}
-    </div>
-  {/if}
-
-  <datalist id="known-ingredients-rec">
-    {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
-  </datalist>
-  <datalist id="recipe-categories">
-    {#each categories.length ? categories : ['Boissons'] as c (c)}<option value={c}></option>{/each}
-  </datalist>
-
-  {#if manageSources}
-    <div class="manage-panel">
-      <p>Renommer une source — un nom déjà existant <strong>fusionne</strong> les deux :</p>
-      <ul class="manage-items">
-        {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as source (source.id)}
-          <li class="row">
-            <div class="info">
-              <span class="name" title={source.title}>{source.title}</span>
-              <span class="note">{store.recipes.filter(r => r.source_id === source.id).length} recette(s)</span>
-            </div>
-            <input bind:value={sourceNames[source.id]} placeholder="Nouveau nom" aria-label={'Renommer ' + source.title}>
-            <button type="button" class="inv-manage" disabled={busy} onclick={() => renameOne(source)}>Renommer</button>
-          </li>
-        {/each}
-      </ul>
-      <div class="manage-row">
-        <input bind:value={newSource} placeholder="Nouvelle source (livre, site…)" aria-label="Nouvelle source">
-        <button type="button" class="inv-start" disabled={busy || !newSource.trim()}
-          onclick={async () => { await addSource(newSource); newSource = '' }}>Ajouter</button>
-      </div>
-    </div>
-  {/if}
 
   {#if fillable > 0}
     <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
@@ -496,127 +636,17 @@
               <span class="note" class:recent-warn={recent(recipe)}>{madeLabel(recipe)}</span>
             </div>
           </button>
-          {#if open === recipe.id}
-            <div class="manage-panel">
-              <div class="manage-block">
-                <!-- ★ à droite de la source (économie d'une ligne — commentaire Olivier 16/07/2026) -->
-                <div class="row source-row">
-                  <span class="name">{sourceOf(recipe) ? 'Source : ' + sourceOf(recipe).title : 'Sans source'}{recipe.country ? ' · Pays : ' + recipe.country : ''}{recipe.category ? ' · ' + recipe.category : ''}</span>
-                  <button type="button" class="icon-btn wish-btn" class:wish-on={recipe.wishlist} disabled={busy}
-                    aria-label={recipe.wishlist ? 'Retirer de la wish list' : 'Ajouter à la wish list'}
-                    title={recipe.wishlist ? 'Dans la wish list — appuyer pour retirer' : 'Ajouter à la wish list'}
-                    onclick={async () => { busy = true; await setWishlist(recipe, !recipe.wishlist); busy = false }}>
-                    {recipe.wishlist ? '★' : '☆'}
-                  </button>
-                </div>
-                {#if recipe.url}<p><a href={recipe.url} target="_blank" rel="noreferrer">Voir en ligne ({new URL(recipe.url).hostname.replace('www.', '')})</a></p>{/if}
-                {#if recipe.video}<p class="note">Vidéo locale : {recipe.video}</p>{/if}
-              </div>
-              {#if photosOf(recipe.id).length}
-                <div class="manage-block">
-                  <div class="photo-grid">
-                    {#each photosOf(recipe.id) as photo (photo.id)}
-                      <figure class="photo-thumb">
-                        {#await photoUrl(photo) then url}
-                          <img src={url} alt={photo.kind === 'page' ? 'Page du livre' : 'Photo du plat'} loading="lazy">
-                        {/await}
-                        <figcaption>{photo.kind === 'page' ? 'Page' : 'Plat'}</figcaption>
-                        <button type="button" class="photo-del" aria-label="Supprimer la photo"
-                          onclick={() => removePhoto(photo)}>×</button>
-                      </figure>
-                    {/each}
-                  </div>
-                </div>
-              {/if}
-              <div class="manage-block">
-                {#if editing}
-                  <p class="manage-row">
-                    <label>Pour
-                      <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={servingsText}
-                        aria-label="Nombre de personnes" placeholder="?">
-                      personnes (sert au calcul des quantités de la semaine)</label>
-                  </p>
-                  <p class="manage-row">
-                    <label>Pays d'origine
-                      <input bind:value={countryText} placeholder="Inde, France, Brésil…" aria-label="Pays d'origine">
-                    </label>
-                    <label>Catégorie
-                      <input bind:value={categoryText} list="recipe-categories" placeholder="Boissons… (vide = plat)"
-                        aria-label="Catégorie">
-                    </label>
-                    <label>Source
-                      <select bind:value={sourcePick} aria-label="Source">
-                        {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as s (s.id)}
-                          <option value={s.id}>{s.title}</option>
-                        {/each}
-                      </select>
-                    </label>
-                  </p>
-                  <p>Ingrédients — un par ligne (ex. « 500 g asperges vertes » ;
-                    « ! » en tête = difficile à sourcer, à commander à l'avance) :</p>
-                  <textarea bind:value={ingText} rows="6"></textarea>
-                  <p>Recette (étapes) :</p>
-                  <textarea bind:value={stepsText} rows="8"></textarea>
-                  <div class="manage-row">
-                    <button type="button" class="inv-start" disabled={busy} onclick={() => saveEdit(recipe)}>Enregistrer</button>
-                    <button type="button" class="inv-manage" onclick={() => editing = false}>Annuler</button>
-                  </div>
-                {:else}
-                  {#if ingredientsOf(recipe.id).length}
-                    <p>Ingrédients{recipe.servings ? ' (pour ' + recipe.servings + ' personnes)' : ''} :</p>
-                    <ul>
-                      {#each ingredientsOf(recipe.id) as ing (ing.id)}
-                        <li class="row"><span class="name">{[ing.qty_raw || ing.qty, ing.unit, ing.name].filter(v => v !== null && v !== undefined && v !== '').join(' ')}{#if ing.note}<span class="note">, {ing.note}</span>{/if}{#if ing.optional}<span class="note"> (facultatif)</span>{/if}{#if ing.hard}<span class="hard-note"> — à commander à l'avance</span>{/if}</span></li>
-                      {/each}
-                    </ul>
-                  {/if}
-                  {#if recipe.steps}<p class="steps">{recipe.steps}</p>{/if}
-                {/if}
-              </div>
-              <!-- Commentaires : une seule zone, pleine largeur, commune à toutes
-                   les réalisations (décision Q3 d'Olivier, 16/07/2026). -->
-              <div class="manage-block">
-                <p>Commentaires :</p>
-                <textarea class="notes-area" rows="3" bind:value={notesText}
-                  placeholder="Mes notes sur cette recette (doses, tours de main, avis des convives…)"
-                  aria-label="Commentaires de la recette"></textarea>
-                {#if notesText.trim() !== (recipe.notes ?? '').trim()}
-                  <div class="manage-row">
-                    <button type="button" class="inv-start" disabled={busy} onclick={() => saveNotes(recipe)}>Enregistrer le commentaire</button>
-                  </div>
-                {/if}
-              </div>
-              {#if realsOf(recipe).length}
-                <div class="manage-block">
-                  <p>Réalisations : {realsOf(recipe).map(real => real.made_on
-                    ? new Date(real.made_on + 'T00:00').toLocaleDateString('fr-FR')
-                    : 'date non notée').join(' · ')}</p>
-                </div>
-              {/if}
-              {#if photoMsg}<p class="message">{photoMsg}</p>{/if}
-              <!-- Tous les boutons en bas (commentaire Olivier 16/07/2026) ; un seul
-                   bouton photo du plat (Q4), rattaché à la réalisation du jour. -->
-              <div class="manage-row">
-                <button type="button" class="inv-start" disabled={busy} onclick={() => fait(recipe)}>J'ai fait cette recette</button>
-                <label class="file-btn">Ajouter la photo du plat
-                  <input type="file" accept="image/*" hidden disabled={busy}
-                    onchange={e => addPhoto(recipe, e, 'plat')}>
-                </label>
-                <label class="file-btn">Photo de la recette (page du livre)
-                  <input type="file" accept="image/*" hidden disabled={busy}
-                    onchange={e => addPhoto(recipe, e, 'page')}>
-                </label>
-                {#if recipe.url && !photosOf(recipe.id).some(p => p.kind === 'plat')}
-                  <button type="button" class="inv-manage" disabled={busy} onclick={() => pagePhoto(recipe)}>
-                    Récupérer la photo de la page
-                  </button>
-                {/if}
-                <button type="button" class="inv-manage" onclick={() => startEdit(recipe)}>Modifier</button>
-              </div>
-            </div>
-          {/if}
         </li>
       {/each}
     </ul>
   {/if}
+  {/if}
+
+  <!-- Disponibles dans la liste, la fiche (édition) et l'import. -->
+  <datalist id="known-ingredients-rec">
+    {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}
+  </datalist>
+  <datalist id="recipe-categories">
+    {#each categories.length ? categories : ['Boissons'] as c (c)}<option value={c}></option>{/each}
+  </datalist>
 </section>

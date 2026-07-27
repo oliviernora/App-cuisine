@@ -1,8 +1,10 @@
 <script>
   import { onMount } from 'svelte'
   import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory,
-    lotAdjustments, looseMatch, sameIngredient } from '../lib/store.svelte.js'
+    pauseInventory, lotAdjustments, looseMatch, sameIngredient, parseDictation,
+    dictationMatches, sameDictation, confirmMerge } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import { addbarHeight } from '../lib/addbar.js'
   import { MINUS, PLUS, MIC } from '../lib/icons.js'
 
   let search = $state('')
@@ -31,16 +33,21 @@
    * Depuis le 16/07 : les orthographes proches (« clou » ≈ « clous de
    * girofle ») sont retrouvées aussi ; un rapprochement au singulier près
    * passe toujours par le menu, jamais déclaré d'office. */
-  let choice = $state(null) // { name, n, candidates, from? (ligne « vue » à corriger) }
+  let choice = $state(null) // { name, n, candidates, extra?, voice?, from? (ligne « vue » à corriger) }
 
-  function declareByName(name, n) {
+  function declareByName(name, n, voice = false) {
     search = ''
-    const exact = locItems.find(i => fold(i.name) === fold(name))
+    const exact = locItems.find(i => fold(i.name) === fold(name) || sameDictation(i.name, name))
     if (exact) { declare(exact, n); return exact.name }
     const sures = locItems.filter(i => fold(i.name).includes(fold(name)) || sameIngredient(i.name, name))
     if (sures.length === 1) { declare(sures[0], n); return sures[0].name }
     const candidates = locItems.filter(i => looseMatch(i.name, name))
-    if (candidates.length >= 1) { choice = { name, n, candidates }; return null }
+    /* Dictée écorchée (« nuoc mame », « ras el anout ») : la master list
+     * entière est proposée aussi, pas seulement l'emplacement en cours
+     * (remarque Olivier 27/07/2026). */
+    const extra = dictationMatches(name)
+      .filter(m => !candidates.some(c => sameIngredient(c.name, m) || sameDictation(c.name, m)))
+    if (candidates.length || extra.length) { choice = { name, n, candidates, extra, voice }; return null }
     declare(name, n)
     return name + ' (nouveau)'
   }
@@ -58,6 +65,13 @@
 
   function pickChoice(target) {
     if (choice.from) adjustSeen(choice.from.id, -choice.n)
+    const chosen = typeof target === 'object' ? target.name : target
+    /* Correction d'une dictée confirmée → alias mémorisé dans le
+     * référentiel : « nuoc mame » redéclarera « Nuoc mam » directement
+     * (décision Olivier 27/07/2026). */
+    if (choice.voice && !choice.from && fold(chosen) !== fold(choice.name)
+      && !sameIngredient(chosen, choice.name) && !sameDictation(chosen, choice.name))
+      confirmMerge(chosen, choice.name)
     declare(target, choice.n)
     hint = 'Vu : ' + (typeof target === 'object' ? target.name : target + ' (nouveau)')
     choice = null
@@ -70,12 +84,36 @@
     hint = vu ? 'Vu : ' + vu : 'Plusieurs produits correspondent — choisissez dans la liste.'
   }
 
+  /* Saisie directe de la quantité comptée : toucher le nombre ouvre un champ
+   * (remarque Olivier 27/07/2026) — 0 remet la ligne « à vérifier ». */
+  let editQty = $state(null) // id d'item, ou 'c:' + nom pour un produit créé
+  let editQtyVal = $state(1)
+
+  function openQty(key, current) {
+    editQty = key
+    editQtyVal = current
+  }
+
+  function saveQty(item) {
+    adjustSeen(item.id, Math.max(0, Number(editQtyVal) || 0) - store.inv.seen[item.id])
+    editQty = null
+  }
+
+  function saveQtyCreated(c) {
+    adjustCreated(c.name, Math.max(0, Number(editQtyVal) || 0) - c.qty)
+    editQty = null
+  }
+
+  function focus(node) {
+    node.focus()
+    node.select()
+  }
+
   async function terminer() {
     busy = true
     await finishInventory()
   }
 
-  const NUMBER_WORDS = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10 }
   let rec = null
   onMount(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -88,11 +126,8 @@
     rec.interimResults = true
     let heard = ''
     const applyVoice = text => {
-      let words = text.trim().toLowerCase().split(/\s+/)
-      let n = 1
-      if (/^\d+$/.test(words[0])) { n = Number(words[0]); words = words.slice(1) }
-      else if (NUMBER_WORDS[words[0]]) { n = NUMBER_WORDS[words[0]]; words = words.slice(1) }
-      const vu = declareByName(words.join(' '), n)
+      const { qty: n, name } = parseDictation(text)
+      const vu = declareByName(name, n, true)
       hint = vu ? 'Vu : ' + vu + (n > 1 ? ' × ' + n : '')
         : 'Plusieurs produits correspondent — choisissez dans la liste.'
     }
@@ -139,6 +174,13 @@
           <li class="row">
             <button type="button" class="rowbtn" onclick={() => pickChoice(c)}>
               {c.name}
+            </button>
+          </li>
+        {/each}
+        {#each choice.extra ?? [] as m (m)}
+          <li class="row">
+            <button type="button" class="rowbtn" onclick={() => pickChoice(m)}>
+              {m} <span class="note">connu ailleurs — sera créé ici</span>
             </button>
           </li>
         {/each}
@@ -198,7 +240,15 @@
           </button>
           <div class="qty">
             <button type="button" aria-label="Un pot de moins" onclick={() => adjustSeen(item.id, -1)}><Icon d={MINUS} /></button>
-            <output>{store.inv.seen[item.id]}</output>
+            {#if editQty === item.id}
+              <input class="qty-edit" type="number" inputmode="numeric" min="0" bind:value={editQtyVal}
+                use:focus onblur={() => saveQty(item)}
+                onkeydown={e => { if (e.key === 'Enter') e.target.blur() }}
+                aria-label={'Quantité comptée de ' + item.name}>
+            {:else}
+              <button type="button" class="qty-out" title="Saisir la quantité"
+                onclick={() => openQty(item.id, store.inv.seen[item.id])}>{store.inv.seen[item.id]}</button>
+            {/if}
             <button type="button" aria-label="Un pot de plus" onclick={() => adjustSeen(item.id, 1)}><Icon d={PLUS} /></button>
           </div>
         </li>
@@ -209,7 +259,15 @@
           <span class="note">nouveau</span>
           <div class="qty">
             <button type="button" aria-label="Un pot de moins" onclick={() => adjustCreated(c.name, -1)}><Icon d={MINUS} /></button>
-            <output>{c.qty}</output>
+            {#if editQty === 'c:' + c.name}
+              <input class="qty-edit" type="number" inputmode="numeric" min="0" bind:value={editQtyVal}
+                use:focus onblur={() => saveQtyCreated(c)}
+                onkeydown={e => { if (e.key === 'Enter') e.target.blur() }}
+                aria-label={'Quantité comptée de ' + c.name}>
+            {:else}
+              <button type="button" class="qty-out" title="Saisir la quantité"
+                onclick={() => openQty('c:' + c.name, c.qty)}>{c.qty}</button>
+            {/if}
             <button type="button" aria-label="Un pot de plus" onclick={() => adjustCreated(c.name, 1)}><Icon d={PLUS} /></button>
           </div>
         </li>
@@ -233,6 +291,7 @@
         <button type="button" onclick={() => abandoning = false}>Non, je continue</button>
       {:else}
         <button type="button" onclick={() => abandoning = true}>Abandonner</button>
+        <button type="button" onclick={pauseInventory}>Mettre en pause</button>
         <button type="button" class="primary" onclick={() => bilan = true}>Terminer l'inventaire</button>
       {/if}
     </div>
@@ -240,7 +299,7 @@
 </section>
 
 {#if !bilan}
-  <div class="addbar">
+  <div class="addbar" use:addbarHeight>
     <form onsubmit={submit} autocomplete="off">
       <input class="f-name" bind:value={search} placeholder="Produit trouvé (quelques lettres suffisent)">
       {#if voiceAvailable}

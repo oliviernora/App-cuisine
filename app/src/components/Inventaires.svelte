@@ -1,11 +1,12 @@
 <script>
-  import { store, startInventory, renameLocation, moveItems, pendingMerges,
+  import { store, startInventory, renameLocation, moveItems, addLocation, removeLocation, pendingMerges,
     confirmMerge as confirmIngredient, rejectMerge as rejectIngredient,
     masterList, setIngredientCategory, isDatedLoc, setLocationDated, setLocationStaleMonths,
     addCategory, renameCategory, removeCategory, setCategorySourcing,
     setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
-    receivedEntries, receivedLoc, stashReceived, invIsHere,
+    receivedEntries, receivedLoc, stashReceived, invIsHere, unpauseInventory,
     SOURCING_TYPES } from '../lib/store.svelte.js'
+  import SousEcran from './SousEcran.svelte'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
     'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
@@ -40,13 +41,57 @@
   let busy = $state(false)
   let message = $state('')
 
+  /* Ajout et suppression d'un emplacement (commentaires Olivier 25/07/2026) :
+   * l'ajout crée un emplacement vide ; la suppression n'est possible que
+   * vide (sinon déplacer ou fusionner d'abord), en deux touches. */
+  let newLocName = $state('')
+  let confirmDeleteLoc = $state(false)
+  let locRenaming = $state(false) // renommage au crayon, sur le nom
+
+  /* Un inventaire en pause dans cette résidence (bouton « Mettre en pause »,
+   * 27/07/2026) : « Inventaire » sur son emplacement le reprend ; sur un
+   * autre emplacement, deux touches pour confirmer la perte de la pause. */
+  let confirmStart = $state(null)
+
+  function demarrer(name) {
+    if (invIsHere()) {
+      if (store.inv.loc === name) { unpauseInventory(); return }
+      if (confirmStart !== name) {
+        confirmStart = name
+        message = `Un inventaire de « ${store.inv.loc} » est en pause — appuyer encore sur « Confirmer » l'abandonne et démarre « ${name} ».`
+        return
+      }
+      confirmStart = null
+      message = ''
+    }
+    startInventory(name)
+  }
+
   function openManage(name) {
     managed = managed === name ? null : name
     newName = ''
     confirmMerge = false
+    confirmDeleteLoc = false
+    locRenaming = false
     selected = []
     moveDest = ''
     message = ''
+  }
+
+  async function ajouterEmplacement() {
+    busy = true
+    await addLocation(newLocName)
+    message = `Emplacement « ${newLocName.trim()} » créé.`
+    newLocName = ''
+    busy = false
+  }
+
+  async function supprimerEmplacement() {
+    busy = true
+    await removeLocation(managed)
+    message = `Emplacement « ${managed} » supprimé.`
+    busy = false
+    managed = null
   }
 
   const managedItems = $derived(managed
@@ -159,15 +204,18 @@
   let edSourcing = $state('')
   let edNote = $state('')
   let edConfirm = $state(false)
+  let mlRenaming = $state(false)
 
   function openIngredient(ing) {
     if (mlEdit === ing.name) { mlEdit = null; return }
     mlEdit = ing.name
+    mlGenres = false // une seule saisie ouverte à la fois
     edName = ing.name
     const ref = store.refs.find(r => r.name === ing.name)
     edSourcing = ref?.sourcing ?? ''
     edNote = ref?.sourcing_note ?? ''
     edConfirm = false
+    mlRenaming = false
   }
 
   async function saveIngredientName(oldName) {
@@ -201,61 +249,100 @@
       ({store.residences.find(r => r.id === store.inv.residenceId)?.name ?? 'autre maison'}) —
       pour le reprendre, changer de résidence dans « Foyer et compte ».</p>
   {/if}
+  {#if invIsHere()}
+    <div class="toolbar">
+      <button type="button" class="primary" onclick={unpauseInventory}>
+        Reprendre l'inventaire de « {store.inv.loc} »
+      </button>
+    </div>
+  {/if}
 
-  {#if received.length}
-    <p class="group-title">À mettre en stock <span class="n">· {received.length}</span></p>
-    <p class="note">Achats rangés depuis les courses : vérifier la quantité reçue,
-      choisir l'emplacement, puis « Ranger ».</p>
-    <ul>
-      {#each received as entry (entry.id)}
-        <li class="row">
-          <span class="name" title={entry.name}>{entry.name}</span>
-          <div class="manage-row" style="flex: 0 1 auto">
-            <input class="f-qty" type="number" inputmode="numeric" min="1" style="flex: 0 1 64px"
-              value={stashQty[entry.id] ?? defaultQty(entry)}
-              oninput={e => stashQty[entry.id] = e.target.value}
-              aria-label={'Quantité reçue de ' + entry.name}>
-            <input list="manage-locs" placeholder="Emplacement" style="flex: 0 1 150px"
-              value={stashLoc[entry.id] ?? receivedLoc(entry)}
-              oninput={e => stashLoc[entry.id] = e.target.value}
-              aria-label={'Emplacement de rangement de ' + entry.name}>
-            <button type="button" class="inv-start" disabled={busy || !(stashLoc[entry.id] ?? receivedLoc(entry)).trim()}
-              onclick={() => ranger(entry)}>Ranger</button>
+  {#if managed}
+    <!-- Gérer un emplacement : sous-écran dédié (commentaires Olivier 25/07/2026). -->
+    <SousEcran titre={managed} fermer={() => managed = null}>
+      <div class="manage-panel">
+        <div class="manage-block">
+          {#if locRenaming}
+            <p>Renommer l'emplacement — un nom déjà existant <strong>fusionne</strong> les deux :</p>
+            <div class="manage-row">
+              <input class="rename-input" bind:value={newName} list="manage-locs"
+                oninput={() => confirmMerge = false} aria-label="Nouveau nom">
+              <button type="button" class="inv-start" class:danger-btn={confirmMerge}
+                disabled={busy || !newName.trim()} onclick={rename}>
+                {confirmMerge ? 'Confirmer la fusion' : 'OK'}</button>
+              <button type="button" class="inv-manage" onclick={() => { locRenaming = false; newName = '' }}>Annuler</button>
+            </div>
+          {:else}
+            <div class="row source-row">
+              <span class="name">{managed}</span>
+              <button type="button" class="icon-btn" aria-label={'Renommer ' + managed} title="Renommer"
+                onclick={() => { locRenaming = true; newName = managed; confirmMerge = false }}>✎</button>
+            </div>
+          {/if}
+        </div>
+        <div class="manage-block">
+          <label class="row">
+            <input type="checkbox" checked={isDatedLoc(managed)} disabled={busy}
+              onchange={async e => { busy = true; await setLocationDated(managed, e.target.checked); busy = false }}>
+            Emplacement « à dates » (congélateur, cave…) : chaque entrée forme un
+            lot daté, la sortie propose le plus ancien
+          </label>
+          {#if isDatedLoc(managed)}
+            <div class="manage-row">
+              <input class="f-qty" type="number" inputmode="numeric" min="1"
+                value={store.locations.find(l => l.name === managed)?.stale_months ?? 6}
+                onchange={e => setLocationStaleMonths(managed, e.target.value)}
+                aria-label="Ancienneté avant rappel (mois)">
+              <span class="note" style="align-self: center">mois avant rappel « à utiliser » dans la Semaine</span>
+            </div>
+          {/if}
+        </div>
+        <div class="manage-block">
+          <p>Déplacer des produits — cochez, puis choisissez la destination
+            (existante ou nouvelle) :</p>
+          <ul class="manage-items">
+            {#each managedItems as item (item.id)}
+              <li class="row">
+                <input type="checkbox" checked={selected.includes(item.id)}
+                  onchange={() => toggle(item.id)} aria-label={'Sélectionner ' + item.name}>
+                <span class="name" title={item.name}>{item.name}</span>
+                <span class="note">{item.qty}</span>
+              </li>
+            {/each}
+          </ul>
+          <div class="manage-row">
+            <input bind:value={moveDest} list="manage-locs" placeholder="Destination" aria-label="Destination">
+            <button type="button" class="inv-start" disabled={busy || selected.length === 0} onclick={move}>
+              Déplacer ({selected.length})
+            </button>
           </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
-  {#if merges.length}
-    <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
-    <ul>
-      {#each merges as m (m.a + '|' + m.b)}
-        {@const key = m.a + '|' + m.b}
-        <li class="row">
-          <button type="button" class="rowbtn-full info" title="Afficher les noms en entier"
-            onclick={() => mergeOpen = mergeOpen === key ? null : key}>
-            <span class="name" class:name-full={mergeOpen === key}>« {m.b} » et « {m.a} » : même ingrédient ?</span>
-          </button>
-          <button type="button" class="inv-start" disabled={busy} onclick={() => answer(m, true)}>Oui</button>
-          <button type="button" class="inv-manage" disabled={busy} onclick={() => answer(m, false)}>Non</button>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
-  <div class="loc-item">
-    <button type="button" class="row rowbtn-full" onclick={() => mlOpen = !mlOpen} aria-expanded={mlOpen}>
-      <div class="info">
-        <span class="name">{mlOpen ? '▾' : '▸'} Master list des ingrédients</span>
-        <span class="note">{mlTotal.length} ingrédients · {mlTotal.filter(i => !i.category).length} non classés</span>
+        </div>
+        <div class="manage-block">
+          {#if count(managed) === 0}
+            <p>Supprimer cet emplacement (vide) :</p>
+            <div class="manage-row">
+              {#if confirmDeleteLoc}
+                <button type="button" class="inv-start danger-btn" disabled={busy}
+                  onclick={supprimerEmplacement}>Confirmer la suppression</button>
+                <button type="button" class="inv-manage" onclick={() => confirmDeleteLoc = false}>Non, garder</button>
+              {:else}
+                <button type="button" class="inv-manage" onclick={() => confirmDeleteLoc = true}>Supprimer l'emplacement</button>
+              {/if}
+            </div>
+          {:else}
+            <p>Pour supprimer cet emplacement, déplacez ou fusionnez d'abord
+              ses {count(managed)} produit(s).</p>
+          {/if}
+        </div>
       </div>
-    </button>
-    {#if mlOpen}
+    </SousEcran>
+  {:else if mlOpen}
+    <!-- Master list : sous-écran dédié (commentaires Olivier 25/07/2026). -->
+    <SousEcran titre="Master list des ingrédients" fermer={() => { mlOpen = false; mlEdit = null; mlGenres = false }}>
       <div class="manage-panel">
         <div class="manage-row">
           <input bind:value={mlSearch} placeholder="Filtrer les ingrédients…" aria-label="Filtrer la master list">
-          <button type="button" class="inv-manage" onclick={() => mlGenres = !mlGenres} aria-expanded={mlGenres}>
+          <button type="button" class="inv-manage" onclick={() => { mlGenres = !mlGenres; mlEdit = null }} aria-expanded={mlGenres}>
             {mlGenres ? 'Refermer les genres' : 'Gérer les genres'}
           </button>
         </div>
@@ -267,13 +354,13 @@
               {#each genres as g (g.id)}
                 <li class="manage-row">
                   {#if genreEdit === g.name}
-                    <input bind:value={genreNewName} aria-label={'Nouveau nom de ' + g.name}>
+                    <input class="rename-input" bind:value={genreNewName} aria-label={'Nouveau nom de ' + g.name}>
                     <button type="button" class="inv-start" disabled={busy} onclick={() => renameGenre(g.name)}>OK</button>
                     <button type="button" class="inv-manage" onclick={() => genreEdit = null}>Annuler</button>
                   {:else}
-                    <button type="button" class="rowbtn-full info" onclick={() => { genreEdit = g.name; genreNewName = g.name; genreDelete = null }}>
-                      <span class="name">{g.name}</span>
-                    </button>
+                    <span class="name">{g.name}</span>
+                    <button type="button" class="icon-btn" aria-label={'Renommer ' + g.name} title="Renommer"
+                      onclick={() => { genreEdit = g.name; genreNewName = g.name; genreDelete = null }}>✎</button>
                     <select value={g.sourcing} onchange={e => setCategorySourcing(g.name, e.target.value, g.sourcing_note ?? '')}
                       aria-label={'Sourcing du genre ' + g.name}>
                       <option value="">— sourcing —</option>
@@ -299,7 +386,7 @@
                 onclick={async () => { busy = true; await addCategory(genreNew); genreNew = ''; busy = false }}>Ajouter</button>
             </div>
           </div>
-        {/if}
+        {:else}
         {#each mlSections as [cat, items] (cat)}
           <p class="group-title">{cat || 'Non classés'} <span class="n">· {items.length}</span></p>
           <ul class="manage-items">
@@ -320,14 +407,23 @@
                 {@const effectif = sourcingOf(ing.name)}
                 <li class="manage-panel">
                   <div class="manage-block">
-                    <p>Renommer l'ingrédient — un nom déjà connu fusionne les deux :</p>
-                    <div class="manage-row">
-                      <input bind:value={edName} oninput={() => edConfirm = false} aria-label="Nouveau nom">
-                      <button type="button" class="inv-start" class:danger-btn={edConfirm} disabled={busy}
-                        onclick={() => saveIngredientName(ing.name)}>
-                        {edConfirm ? 'Confirmer la fusion' : 'Renommer'}
-                      </button>
-                    </div>
+                    {#if mlRenaming}
+                      <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
+                      <div class="manage-row">
+                        <input class="rename-input" bind:value={edName} oninput={() => edConfirm = false} aria-label="Nouveau nom">
+                        <button type="button" class="inv-start" class:danger-btn={edConfirm} disabled={busy}
+                          onclick={() => saveIngredientName(ing.name)}>
+                          {edConfirm ? 'Confirmer la fusion' : 'OK'}
+                        </button>
+                        <button type="button" class="inv-manage" onclick={() => { mlRenaming = false; edName = ing.name }}>Annuler</button>
+                      </div>
+                    {:else}
+                      <div class="row source-row">
+                        <span class="name">{ing.name}</span>
+                        <button type="button" class="icon-btn" aria-label={'Renommer ' + ing.name} title="Renommer"
+                          onclick={() => { mlRenaming = true; edConfirm = false }}>✎</button>
+                      </div>
+                    {/if}
                   </div>
                   <div class="manage-block">
                     <p>Sourcing — où l'acheter (vide = comme le genre{effectif.sourcing || effectif.note ? ` : ${[effectif.sourcing, effectif.note].filter(Boolean).join(', ')}` : ''}) :</p>
@@ -354,11 +450,66 @@
             {/each}
           </ul>
         {/each}
+        {/if}
       </div>
-    {/if}
+    </SousEcran>
+  {:else}
+
+  {#if received.length}
+    <p class="group-title">À mettre en stock <span class="n">· {received.length}</span></p>
+    <p class="note">Achats rangés depuis les courses : vérifier la quantité reçue,
+      choisir l'emplacement, puis « Ranger ».</p>
+    <ul>
+      {#each received as entry (entry.id)}
+        <li class="row"><span class="name" title={entry.name}>{entry.name}</span></li>
+        <li class="manage-panel">
+          <div class="manage-row">
+            <label>Quantité reçue
+              <input class="f-qty" type="number" inputmode="numeric" min="1"
+                value={stashQty[entry.id] ?? defaultQty(entry)}
+                oninput={e => stashQty[entry.id] = e.target.value}
+                aria-label={'Quantité reçue de ' + entry.name}>
+            </label>
+            <label>Emplacement
+              <input list="manage-locs" placeholder="Emplacement"
+                value={stashLoc[entry.id] ?? receivedLoc(entry)}
+                oninput={e => stashLoc[entry.id] = e.target.value}
+                aria-label={'Emplacement de rangement de ' + entry.name}>
+            </label>
+            <button type="button" class="inv-start" disabled={busy || !(stashLoc[entry.id] ?? receivedLoc(entry)).trim()}
+              onclick={() => ranger(entry)}>Ranger</button>
+          </div>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  {#if merges.length}
+    <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
+    <ul>
+      {#each merges as m (m.a + '|' + m.b)}
+        {@const key = m.a + '|' + m.b}
+        <li class="row">
+          <button type="button" class="rowbtn-full info" title="Afficher les noms en entier"
+            onclick={() => mergeOpen = mergeOpen === key ? null : key}>
+            <span class="name" class:name-full={mergeOpen === key}>« {m.b} » et « {m.a} » : même ingrédient ?</span>
+          </button>
+          <button type="button" class="inv-start" disabled={busy} onclick={() => answer(m, true)}>Oui</button>
+          <button type="button" class="inv-manage" disabled={busy} onclick={() => answer(m, false)}>Non</button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  <div class="loc-item">
+    <button type="button" class="row rowbtn-full" onclick={() => mlOpen = true}>
+      <div class="info">
+        <span class="name">▸ Master list des ingrédients</span>
+        <span class="note">{mlTotal.length} ingrédients · {mlTotal.filter(i => !i.category).length} non classés</span>
+      </div>
+    </button>
   </div>
 
-  {#if !mlOpen}
   <p class="group-title">Emplacements <span class="n">· {locs.length}</span></p>
   <ul>
     {#each locs as name (name)}
@@ -369,62 +520,20 @@
             <span class="note">{count(name)} produits · {lastDate(name)}</span>
           </div>
           <button type="button" class="inv-manage" onclick={() => openManage(name)}>Gérer</button>
-          <button type="button" class="inv-start" onclick={() => startInventory(name)}>Inventaire</button>
+          <button type="button" class="inv-start" class:danger-btn={confirmStart === name}
+            onclick={() => demarrer(name)}>
+            {invIsHere() && store.inv.loc === name ? 'Reprendre'
+              : confirmStart === name ? 'Confirmer' : 'Inventaire'}</button>
         </div>
-        {#if managed === name}
-          <div class="manage-panel">
-            <div class="manage-block">
-              <label class="row">
-                <input type="checkbox" checked={isDatedLoc(name)} disabled={busy}
-                  onchange={async e => { busy = true; await setLocationDated(name, e.target.checked); busy = false }}>
-                Emplacement « à dates » (congélateur, cave…) : chaque entrée forme un
-                lot daté, la sortie propose le plus ancien
-              </label>
-              {#if isDatedLoc(name)}
-                <div class="manage-row">
-                  <input class="f-qty" type="number" inputmode="numeric" min="1" style="flex: 0 1 80px"
-                    value={store.locations.find(l => l.name === name)?.stale_months ?? 6}
-                    onchange={e => setLocationStaleMonths(name, e.target.value)}
-                    aria-label="Ancienneté avant rappel (mois)">
-                  <span class="note" style="align-self: center">mois avant rappel « à utiliser » dans la Semaine</span>
-                </div>
-              {/if}
-            </div>
-            <div class="manage-block">
-              <p>Renommer l'emplacement — un nom déjà existant fusionne les deux :</p>
-              <div class="manage-row">
-                <input bind:value={newName} list="manage-locs" placeholder="Nouveau nom"
-                  oninput={() => confirmMerge = false} aria-label="Nouveau nom">
-                <button type="button" class="inv-start" class:danger-btn={confirmMerge} disabled={busy} onclick={rename}>
-                  {confirmMerge ? 'Confirmer la fusion' : 'Renommer'}
-                </button>
-              </div>
-            </div>
-            <div class="manage-block">
-              <p>Déplacer des produits — cochez, puis choisissez la destination
-                (existante ou nouvelle) :</p>
-              <ul class="manage-items">
-                {#each managedItems as item (item.id)}
-                  <li class="row">
-                    <input type="checkbox" checked={selected.includes(item.id)}
-                      onchange={() => toggle(item.id)} aria-label={'Sélectionner ' + item.name}>
-                    <span class="name" title={item.name}>{item.name}</span>
-                    <span class="note">{item.qty}</span>
-                  </li>
-                {/each}
-              </ul>
-              <div class="manage-row">
-                <input bind:value={moveDest} list="manage-locs" placeholder="Destination" aria-label="Destination">
-                <button type="button" class="inv-start" disabled={busy || selected.length === 0} onclick={move}>
-                  Déplacer ({selected.length})
-                </button>
-              </div>
-            </div>
-          </div>
-        {/if}
       </li>
     {/each}
   </ul>
+  <div class="manage-row se-add">
+    <input bind:value={newLocName} placeholder="Nouvel emplacement (Placard, Congélateur…)"
+      aria-label="Nouvel emplacement">
+    <button type="button" class="inv-start" disabled={busy || !newLocName.trim()}
+      onclick={ajouterEmplacement}>Ajouter</button>
+  </div>
   {/if}
   <datalist id="manage-locs">
     {#each locs as l (l)}<option value={l}></option>{/each}

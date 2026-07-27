@@ -2,12 +2,12 @@
   import { store, addShopEntry, setDone, removeShopEntry, clearDone, formatQty,
     toggleAvailable, setEntryStore } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import { addbarHeight } from '../lib/addbar.js'
   import { TRASH } from '../lib/icons.js'
 
   const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
 
   let name = $state('')
-  let storeName = $state('')
 
   /* Les lignes « reçues » (achetées et rangées) ont quitté la liste : elles
    * attendent leur mise en stock dans l'onglet Inventaire (Q2, 16/07/2026). */
@@ -23,6 +23,20 @@
   let editId = $state(null)
   let editStore = $state('')
 
+  /* Lignes compactes (remarque Olivier 27/07/2026) : case + nom seulement ;
+   * toucher le nom déplie le nom complet et la ligne des boutons. */
+  let sel = $state(null)
+
+  function toggleSel(entry) {
+    sel = sel === entry.id ? null : entry.id
+    editId = null
+  }
+
+  function statusNote(entry) {
+    if (entry.origin === 'semaine') return entry.available ? 'je l\'ai' : 'semaine'
+    return entry.item_id ? (entry.manual ? 'réserve' : 'auto') : ''
+  }
+
   function toggleEdit(entry) {
     editId = editId === entry.id ? null : entry.id
     editStore = entry.store ?? ''
@@ -33,10 +47,12 @@
     editId = null
   }
 
+  /* Barre d'ajout minimale (25/07/2026) : le produit seul — le lieu d'achat
+   * se règle ensuite via le crayon (mémorisé par ingrédient). */
   async function submit(e) {
     e.preventDefault()
-    await addShopEntry(name.trim(), storeName.trim())
-    name = ''; storeName = ''
+    await addShopEntry(name.trim(), '')
+    name = ''
   }
 </script>
 
@@ -56,24 +72,29 @@
         <li class="row" class:done={entry.done || entry.available}>
           <input type="checkbox" checked={entry.done} disabled={entry.available} aria-label="Acheté"
             onchange={e => setDone(entry, e.target.checked)}>
-          {#if entry.origin === 'semaine'}
-            <button type="button" class="rowbtn-full info" title="Basculer « je l'ai déjà » / « à acheter »"
-              onclick={() => toggleAvailable(entry)}>
-              <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
-            </button>
-            <span class="note">{entry.available ? 'je l\'ai' : 'semaine'}</span>
-            <button class="icon-btn" type="button" aria-expanded={editId === entry.id}
-              aria-label={'Changer le lieu d\'achat de ' + entry.name} title="Changer le lieu d'achat"
-              onclick={() => toggleEdit(entry)}>✎</button>
-          {:else}
-            <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
-            <span class="note">{entry.item_id ? (entry.manual ? 'réserve' : 'auto') : ''}</span>
-            <button class="icon-btn" type="button" aria-expanded={editId === entry.id}
-              aria-label={'Changer le lieu d\'achat de ' + entry.name} title="Changer le lieu d'achat"
-              onclick={() => toggleEdit(entry)}>✎</button>
-            <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeShopEntry(entry)}><Icon d={TRASH} /></button>
+          <button type="button" class="rowbtn-full info" aria-expanded={sel === entry.id}
+            title="Nom complet et boutons" onclick={() => toggleSel(entry)}>
+            <span class="name" class:name-full={sel === entry.id} title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
+          </button>
+          {#if sel !== entry.id}
+            <span class="note">{statusNote(entry)}</span>
           {/if}
         </li>
+        {#if sel === entry.id}
+          <li class="row subrow">
+            <span class="note">{statusNote(entry)}</span>
+            {#if entry.origin === 'semaine'}
+              <button type="button" class="inv-manage" title="Basculer « je l'ai déjà » / « à acheter »"
+                onclick={() => toggleAvailable(entry)}>{entry.available ? 'À acheter' : 'Je l\'ai déjà'}</button>
+            {/if}
+            <button class="icon-btn" type="button" aria-expanded={editId === entry.id}
+              aria-label={'Changer le lieu d\'achat de ' + entry.name} title="Changer le lieu d'achat"
+              onclick={() => toggleEdit(entry)}>✎</button>
+            {#if entry.origin !== 'semaine'}
+              <button class="icon-btn danger" type="button" aria-label="Supprimer" onclick={() => removeShopEntry(entry)}><Icon d={TRASH} /></button>
+            {/if}
+          </li>
+        {/if}
         {#if editId === entry.id}
           <li class="manage-panel">
             <p>Lieu d'achat — mémorisé pour les prochaines courses de « {entry.name} » :</p>
@@ -96,10 +117,9 @@
   {/if}
 </section>
 
-<div class="addbar">
+<div class="addbar" use:addbarHeight>
   <form onsubmit={submit} autocomplete="off">
     <input class="f-name" bind:value={name} placeholder="Produit à acheter" required>
-    <input class="f-loc" bind:value={storeName} list="stores-edit" placeholder="Où acheter">
     <button class="submit">Ajouter</button>
   </form>
 </div>

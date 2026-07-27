@@ -2,6 +2,64 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
+### Chantier du 27/07/2026 : commentaires 2 — LIVRÉ, À REPUBLIER
+Les 8 remarques de docs/utilisateur/commentaires 2.md sont traitées en
+4 lots (décisions d'Olivier du 27/07 : emplacement mémorisé à l'ajout ;
+rapprochement vocal + alias mémorisés ; motif lignes compactes sur
+Stock + Courses) :
+1. **Barre du bas** : padding calé sur la hauteur réelle de la barre
+   d'ajout (action `addbarHeight` → `--barre`) — le bas de page est
+   toujours atteignable (remarque 8).
+2. **Dictée** : garde-fou « 4 épices » (jamais découpé si l'ingrédient est
+   connu, chiffres/traits d'union confondus), rapprochement des dictées
+   écorchées (nuoc mam, ras el hanout) contre la master list (Stock :
+   « Entendu → » ; Inventaire : menu élargi « connu ailleurs ») ;
+   correction confirmée = alias mémorisé. Parseur vocal dédupliqué
+   (`parseDictation` au store).
+3. **Ajout/inventaire** : emplacement du « ⋯ » retenu d'un ajout à l'autre
+   (rappel à côté du bouton) ; « Déplacer » par ligne d'emplacement dans le
+   détail ▸ ; saisie directe de la quantité à l'inventaire (toucher le
+   nombre) ; bouton « Mettre en pause » + bandeau « Reprendre » (démarrer
+   ailleurs pendant une pause = confirmation 2 touches).
+4. **Lignes compactes à deux niveaux** (Stock + Courses) : nom + nombre +
+   emplacement ; toucher → nom complet + seconde ligne de boutons. Motif
+   appliqué à toutes les largeurs (à confirmer par Olivier sur PC).
+État : 156 tests verts (12 nouveaux dont dictee.test.js), build OK,
+check:schema 16/16 (aucune migration), parcours réels vérifiés sur 5173
+(voir cahier de tests, passage du 27/07), commentaires 2.md annoté.
+**Reste : republier (`app/mettre-en-ligne.cmd`, main d'Olivier) puis
+M59-M62 sur iPhone** (M62 = dictée réelle au micro). M56-M58 du 25/07
+et M47/M48-M50/M55 toujours en attente aussi.
+
+### Chantier du 25/07/2026 : commentaires UX iPhone — LIVRÉ, À REPUBLIER
+Les commentaires du 25/07 (docs/utilisateur/commentaires.md) sont traités
+en 5 lots, questions répondues par Olivier (généraliser les sous-écrans,
+supprimer les emplacements par défaut, suppression d'emplacement si vide,
+barre d'ajout minimale) :
+1. **Motif sous-écran** (SousEcran.svelte : titre + croix, masque tout le
+   reste, une seule saisie ouverte) + « Foyer et compte » = écran à part
+   entière dans le menu déroulant (plus jamais l'ancien onglet affiché).
+2. **Foyer et compte refondu** : en direct sélecteur de résidence, clé,
+   sauvegardes, déconnexion, « Gérer les résidences » (sous-écran :
+   renommage ✎ en place, corbeille + confirmation, ajout).
+   `deleteResidence` au store (cascade en base, dernière résidence
+   protégée, bascule si courante).
+3. **Emplacements par résidence** : DEFAULT_LOCS supprimé de Stock.svelte
+   (c'était la cause des « 10 emplacements » fantômes de la remarque 2) ;
+   ajout d'un emplacement vide dans l'Inventaire ; suppression si vide ;
+   `addLocation`/`removeLocation`.
+4. **Sous-écrans partout** : fiche recette (écran dédié), import, sources,
+   Modifier ingrédient, Gérer emplacement, master list, fiche ingrédient,
+   Modifier événement, Ajuster recette. Renommage au crayon ✎ partout.
+5. **Une zone de texte par ligne** (≤ 560 px, manage-row empilées) +
+   barres d'ajout minimales (Stock : ingrédient+⋯+micro+Ajouter ;
+   Courses : produit seul, lieu via ✎).
+État : 144 tests verts (5 nouveaux), build OK, check:schema 16/16 (aucune
+migration nécessaire), parcours réels vérifiés sur 5173 (voir cahier de
+tests, passage du 25/07). **Reste : republier (`app/mettre-en-ligne.cmd`,
+main d'Olivier) puis M56-M58 sur iPhone** (+ M47/M48-M50/M55 toujours en
+attente des sessions précédentes).
+
 ### Vérification du 19/07/2026
 Les 5 lots ont été revérifiés point par point (code, docs, tests) : statut
 annoté dans « Commentaires sur l'appli actuelle.md » (tout est CORRIGÉ),

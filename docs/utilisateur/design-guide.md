@@ -71,14 +71,62 @@ Règles :
 
 ## Composants établis
 
+- **Sous-écran** (25/07/2026, commentaires Olivier — motif central) : toute
+  édition ou sous-menu occupe l'écran **seul** — recherche, filtres, listes
+  et barres d'ajout disparaissent le temps de la saisie ; une **croix ×**
+  en haut à droite ferme et revient où on était (la recherche en cours est
+  restaurée). Une seule saisie ouverte à la fois, partout. Composant
+  `SousEcran.svelte` (titre + croix). S'applique à : fiche recette, Modifier
+  un ingrédient, Gérer un emplacement, master list, fiche ingrédient,
+  import de recette, gestion des sources, gestion des résidences, Modifier
+  un événement, Ajuster une recette d'un événement.
+- **Renommage au crayon** (25/07/2026) : renommer se fait par une icône ✎
+  **directement sur le nom** — le nom se change en champ de saisie en place
+  (OK / Annuler), pour gagner la place d'un champ permanent. Un nom déjà
+  connu fusionne, toujours en deux touches. Appliqué aux résidences,
+  emplacements, ingrédients, genres et sources.
+- **Une seule zone de texte par ligne sur iPhone** (25/07/2026, iPhone 13
+  mini) : sous 560 px, les rangées de formulaire (`manage-row`)
+  **s'empilent** — chaque champ prend sa ligne (étiquette + champ = une
+  ligne). Jamais deux zones de texte côte à côte.
+- **Barre d'ajout minimale** (25/07/2026) : la barre du Stock tient sur une
+  ligne — Ingrédient + bouton « ⋯ » + micro + Ajouter ; quantité,
+  emplacement et où acheter vivent dans le dépliant « ⋯ » (défaut : 1 pot,
+  sans emplacement). **L'emplacement choisi est retenu d'un ajout à
+  l'autre** (27/07/2026 — ranger une série au même endroit) et rappelé en
+  note grise à côté du bouton « ⋯ ». La barre des Courses : produit +
+  Ajouter (le lieu se règle ensuite au crayon, mémorisé par ingrédient).
+- **Écran Foyer et compte** (25/07/2026) : un écran comme les autres — le
+  menu déroulant l'affiche comme écran courant. En direct : sélecteur de
+  résidence, bouton « Gérer les résidences », clé du foyer, sauvegardes,
+  déconnexion. « Gérer les résidences » est un sous-écran : renommage ✎,
+  **corbeille** (confirmation : tout le contenu de la résidence est perdu ;
+  la dernière résidence ne se supprime pas ; supprimer la courante bascule
+  sur une autre), zone d'ajout.
+- **Emplacements par résidence** (25/07/2026) : plus aucune liste
+  d'emplacements par défaut — seuls les emplacements créés dans la
+  résidence courante apparaissent (Stock, Courses, Inventaire). Ils
+  s'ajoutent dans l'Inventaire (zone en bas) et se suppriment dans
+  « Gérer » **seulement vides** (deux touches).
+
+- **Ligne compacte à deux niveaux** (27/07/2026, remarques Olivier iPhone —
+  motif central des listes Stock et Courses) : la ligne ne montre que
+  l'essentiel — **nom (tronqué), nombre, emplacement** (Stock) ou **case,
+  nom, statut** (Courses). **Toucher le nom** déplie le **nom complet**
+  (l'emplacement s'efface pour laisser la place) et fait apparaître une
+  **seconde ligne** en dessous portant l'emplacement et **tous les
+  boutons** : Stock → « ▸ emplacement(s) » (détail), panier, − n +, ✎ ;
+  Courses → statut, « Je l'ai déjà »/« À acheter » (lignes semaine), ✎ lieu,
+  poubelle. Une seule ligne dépliée à la fois. Jamais plus de trois
+  éléments sur la ligne compacte.
 - **Ligne de stock par ingrédient** (16/07/2026) : une ligne par
-  **ingrédient**, jamais plus. Nom tronqué avec ellipse (jamais sur deux
-  lignes), le compteur montre la **somme de tous les emplacements**.
-  Un seul emplacement garni : son nom en note grise ; plusieurs : bouton
-  « ▸ n emplacements » qui déplie le détail (un endroit par ligne avec ses
-  + / −). Panier, puis crayon ✎ « Modifier » (panneau : renommer/fusionner,
-  genre, réserve minimum, supprimer en deux touches — la poubelle a disparu
-  de la ligne). État « à racheter » (somme sous la réserve minimum) :
+  **ingrédient**, jamais plus ; le compteur montre la **somme de tous les
+  emplacements**. Le détail « ▸ n emplacements » (seconde ligne) déplie un
+  endroit par ligne avec ses + / − et un bouton **« Déplacer »** vers un
+  autre emplacement, existant ou nouveau (27/07/2026 — fusion automatique
+  si le produit existe déjà à destination). Le crayon ✎ « Modifier » ouvre
+  le sous-écran (renommer/fusionner, genre, réserve minimum, supprimer en
+  deux touches). État « à racheter » (somme sous la réserve minimum) :
   liseré orange à gauche + nom et compteur orange.
 - Les chips d'emplacement ont disparu avec la vue par emplacement
   (16/07/2026) ; le filtre du stock est la recherche + le genre.
@@ -113,13 +161,20 @@ Règles :
   l'orange alerte.
 - **Mode inventaire** : occupe l'onglet Inventaire le temps de l'inventaire,
   mais les onglets restent visibles — **changer d'onglet met en pause,
-  revenir reprend où on en était** (07/07/2026). En-tête : nom de
+  revenir reprend où on en était** (07/07/2026). Un bouton « **Mettre en
+  pause** » (27/07/2026) rend la liste des emplacements : un bandeau
+  « Reprendre l'inventaire de … » et le bouton « Reprendre » sur son
+  emplacement la lèvent ; démarrer un autre inventaire pendant une pause se
+  confirme en deux touches (la pause serait perdue). En-tête : nom de
   l'emplacement, compte « vus / à vérifier ». Déclarer = dire au micro ou
   taper quelques lettres puis toucher la ligne ; chaque touche ajoute un pot.
   Si un nom correspond à **plusieurs produits**, un **menu de choix** liste
-  les candidats + « Nouveau produit » — jamais de pari (07/07/2026). Trois
-  sections : À vérifier (gris), Vus (vert, compteur corrigeable − n +),
-  Nouveaux. Fin = écran de bilan listant les non-trouvés avant application ;
+  les candidats + les ingrédients proches de la **master list** (« connu
+  ailleurs — sera créé ici ») + « Nouveau produit » — jamais de pari
+  (07/07/2026, élargi le 27/07). Trois sections : À vérifier (gris), Vus
+  (vert, compteur corrigeable − n + ; **toucher le nombre** ouvre la saisie
+  directe de la quantité, 0 remet « à vérifier » — 27/07/2026), Nouveaux.
+  Fin = écran de bilan listant les non-trouvés avant application ;
   rien n'est écrit au stock avant la confirmation. Abandon en deux touches,
   jamais de fenêtre bloquante.
 - **Onglet Semaine** (refonte 07/07/2026) : en tête, le **bloc dépliant**
@@ -171,11 +226,12 @@ Règles :
   (ingrédients), un champ texte avec suggestions au fil de la frappe
   (datalist). Les selects offrent une entrée « — Nouvel… — » quand la
   création est permise.
-- **Lignes « semaine » des courses** (07/07/2026) : gérées automatiquement
-  (créées/requantifiées/retirées avec les repas) ; pas de poubelle ; note
-  « semaine » ; **toucher le nom** bascule « je l'ai » (ligne barrée, non
-  comptée) ↔ « à acheter ». Les lignes réappro gardent poubelle et notes
-  « auto »/« réserve ».
+- **Lignes « semaine » des courses** (07/07/2026, revu 27/07) : gérées
+  automatiquement (créées/requantifiées/retirées avec les repas) ; pas de
+  poubelle ; note « semaine ». Depuis les lignes compactes, toucher le nom
+  déplie la seconde ligne ; la bascule « je l'ai » (ligne barrée, non
+  comptée) ↔ « à acheter » y est un bouton explicite. Les lignes réappro
+  gardent poubelle et notes « auto »/« réserve ».
 - **Master list des ingrédients** (onglet Inventaire, 07/07/2026) : bloc
   dépliant listant tous les ingrédients connus par **catégorie**, non classés
   en tête, filtre texte, saisie de catégorie par ligne (suggestions).
@@ -232,6 +288,11 @@ Règles :
 - **Barre d'ajout au-dessus du clavier** (16/07/2026) : la barre fixée en
   bas remonte de la hauteur du clavier virtuel (`--clavier`, posée par
   visualViewport) — la saisie reste toujours visible sur iPhone.
+- **Le bas de page reste atteignable** (27/07/2026) : la hauteur réelle de
+  la barre fixée en bas est mesurée en continu (`--barre`, action
+  `addbarHeight`) et la page lui réserve exactement cette place — on peut
+  toujours défiler jusqu'au dernier élément, même quand la barre grandit
+  (indice sur plusieurs lignes, dépliant « ⋯ », zone sûre iPhone).
 - **Bandeau hors ligne** : barre pleine largeur sous l'en-tête, fond
   `--warn-bg`, texte `--warn`, message « Hors ligne — dernières données
   connues, consultation seule. » Pendant ce temps, les commandes de

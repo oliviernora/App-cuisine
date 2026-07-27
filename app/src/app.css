@@ -48,7 +48,10 @@ body {
 }
 /* Largeur de lecture : plus généreuse sur PC (demande Olivier 16/07/2026),
  * inchangée sur téléphone et tablette (max-width ne fait que plafonner). */
-main { max-width: 960px; margin: 0 auto; padding: 0 16px 150px; }
+/* --barre : hauteur réelle de la barre d'ajout fixée en bas (action
+ * addbarHeight) — le padding lui réserve exactement sa place, pour que le
+ * bas de page reste atteignable (remarque Olivier 27/07/2026). */
+main { max-width: 960px; margin: 0 auto; padding: 0 16px calc(24px + var(--barre, 0px)); }
 
 header {
   position: sticky; top: 0; z-index: 10;
@@ -156,6 +159,16 @@ li.row, .loc-item .row {
 /* nom tronqué déplié au toucher (réconciliation, lignes vues — 16/07/2026) */
 .row .name.name-full { white-space: normal; overflow: visible; text-overflow: clip; }
 
+/* Lignes compactes (remarque Olivier 27/07/2026) : la ligne ne montre que
+ * nom + nombre + emplacement ; les boutons vivent sur une seconde ligne qui
+ * apparaît au toucher du nom. */
+.row output.count {
+  flex: 0 0 auto; min-width: 1.8em; text-align: center;
+  font-weight: 700; font-variant-numeric: tabular-nums; font-size: 0.95rem;
+}
+li.row.subrow { justify-content: flex-end; background: var(--surface); }
+.subrow .loc-toggle, .subrow > .note { margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
 .qty { display: flex; align-items: center; }
 .qty output {
   min-width: 1.8em; text-align: center; font-weight: 700;
@@ -173,6 +186,17 @@ li.row, .loc-item .row {
 .icon-btn.cart-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .icon-btn.cart-missing { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
 .icon-btn svg, .qty button svg, .mic svg { width: 15px; height: 15px; }
+/* inventaire : le nombre compté se touche pour saisir la quantité (27/07/2026) */
+.qty .qty-out {
+  width: auto; min-width: 1.8em; border: none; background: none;
+  font-weight: 700; font-variant-numeric: tabular-nums; font-size: 0.95rem;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.qty .qty-edit {
+  width: 56px; flex: 0 0 auto; padding: 4px 6px; text-align: center;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--bg); color: var(--ink); font: inherit; font-weight: 700;
+}
 .mic svg { width: 18px; height: 18px; }
 
 .row input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); flex: 0 0 auto; margin: 0; }
@@ -195,6 +219,24 @@ li.row, .loc-item .row {
 .f-loc { flex: 1 1 100px; }
 .f-qty { flex: 0 1 64px; }
 .addbar .submit { flex: 0 0 auto; }
+/* barre d'ajout minimale (25/07/2026) : une ligne Ingrédient + micro + Ajouter,
+ * les détails (quantité, emplacement, où acheter) dans un dépliant au-dessus */
+.add-main { width: 100%; display: flex; gap: 6px; }
+.add-main .f-name { flex: 1; }
+/* emplacement retenu d'un ajout à l'autre, rappelé à côté du bouton ⋯ (27/07/2026) */
+.add-main .add-loc { align-self: center; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+.add-details { width: 100%; display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
+.add-details label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.add-details label :is(input, select) { flex: 1; min-width: 0; }
+.add-details label .f-qty { flex: 0 1 80px; }
+.addbar select {
+  padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--bg); color: var(--ink); font: inherit; min-width: 0;
+}
+.add-details-btn { width: 42px; height: auto; font-size: 1.1rem; letter-spacing: 0.05em; }
 .submit {
   padding: 9px 16px; border: none; border-radius: var(--radius);
   background: var(--accent); color: var(--accent-ink);
@@ -245,6 +287,20 @@ li.row, .loc-item .row {
   cursor: pointer; text-align: center;
 }
 
+/* Sous-écran (commentaires Olivier 25/07/2026) : une édition ou un sous-menu
+ * occupe l'écran seul — recherche, listes et barres d'ajout disparaissent ;
+ * la croix ferme et revient où on était. */
+.se-head { display: flex; align-items: center; gap: 8px; padding: 12px 0 8px; }
+.se-head h2 { flex: 1; min-width: 0; margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.se-close { font-size: 1.35rem; color: var(--muted); }
+.se-add { margin-top: 14px; }
+/* renommage en place (crayon sur le nom) : le champ remplace le nom dans la ligne */
+.row .rename-input {
+  flex: 1; min-width: 0; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--bg); color: var(--ink); font: inherit; font-size: 0.95rem;
+}
+
 .foyer-panel {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 12px 14px; font-size: 0.88rem; color: var(--muted);
@@ -257,6 +313,9 @@ li.row, .loc-item .row {
 }
 .foyer-panel .linklike { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; }
 .foyer-panel .linklike svg { width: 14px; height: 14px; }
+/* « Foyer et compte » est un écran : le panneau vit dans main, pas dans l'en-tête */
+.foyer-panel { margin-top: 12px; }
+.foyer-panel .inv-manage { align-self: flex-start; }
 
 .row .info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 4px 0; }
 .row .info .note { white-space: normal; }
@@ -343,6 +402,15 @@ li.row, .loc-item .row {
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--bg); color: var(--ink); font: inherit;
 }
+/* champs étiquetés dans une rangée (« Quantité reçue », « Pour N personnes »…) */
+.manage-row label:not(.file-btn) {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.manage-row label:not(.file-btn) :is(input, select) { flex: 1; min-width: 0; }
+.manage-row label:not(.file-btn) .f-qty { flex: 0 1 80px; }
+.f-date { flex: 0 1 160px; }
 .filters-toggle { flex: 0 0 auto; white-space: nowrap; }
 .manage-items { max-height: 40vh; overflow-y: auto; margin-bottom: 8px; }
 /* rappel de sauvegarde (> 7 jours) : point orange sur le bouton Foyer */
@@ -398,6 +466,14 @@ li.row, .loc-item .row {
   display: block; margin-top: 6px; padding: 8px 10px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s);
   font-size: 0.8rem; overflow-x: auto;
+}
+
+/* iPhone : une seule zone de texte par ligne (commentaires Olivier 25/07/2026) —
+ * les rangées de formulaire s'empilent, chaque champ prend sa ligne. */
+@media (max-width: 560px) {
+  .manage-row { flex-direction: column; align-items: stretch; }
+  .manage-row .f-qty, .manage-row .f-date { flex: 0 0 auto; }
+  .addbar form > :is(input, select) { flex: 1 1 100%; }
 }
 
 :is(button, input, select, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

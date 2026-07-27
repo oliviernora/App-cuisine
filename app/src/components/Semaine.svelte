@@ -3,6 +3,8 @@
     weekNeeds, formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride, searchRecipes, knownNames,
     staleLots } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import SousEcran from './SousEcran.svelte'
+  import { addbarHeight } from '../lib/addbar.js'
   import { TRASH } from '../lib/icons.js'
 
   const TYPES = ['Dîner maison', 'Repas association', 'Invitation', 'Pique-nique']
@@ -38,8 +40,12 @@
     return new Date(d + 'T00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
+  /* Modifier un événement et ajuster une recette : des sous-écrans dédiés
+   * (commentaires Olivier 25/07/2026) — la croix ramène à la semaine. */
   let editEvent = $state(null)
   let editFields = $state({})
+  const editingEvent = $derived(editEvent ? store.events.find(e => e.id === editEvent) : null)
+
   function startEditEvent(event) {
     editEvent = editEvent === event.id ? null : event.id
     editFields = { day: event.day, title: event.title, guests: event.guests, contraintes: event.contraintes }
@@ -67,7 +73,15 @@
   }
 
   let coursesOpen = $state(false)
-  let openRecipe = $state(null) // 'eventId|recipeId' : panneau d'ajustement déplié
+  let openRecipe = $state(null) // 'eventId|recipeId' : sous-écran d'ajustement
+  const adjusting = $derived.by(() => {
+    if (!openRecipe) return null
+    const [eid, rid] = openRecipe.split('|')
+    const event = store.events.find(e => e.id === eid)
+    const recipe = store.recipes.find(r => r.id === rid)
+    const er = event && recipe ? erOf(event, recipe) : null
+    return event && recipe && er ? { event, recipe, er } : null
+  })
   const needs = $derived(weekNeeds())
   const toBuy = $derived(needs.filter(n => !n.match && !n.entry?.available && !(n.entry && n.entry.origin !== 'semaine')).length)
 
@@ -140,6 +154,64 @@
       attente) : certaines fonctions sont indisponibles.</p>
   {/if}
 
+  <!-- Déclaré en tête : le snippet sert dans le sous-écran ET doit rester
+       visible de toute la chaîne conditionnelle. -->
+  {#snippet editPanel(event)}
+    <div class="manage-panel">
+      <div class="manage-row">
+        <input type="date" bind:value={editFields.day} aria-label="Jour" class="f-date">
+        <span class="note" style="align-self: center">{dayLabel(editFields.day)}</span>
+      </div>
+      <div class="manage-row">
+        <input bind:value={editFields.title} list="event-types" placeholder="Type d'événement" aria-label="Type">
+      </div>
+      <div class="manage-row">
+        <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={editFields.guests}
+          aria-label="Convives">
+        <span class="note" style="align-self: center">convives</span>
+        <input bind:value={editFields.contraintes} placeholder="Contraintes" aria-label="Contraintes">
+      </div>
+      <div class="manage-row">
+        <button type="button" class="inv-start" disabled={busy} onclick={() => saveEventEdit(event)}>Enregistrer</button>
+        <button type="button" class="inv-manage" onclick={() => editEvent = null}>Annuler</button>
+      </div>
+    </div>
+  {/snippet}
+
+  {#if editingEvent}
+    <SousEcran titre="Modifier l'événement" fermer={() => editEvent = null}>
+      {@render editPanel(editingEvent)}
+    </SousEcran>
+  {:else if adjusting}
+    <SousEcran titre={adjusting.recipe.title} fermer={() => openRecipe = null}>
+      <div class="manage-panel">
+        <p class="note">Ingrédients pour « {adjusting.event.title} » ({adjusting.event.guests} pers.{adjusting.recipe.servings ? ', recette pour ' + adjusting.recipe.servings : ''}) —
+          corriger une quantité ne vaut que pour cet événement (0 = retour au calcul) :</p>
+        <div class="manage-row">
+          <label class="note">Ajuster la recette :
+            <input class="f-qty" type="number" inputmode="numeric" min="10" max="500" step="10"
+              value={adjusting.er.scale_pct} onchange={e => setEventRecipeScale(adjusting.er, e.target.value)}
+              aria-label="Pourcentage pour cette recette"> %
+          </label>
+        </div>
+        <ul class="manage-items">
+          {#each eventIngredients(adjusting.event, adjusting.er) as ing (ing.id)}
+            <li class="row">
+              {#if ing.qty != null}
+                <input class="f-qty" type="number" min="0" step="any" value={ing.qty}
+                  onchange={e => setEventQtyOverride(adjusting.er, ing.name, e.target.value)}
+                  aria-label={'Quantité de ' + ing.name}>
+                <span class="name">{ing.unit} {ing.name}</span>
+                {#if ing.overridden}<span class="note">corrigé</span>{/if}
+              {:else}
+                <span class="name">{ing.name}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </SousEcran>
+  {:else}
   {#if store.events.length === 0}
     <p class="empty">Aucun événement planifié. Ajoutez le premier ci-dessous :
       jour, type de repas, nombre de convives et contraintes.</p>
@@ -200,28 +272,6 @@
     </div>
   {/if}
 
-  {#snippet editPanel(event)}
-    <div class="manage-panel">
-      <div class="manage-row">
-        <input type="date" bind:value={editFields.day} aria-label="Jour" class="f-qty" style="flex: 0 1 140px">
-        <span class="note" style="align-self: center">{dayLabel(editFields.day)}</span>
-      </div>
-      <div class="manage-row">
-        <input bind:value={editFields.title} list="event-types" placeholder="Type d'événement" aria-label="Type">
-      </div>
-      <div class="manage-row">
-        <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={editFields.guests}
-          aria-label="Convives" style="flex: 0 1 90px">
-        <span class="note" style="align-self: center">convives</span>
-        <input bind:value={editFields.contraintes} placeholder="Contraintes" aria-label="Contraintes">
-      </div>
-      <div class="manage-row">
-        <button type="button" class="inv-start" disabled={busy} onclick={() => saveEventEdit(event)}>Enregistrer</button>
-        <button type="button" class="inv-manage" onclick={() => editEvent = null}>Annuler</button>
-      </div>
-    </div>
-  {/snippet}
-
   {#if futurs.length}<p class="group-title">À venir</p>{/if}
   {#each futurs as [d, group] (d)}
     <p class="group-title">{dayLabel(d)}</p>
@@ -243,7 +293,6 @@
                 onclick={() => confirmDelete = event.id}><Icon d={TRASH} /></button>
             {/if}
           </div>
-          {#if editEvent === event.id}{@render editPanel(event)}{/if}
           {#if open === event.id}
             <div class="manage-panel">
               {#if recipesOf(event).length}
@@ -263,34 +312,6 @@
                         <button class="icon-btn danger" type="button" aria-label="Retirer la recette"
                           onclick={() => detachRecipe(event, recipe)}><Icon d={TRASH} /></button>
                       </div>
-                      {#if openRecipe === rkey && er}
-                        <div class="manage-block">
-                          <p class="note">Ingrédients pour cet événement ({event.guests} pers.{recipe.servings ? ', recette pour ' + recipe.servings : ''}) —
-                            corriger une quantité ne vaut que pour cet événement (0 = retour au calcul) :</p>
-                          <div class="manage-row">
-                            <label class="note">Ajuster la recette :
-                              <input class="f-qty" type="number" inputmode="numeric" min="10" max="500" step="10"
-                                value={er.scale_pct} onchange={e => setEventRecipeScale(er, e.target.value)}
-                                aria-label="Pourcentage pour cette recette"> %
-                            </label>
-                          </div>
-                          <ul class="manage-items">
-                            {#each eventIngredients(event, er) as ing (ing.id)}
-                              <li class="row">
-                                {#if ing.qty != null}
-                                  <input class="f-qty" type="number" min="0" step="any" value={ing.qty}
-                                    onchange={e => setEventQtyOverride(er, ing.name, e.target.value)}
-                                    aria-label={'Quantité de ' + ing.name}>
-                                  <span class="name">{ing.unit} {ing.name}</span>
-                                  {#if ing.overridden}<span class="note">corrigé</span>{/if}
-                                {:else}
-                                  <span class="name">{ing.name}</span>
-                                {/if}
-                              </li>
-                            {/each}
-                          </ul>
-                        </div>
-                      {/if}
                     </li>
                   {/each}
                 </ul>
@@ -359,7 +380,6 @@
                 onclick={() => confirmDelete = event.id}><Icon d={TRASH} /></button>
             {/if}
           </div>
-          {#if editEvent === event.id}{@render editPanel(event)}{/if}
           {#if faitOpen === event.id}
             <div class="manage-block">
               {#if recipesOf(event).length === 0}
@@ -390,11 +410,13 @@
       {/each}
     </ul>
   {/each}
+  {/if}
 </section>
 
-<div class="addbar">
+{#if !editingEvent && !adjusting}
+<div class="addbar" use:addbarHeight>
   <form onsubmit={submit} autocomplete="off">
-    <input type="date" bind:value={day} aria-label="Jour" class="f-qty" style="flex: 0 1 140px">
+    <input type="date" bind:value={day} aria-label="Jour" class="f-date">
     <span class="note" style="align-self: center">{dayLabel(day)}</span>
     <input class="f-name" bind:value={title} list="event-types" placeholder="Type d'événement">
     <input class="f-qty" type="number" inputmode="numeric" min="1" bind:value={guests} aria-label="Convives" title="Nombre de convives">
@@ -402,6 +424,7 @@
     <button class="submit" disabled={busy}>Ajouter</button>
   </form>
 </div>
+{/if}
 
 <datalist id="event-types">
   {#each TYPES as t (t)}<option value={t}></option>{/each}

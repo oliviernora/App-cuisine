@@ -2,12 +2,13 @@
   import { onMount } from 'svelte'
   import { store, addItem, changeQty, toggleOrder, stockGroups, shopEntryOf,
     setIngredientMin, renameIngredient, removeIngredient, setIngredientCategory, categoryOf,
-    knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot } from '../lib/store.svelte.js'
+    knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot,
+    parseDictation, dictationMatches, sameDictation, confirmMerge, moveItem } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import SousEcran from './SousEcran.svelte'
+  import { addbarHeight } from '../lib/addbar.js'
   import { MINUS, PLUS, CART, CART_PLUS, MIC } from '../lib/icons.js'
 
-  const DEFAULT_LOCS = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
-    'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
   const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
 
   let search = $state('')
@@ -23,10 +24,12 @@
   let newLoc = $state(false)
 
   /* Les emplacements peuvent être nombreux : liste déroulante des existants,
-   * avec une entrée « Nouvel emplacement… » (demande Olivier 07/07). */
+   * avec une entrée « Nouvel emplacement… » (demande Olivier 07/07). Seuls
+   * les emplacements de la résidence courante apparaissent — plus de liste
+   * par défaut codée en dur (commentaires Olivier 25/07/2026). */
   const locNames = $derived.by(() => {
     const names = [...new Set([...store.items.map(i => i.loc).filter(Boolean),
-      ...store.locations.map(l => l.name), ...DEFAULT_LOCS])]
+      ...store.locations.map(l => l.name)])]
     return names.toSorted((a, b) => a.localeCompare(b, 'fr'))
   })
   let hint = $state('Micro : dites par exemple « deux garam masala ». La dictée du clavier iPhone marche aussi.')
@@ -49,6 +52,23 @@
 
   let open = $state(null) // clé du groupe dont le détail des emplacements est déplié
 
+  /* Lignes compactes (remarque Olivier 27/07/2026) : la liste ne montre que
+   * nom + nombre + emplacement ; toucher l'ingrédient déplie le nom complet
+   * et une seconde ligne avec l'emplacement et tous les boutons. */
+  let sel = $state(null)
+
+  function toggleSel(g) {
+    sel = sel === g.key ? null : g.key
+    open = null
+    moving = null
+  }
+
+  function locLabel(g) {
+    const rows = g.stocked.length ? g.stocked : g.rows
+    if (rows.length === 1) return rows[0].loc || 'sans emplacement'
+    return rows.length + ' emplacements'
+  }
+
   /** L'unique ligne d'emplacement visée par les + / − de la ligne principale
    * (une seule ligne, ou une seule encore garnie), sinon null : le détail tranche. */
   function soloRow(g) {
@@ -66,6 +86,25 @@
     open = open === g.key ? null : g.key
     lotQty = 1
     lotDate = new Date().toISOString().slice(0, 10)
+    moving = null
+  }
+
+  /* Déplacer une ligne d'emplacement vers un autre (remarque Olivier
+   * 27/07/2026) — moveItem fusionne si le produit existe déjà là-bas. */
+  let moving = $state(null)
+  let moveDest = $state('')
+  let moveNew = $state(false)
+
+  function startMove(item) {
+    moving = moving === item.id ? null : item.id
+    moveDest = ''
+    moveNew = false
+  }
+
+  async function doMove(item, e) {
+    e.preventDefault()
+    await moveItem(item, moveDest)
+    moving = null
   }
 
   function dateFr(d) {
@@ -89,21 +128,27 @@
     lotQty = 1
   }
 
-  /* Panneau Modifier (décision Olivier 16/07/2026) : renommer (fusion en deux
-   * touches), genre, minimum de réserve, suppression — seule voie de
-   * suppression d'un ingrédient. */
+  /* Modifier un ingrédient (décision Olivier 16/07/2026, sous-écran depuis
+   * les commentaires du 25/07/2026) : renommer au crayon sur le nom (fusion
+   * en deux touches), genre, minimum de réserve, suppression — seule voie de
+   * suppression d'un ingrédient. Le sous-écran masque recherche, liste et
+   * barre d'ajout. */
   let edit = $state(null)
   let edName = $state('')
   let edMin = $state(1)
+  let edRenaming = $state(false)
   let edConfirmFusion = $state(false)
   let edConfirmDelete = $state(false)
   let busy = $state(false)
   let message = $state('')
 
+  const editGroup = $derived(edit ? stockGroups().find(g => g.key === edit) : null)
+
   function toggleEdit(g) {
     edit = edit === g.key ? null : g.key
     edName = g.name
     edMin = g.min
+    edRenaming = false
     edConfirmFusion = false
     edConfirmDelete = false
     message = ''
@@ -135,25 +180,33 @@
     edit = null
   }
 
+  /* Barre d'ajout minimale (commentaires Olivier 25/07/2026) : une seule
+   * ligne Ingrédient + micro + Ajouter ; quantité, emplacement et où acheter
+   * vivent dans un dépliant « Détails ». */
+  let detailsOpen = $state(false)
+
   async function submit(e) {
     e.preventDefault()
+    const n = name.trim()
+    /* Dictée corrigée puis validée telle quelle : la transcription devient
+     * un alias du référentiel — reconnue directement les fois suivantes
+     * (décision Olivier 27/07/2026). */
+    if (voiceFix && fold(n) === fold(voiceFix.suggested)) await confirmMerge(voiceFix.suggested, voiceFix.raw)
+    voiceFix = null
     await addItem({
-      name: name.trim(),
+      name: n,
       qty: Number(qty) || 0,
       loc: itemLoc.trim(),
       store: itemStore.trim()
     })
-    name = ''; qty = 1; itemLoc = ''; itemStore = ''
+    /* L'emplacement est conservé d'un ajout à l'autre (ranger une série de
+     * produits au même endroit — décision Olivier 27/07/2026) ; il reste
+     * visible à côté du bouton ⋯. */
+    name = ''; qty = 1; itemStore = ''
+    detailsOpen = false; newLoc = false
   }
 
-  const NUMBER_WORDS = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10 }
-  function parseVoice(text) {
-    let words = text.trim().toLowerCase().replace(/^ajoute[rz]?\s+/, '').split(/\s+/)
-    let n = 1
-    if (/^\d+$/.test(words[0])) { n = Number(words[0]); words = words.slice(1) }
-    else if (NUMBER_WORDS[words[0]]) { n = NUMBER_WORDS[words[0]]; words = words.slice(1) }
-    return { qty: n, name: words.join(' ') }
-  }
+  let voiceFix = null // { raw, suggested } : dictée écorchée corrigée via la master list
 
   let rec = null
   onMount(() => {
@@ -171,10 +224,24 @@
     rec.interimResults = true
     let heard = ''
     const applyVoice = text => {
-      const parsed = parseVoice(text)
-      name = parsed.name.charAt(0).toUpperCase() + parsed.name.slice(1)
+      const parsed = parseDictation(text)
+      /* La dictée est rapprochée de la master list : « 4 épices » redevient
+       * « Quatre-épices », « nuoc mame » propose « Nuoc mam » (27/07/2026).
+       * Plusieurs correspondances incertaines : on garde le texte entendu. */
+      const matches = dictationMatches(parsed.name)
+      const best = matches[0]
+      voiceFix = null
+      let nom = parsed.name
+      if (best && (matches.length === 1 || sameDictation(best, nom) || sameIngredient(best, nom))) {
+        if (fold(best) !== fold(nom) && !sameIngredient(best, nom) && !sameDictation(best, nom))
+          voiceFix = { raw: nom, suggested: best }
+        nom = best
+      }
+      name = nom.charAt(0).toUpperCase() + nom.slice(1)
       qty = parsed.qty
-      hint = 'Entendu : « ' + text.trim() + ' ». Vérifiez puis touchez Ajouter.'
+      hint = fold(nom) === fold(parsed.name)
+        ? 'Entendu : « ' + text.trim() + ' ». Vérifiez puis touchez Ajouter.'
+        : 'Entendu : « ' + text.trim() + ' » → « ' + nom + ' ». Vérifiez puis touchez Ajouter.'
     }
     rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
     rec.onend = () => {
@@ -205,6 +272,61 @@
     <p class="offline-banner">La base de données doit être mise à jour (migration en
       attente) : la dernière modification n'a pas pu être enregistrée.</p>
   {/if}
+  {#if editGroup}
+    <!-- Sous-écran Modifier : occupe l'écran seul (commentaires Olivier 25/07/2026). -->
+    <SousEcran titre={editGroup.name} fermer={() => edit = null}>
+      <div class="manage-panel">
+        <div class="manage-block">
+          {#if edRenaming}
+            <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
+            <div class="manage-row">
+              <input class="rename-input" bind:value={edName} oninput={() => edConfirmFusion = false}
+                aria-label="Nouveau nom">
+              <button type="button" class="inv-start" class:danger-btn={edConfirmFusion}
+                disabled={busy || !edName.trim()}
+                onclick={() => saveName(editGroup)}>{edConfirmFusion ? 'Confirmer la fusion' : 'OK'}</button>
+              <button type="button" class="inv-manage" onclick={() => { edRenaming = false; edName = editGroup.name }}>Annuler</button>
+            </div>
+          {:else}
+            <div class="row source-row">
+              <span class="name">{editGroup.name}</span>
+              <button type="button" class="icon-btn" aria-label={'Renommer ' + editGroup.name} title="Renommer"
+                onclick={() => { edRenaming = true; edConfirmFusion = false }}>✎</button>
+            </div>
+          {/if}
+        </div>
+        <div class="manage-block">
+          <p>Genre (master list) :</p>
+          <div class="manage-row">
+            <select value={categoryOf(editGroup.name)} onchange={e => setIngredientCategory(editGroup.name, e.target.value)}
+              aria-label={'Genre de ' + editGroup.name}>
+              <option value="">Non classé</option>
+              {#each genreNames as c (c)}<option value={c}>{c}</option>{/each}
+            </select>
+          </div>
+        </div>
+        <div class="manage-block">
+          <p>Réserve minimum — racheté dès que la somme de tous les emplacements
+            passe en dessous (0 = jamais racheté tout seul) :</p>
+          <div class="manage-row">
+            <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={edMin} aria-label="Réserve minimum">
+            <button type="button" class="inv-start" disabled={busy} onclick={() => saveMin(editGroup)}>Enregistrer</button>
+          </div>
+        </div>
+        <div class="manage-block">
+          <p>Supprimer l'ingrédient — toutes ses lignes d'emplacement et sa ligne de courses :</p>
+          <div class="manage-row">
+            {#if edConfirmDelete}
+              <button type="button" class="inv-start danger-btn" disabled={busy} onclick={() => doDelete(editGroup)}>Confirmer la suppression</button>
+              <button type="button" class="inv-manage" onclick={() => edConfirmDelete = false}>Non, garder</button>
+            {:else}
+              <button type="button" class="inv-manage" onclick={() => edConfirmDelete = true}>Supprimer</button>
+            {/if}
+          </div>
+        </div>
+      </div>
+    </SousEcran>
+  {:else}
   <div class="filters">
     <div class="searchrow">
       <input id="search" type="search" bind:value={search} placeholder="Rechercher une épice, un ingrédient…" aria-label="Rechercher">
@@ -231,40 +353,50 @@
       {@const inList = !!entry}
       {@const missing = !inList && g.total < g.min}
       {@const solo = soloRow(g)}
-      {@const expandable = g.stocked.length > 1 || (solo && isDatedLoc(solo.loc) && g.total > 0)}
+      {@const detailable = g.stocked.length > 0}
       <li class="row" class:low={g.total < g.min}>
-        <span class="name" title={g.name}>{g.name}</span>
-        {#if g.stocked.length === 1 && !expandable}
-          <span class="note">{g.stocked[0].loc || 'sans emplacement'}</span>
+        <button type="button" class="rowbtn-full info" aria-expanded={sel === g.key}
+          title="Nom complet et boutons" onclick={() => toggleSel(g)}>
+          <span class="name" class:name-full={sel === g.key} title={g.name}>{g.name}</span>
+        </button>
+        <output class="count" title="pots — tous emplacements">{g.total}</output>
+        {#if sel !== g.key}
+          <span class="note">{locLabel(g)}</span>
         {/if}
-        {#if expandable}
-          <button class="icon-btn loc-toggle" type="button" aria-expanded={open === g.key}
-            title="Détail par emplacement"
-            onclick={() => toggleDetail(g)}>{open === g.key ? '▾' : '▸'}{g.stocked.length > 1 ? ' ' + g.stocked.length + ' emplacements' : ''}</button>
-        {/if}
-        <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
-          aria-label="Commander"
-          title={inList ? 'Dans le panier — appuyer pour retirer' : missing ? 'Produit manquant — ajouter au panier' : 'Commander (réserve)'}
-          onclick={() => toggleOrder(g)}><Icon d={missing ? CART_PLUS : CART} /></button>
-        <div class="qty">
-          {#if solo}
-            <button type="button" aria-label="Un pot de moins" onclick={() => moins(solo)}><Icon d={MINUS} /></button>
-            <output title="pots — tous emplacements">{g.total}</output>
-            <button type="button" aria-label="Un pot de plus" onclick={() => plus(solo)}><Icon d={PLUS} /></button>
-          {:else}
-            <output title="pots — tous emplacements">{g.total}</output>
-          {/if}
-        </div>
-        <button class="icon-btn" type="button" aria-expanded={edit === g.key}
-          aria-label={'Modifier ' + g.name} title="Modifier (nom, genre, minimum, suppression)"
-          onclick={() => toggleEdit(g)}>✎</button>
       </li>
+      {#if sel === g.key}
+        <li class="row subrow">
+          {#if detailable}
+            <button class="icon-btn loc-toggle" type="button" aria-expanded={open === g.key}
+              title="Détail par emplacement : quantités, déplacement, lots datés"
+              onclick={() => toggleDetail(g)}>{open === g.key ? '▾' : '▸'} {locLabel(g)}</button>
+          {:else}
+            <span class="note">{locLabel(g)}</span>
+          {/if}
+          <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
+            aria-label="Commander"
+            title={inList ? 'Dans le panier — appuyer pour retirer' : missing ? 'Produit manquant — ajouter au panier' : 'Commander (réserve)'}
+            onclick={() => toggleOrder(g)}><Icon d={missing ? CART_PLUS : CART} /></button>
+          {#if solo}
+            <div class="qty">
+              <button type="button" aria-label="Un pot de moins" onclick={() => moins(solo)}><Icon d={MINUS} /></button>
+              <output title="pots — tous emplacements">{g.total}</output>
+              <button type="button" aria-label="Un pot de plus" onclick={() => plus(solo)}><Icon d={PLUS} /></button>
+            </div>
+          {/if}
+          <button class="icon-btn" type="button" aria-expanded={edit === g.key}
+            aria-label={'Modifier ' + g.name} title="Modifier (nom, genre, minimum, suppression)"
+            onclick={() => toggleEdit(g)}>✎</button>
+        </li>
+      {/if}
       {#if open === g.key}
         <li class="lot-panel">
           <ul class="manage-items">
             {#each g.stocked as item (item.id)}
               <li class="row">
                 <span class="name">{item.loc || 'Sans emplacement'}</span>
+                <button type="button" class="inv-manage" aria-expanded={moving === item.id}
+                  onclick={() => startMove(item)}>Déplacer</button>
                 <div class="qty">
                   <button type="button" aria-label={'Un pot de moins — ' + (item.loc || 'sans emplacement')}
                     onclick={() => moins(item)}><Icon d={MINUS} /></button>
@@ -273,6 +405,24 @@
                     onclick={() => plus(item)}><Icon d={PLUS} /></button>
                 </div>
               </li>
+              {#if moving === item.id}
+                <li>
+                  <form class="manage-row" onsubmit={e => doMove(item, e)}>
+                    {#if moveNew}
+                      <input bind:value={moveDest} placeholder="Nouvel emplacement" aria-label="Destination">
+                    {:else}
+                      <select bind:value={moveDest} aria-label="Destination"
+                        onchange={e => { if (e.target.value === '__nouveau__') { moveDest = ''; moveNew = true } }}>
+                        <option value="">Vers…</option>
+                        {#each locNames.filter(l => l !== item.loc) as l (l)}<option value={l}>{l}</option>{/each}
+                        <option value="__nouveau__">— Nouvel emplacement… —</option>
+                      </select>
+                    {/if}
+                    <button class="inv-start" disabled={!moveDest.trim()}>Déplacer</button>
+                    <button type="button" class="inv-manage" onclick={() => moving = null}>Annuler</button>
+                  </form>
+                </li>
+              {/if}
               {#if isDatedLoc(item.loc)}
                 {#each lotsOf(item.id) as lot, i (lot.id)}
                   <li class="row">
@@ -298,77 +448,54 @@
           </ul>
         </li>
       {/if}
-      {#if edit === g.key}
-        <li class="manage-panel">
-          <div class="manage-block">
-            <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
-            <div class="manage-row">
-              <input bind:value={edName} oninput={() => edConfirmFusion = false} aria-label="Nouveau nom">
-              <button type="button" class="inv-start" class:danger-btn={edConfirmFusion} disabled={busy}
-                onclick={() => saveName(g)}>{edConfirmFusion ? 'Confirmer la fusion' : 'Renommer'}</button>
-            </div>
-          </div>
-          <div class="manage-block">
-            <p>Genre (master list) :</p>
-            <div class="manage-row">
-              <select value={categoryOf(g.name)} onchange={e => setIngredientCategory(g.name, e.target.value)}
-                aria-label={'Genre de ' + g.name}>
-                <option value="">Non classé</option>
-                {#each genreNames as c (c)}<option value={c}>{c}</option>{/each}
-              </select>
-            </div>
-          </div>
-          <div class="manage-block">
-            <p>Réserve minimum — racheté dès que la somme de tous les emplacements
-              passe en dessous (0 = jamais racheté tout seul) :</p>
-            <div class="manage-row">
-              <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={edMin} aria-label="Réserve minimum">
-              <button type="button" class="inv-start" disabled={busy} onclick={() => saveMin(g)}>Enregistrer</button>
-            </div>
-          </div>
-          <div class="manage-block">
-            <p>Supprimer l'ingrédient — toutes ses lignes d'emplacement et sa ligne de courses :</p>
-            <div class="manage-row">
-              {#if edConfirmDelete}
-                <button type="button" class="inv-start danger-btn" disabled={busy} onclick={() => doDelete(g)}>Confirmer la suppression</button>
-                <button type="button" class="inv-manage" onclick={() => edConfirmDelete = false}>Non, garder</button>
-              {:else}
-                <button type="button" class="inv-manage" onclick={() => edConfirmDelete = true}>Supprimer</button>
-              {/if}
-            </div>
-          </div>
-        </li>
-      {/if}
     {/each}
   </ul>
+  {/if}
 </section>
 
-<div class="addbar">
+{#if !editGroup}
+<div class="addbar" use:addbarHeight>
   <form onsubmit={submit} autocomplete="off">
-    <input class="f-name" bind:value={name} list="known-ingredients" placeholder="Ingrédient" required>
-    <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={qty} aria-label="Nombre de pots" title="Nombre de pots">
-    {#if newLoc}
-      <input class="f-loc" bind:value={itemLoc} placeholder="Nouvel emplacement" aria-label="Emplacement">
-    {:else}
-      <select class="f-loc" bind:value={itemLoc} aria-label="Emplacement"
-        onchange={e => { if (e.target.value === '__nouveau__') { itemLoc = ''; newLoc = true } }}>
-        <option value="">Emplacement…</option>
-        {#each locNames as l (l)}<option value={l}>{l}</option>{/each}
-        <option value="__nouveau__">— Nouvel emplacement… —</option>
-      </select>
+    {#if detailsOpen}
+      <div class="add-details">
+        <label>Nombre de pots
+          <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={qty} aria-label="Nombre de pots">
+        </label>
+        <label>Emplacement
+          {#if newLoc}
+            <input bind:value={itemLoc} placeholder="Nouvel emplacement" aria-label="Emplacement">
+          {:else}
+            <select bind:value={itemLoc} aria-label="Emplacement"
+              onchange={e => { if (e.target.value === '__nouveau__') { itemLoc = ''; newLoc = true } }}>
+              <option value="">Emplacement…</option>
+              {#each locNames as l (l)}<option value={l}>{l}</option>{/each}
+              <option value="__nouveau__">— Nouvel emplacement… —</option>
+            </select>
+          {/if}
+        </label>
+        <label>Où acheter
+          <input bind:value={itemStore} list="stores" placeholder="Où acheter">
+        </label>
+      </div>
     {/if}
-    <input class="f-loc" bind:value={itemStore} list="stores" placeholder="Où acheter">
-    {#if voiceAvailable}
-      <button class="mic" class:listening type="button" aria-label="Saisie vocale" onclick={toggleMic}><Icon d={MIC} /></button>
-    {/if}
-    <button class="submit">Ajouter</button>
+    <div class="add-main">
+      <input class="f-name" bind:value={name} list="known-ingredients" placeholder="Ingrédient" required>
+      {#if itemLoc && !detailsOpen}
+        <span class="note add-loc" title={'Sera rangé : ' + itemLoc}>{itemLoc}</span>
+      {/if}
+      <button type="button" class="icon-btn add-details-btn" class:chip-on={detailsOpen}
+        aria-expanded={detailsOpen} aria-label="Détails : quantité, emplacement, où acheter"
+        title="Quantité, emplacement, où acheter" onclick={() => detailsOpen = !detailsOpen}>⋯</button>
+      {#if voiceAvailable}
+        <button class="mic" class:listening type="button" aria-label="Saisie vocale" onclick={toggleMic}><Icon d={MIC} /></button>
+      {/if}
+      <button class="submit">Ajouter</button>
+    </div>
     <p class="hint">{hint}</p>
   </form>
 </div>
+{/if}
 
-<datalist id="locs">
-  {#each DEFAULT_LOCS as l (l)}<option value={l}></option>{/each}
-</datalist>
 <datalist id="stores">
   {#each STORES as s (s)}<option value={s}></option>{/each}
 </datalist>

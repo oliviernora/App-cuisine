@@ -159,6 +159,20 @@ export async function renameResidence(residence, name) {
   if (error) store.schemaWarning = true
 }
 
+/** Supprime une résidence et tout ce qu'elle contient (cascade en base :
+ * items, courses, emplacements, lots, événements). La dernière résidence du
+ * foyer ne se supprime pas ; supprimer la courante bascule d'abord sur une
+ * autre. */
+export async function deleteResidence(residence) {
+  if (store.residences.length < 2) return
+  if (residence.id === store.residence?.id) {
+    await switchResidence(store.residences.find(r => r.id !== residence.id).id)
+  }
+  const { error } = await supabase.from('residences').delete().eq('id', residence.id)
+  if (error) { store.schemaWarning = true; return }
+  store.residences = store.residences.filter(r => r.id !== residence.id)
+}
+
 async function startData() {
   await loadResidences()
   await refresh()
@@ -827,6 +841,82 @@ export function knownNames() {
   return [...byFold.values()]
 }
 
+/* ----- Dictée vocale (remarques Olivier 27/07/2026) -----
+ * La reconnaissance transcrit « quatre-épices » en « 4 épices » et écorche
+ * les noms venus d'ailleurs (nuoc mam, ras el hanout). Le parseur ne
+ * consomme un nombre en tête QUE si le texte entier n'est pas un ingrédient
+ * connu ; le rapprochement tolère chiffres, traits d'union et petites
+ * fautes de transcription, et les corrections confirmées deviennent des
+ * alias du référentiel (reconnues directement ensuite). */
+
+const NUMBER_WORDS = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10 }
+const DIGIT_WORDS = { 1: 'un', 2: 'deux', 3: 'trois', 4: 'quatre', 5: 'cinq', 6: 'six', 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix' }
+
+/** Forme de comparaison d'une dictée : repliée, traits d'union = espaces,
+ * chiffres remplacés par leur mot (« 4 épices » ≡ « quatre-épices »). */
+function foldDictation(s) {
+  return fold(s).replace(/-/g, ' ').split(/\s+/).filter(Boolean)
+    .map(w => DIGIT_WORDS[w] ?? w).join(' ')
+}
+
+export function sameDictation(a, b) {
+  return foldDictation(a) === foldDictation(b)
+}
+
+function knownDictation(text) {
+  const f = foldDictation(text)
+  return knownNames().some(n => foldDictation(n) === f)
+    || store.refs.some(r => foldDictation(r.name) === f || r.aliases.some(a => foldDictation(a) === f))
+}
+
+/** Découpe une dictée « trois cumin moulu » en quantité + nom. Le nombre en
+ * tête n'est pas consommé si le texte entier désigne un ingrédient connu. */
+export function parseDictation(text) {
+  const words = text.trim().toLowerCase().replace(/^ajoute[rz]?\s+/, '').split(/\s+/)
+  const whole = words.join(' ')
+  const first = words[0]
+  const n = /^\d+$/.test(first) ? Number(first) : NUMBER_WORDS[first]
+  if (n !== undefined && words.length > 1 && !knownDictation(whole)) {
+    return { qty: n, name: words.slice(1).join(' ') }
+  }
+  return { qty: 1, name: whole }
+}
+
+function editDistance(a, b) {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i]
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(row[j - 1] + 1, prev[j] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    }
+    prev = row
+  }
+  return prev[b.length]
+}
+
+/** Ingrédients connus (master list, alias compris) proches d'une dictée,
+ * du plus sûr au moins sûr — noms canoniques, sans doublon. */
+export function dictationMatches(name) {
+  const f = foldDictation(name)
+  if (!f) return []
+  const best = new Map()
+  const consider = (variant, canonical) => {
+    const fv = foldDictation(variant)
+    const maxD = fv.length >= 8 ? 2 : fv.length >= 5 ? 1 : 0
+    if (Math.abs(fv.length - f.length) > maxD) return
+    const d = editDistance(f, fv)
+    if (d > maxD) return
+    const key = fold(canonical)
+    if (!best.has(key) || best.get(key).d > d) best.set(key, { name: canonical, d })
+  }
+  for (const n of knownNames()) consider(n, canonicalName(n))
+  for (const r of store.refs) {
+    consider(r.name, r.name)
+    for (const a of r.aliases) consider(a, r.name)
+  }
+  return [...best.values()].toSorted((x, y) => x.d - y.d).map(x => x.name)
+}
+
 /** Paires de noms probablement identiques, à confirmer une par une (jamais de fusion silencieuse). */
 export function pendingMerges() {
   const groups = Map.groupBy(knownNames(), depluralize)
@@ -1442,6 +1532,28 @@ export async function renameLocation(oldName, newName) {
   }
 }
 
+/** Crée un emplacement vide dans la résidence courante (commentaires Olivier
+ * 25/07/2026 : les emplacements s'ajoutent et se gèrent dans l'Inventaire). */
+export async function addLocation(name) {
+  const n = name.trim()
+  if (!n || store.locations.some(l => l.name === n) || store.items.some(i => i.loc === n)) return
+  const { data, error } = await supabase.from('locations')
+    .insert({ ...scopeFields(), name: n }).select().single()
+  if (error || !data) { store.schemaWarning = true; return }
+  store.locations.push(data)
+}
+
+/** Supprime un emplacement vide (aucun produit) ; un emplacement garni se
+ * vide d'abord (déplacer ou fusionner). */
+export async function removeLocation(name) {
+  if (store.items.some(i => i.loc === name)) return
+  const row = store.locations.find(l => l.name === name)
+  if (!row) return
+  store.locations = store.locations.filter(l => l !== row)
+  const { error } = await supabase.from('locations').delete().eq('id', row.id)
+  if (error) store.schemaWarning = true
+}
+
 /* ----- Emplacements datés (cas N7) -----
  * Un emplacement « à dates » (congélateur, cave…) suit chaque entrée comme un
  * lot : n produits identiques entrés à la même date. item.qty reste le total
@@ -1591,6 +1703,17 @@ export function adjustCreated(name, delta) {
 export function abandonInventory() {
   store.inv = null
   saveInv()
+}
+
+/* Pause explicite (remarque Olivier 27/07/2026) : l'inventaire reste
+ * sauvegardé tel quel mais rend la main sur la liste des emplacements
+ * (avant, la pause n'existait qu'en changeant d'onglet, invisible). */
+export function pauseInventory() {
+  if (store.inv) { store.inv.paused = true; saveInv() }
+}
+
+export function unpauseInventory() {
+  if (store.inv) { store.inv.paused = false; saveInv() }
 }
 
 /** Emplacement « à dates » : ramène les lots d'un produit au total constaté,

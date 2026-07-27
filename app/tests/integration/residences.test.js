@@ -12,7 +12,7 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, addItem, addEvent, addResidence, switchResidence,
+  store, addItem, addEvent, addResidence, switchResidence, deleteResidence,
   startInventory, abandonInventory, invIsHere
 } from '../../src/lib/store.svelte.js'
 
@@ -89,6 +89,29 @@ describe('Résidences (Q6) — chaque maison a ses stocks, courses et sa semaine
 
     await switchResidence(montalivet.id)
     expect(store.events).toHaveLength(0)
+  })
+
+  test('supprimer une résidence retire la résidence et ses données (25/07/2026)', async () => {
+    const [argenteuil, montalivet] = await deuxResidences()
+    await addItem({ name: 'Cumin', qty: 2, loc: 'Cuisine', store: '' })
+    await switchResidence(montalivet.id)
+    await addItem({ name: 'Sel de Guérande', qty: 1, loc: 'Placard', store: '' })
+
+    await deleteResidence(montalivet)
+
+    expect(store.residences.map(r => r.name)).toEqual(['Argenteuil'])
+    // la courante a basculé sur la résidence restante, avec ses données
+    expect(store.residence.id).toBe(argenteuil.id)
+    expect(store.items.map(i => i.name)).toEqual(['Cumin'])
+  })
+
+  test('la dernière résidence du foyer ne se supprime pas', async () => {
+    await addResidence('Argenteuil')
+    store.residence = store.residences[0]
+
+    await deleteResidence(store.residences[0])
+
+    expect(store.residences).toHaveLength(1)
   })
 
   test('un inventaire en pause reste dans sa résidence', async () => {

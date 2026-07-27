@@ -21,24 +21,39 @@ bout en bout) : voir `cas-utilisation.md`.
 - **Sur petit écran (iPhone)**, les onglets du haut collapsent en **menu
   déroulant** : le bouton montre la section courante, l'ouvrir liste Stock,
   Courses (avec la pastille), Recettes, Semaine, Inventaire et « Foyer et
-  compte ». Rien ne dépasse jamais de l'écran à droite ou à gauche.
+  compte ». « Foyer et compte » est un **écran comme les autres** : choisi,
+  le bouton du menu l'affiche comme écran courant (25/07/2026). Rien ne
+  dépasse jamais de l'écran à droite ou à gauche, et **jamais deux zones de
+  texte sur la même ligne** sur iPhone.
+- **Sous-écrans** (25/07/2026) : toute édition ou sous-menu (fiche recette,
+  Modifier un ingrédient, Gérer un emplacement, master list, import,
+  sources, résidences…) occupe l'écran **seul** — recherche, listes et
+  barres d'ajout disparaissent ; une **croix ×** ferme et revient où on
+  était. Une seule saisie ouverte à la fois.
 
 ## Onglet Stock
 
 Refondu le 16/07/2026 (commentaires Olivier) : le stock se lit **par
 ingrédient**, une seule liste alphabétique. Chaque ligne montre la **somme
-de tous les emplacements** :
+de tous les emplacements**.
 
-- **un seul emplacement garni** : son nom s'affiche en gris sur la ligne ;
-- **plusieurs emplacements garnis** : une flèche « ▸ n emplacements »
-  déplie le détail — chaque endroit avec sa quantité et ses propres
-  boutons + / − ; les emplacements à zéro n'apparaissent pas ;
-- **plus rien nulle part** : aucun emplacement n'est indiqué.
+**Lignes compactes** (27/07/2026, remarques Olivier iPhone) : la ligne ne
+montre que **le nom, le nombre et l'emplacement** (le nom d'un emplacement
+unique, ou « n emplacements »). **Toucher le nom** affiche le nom complet
+(l'emplacement s'efface pour laisser la place) et déplie une **seconde
+ligne** avec l'emplacement et tous les boutons : « ▸ emplacement(s) »
+(détail), panier, − / + (si un seul endroit garni), crayon ✎. Toucher à
+nouveau referme.
+
+Le détail « ▸ » déplie chaque endroit avec sa quantité, ses boutons + / −
+et un bouton « **Déplacer** » (27/07/2026) : choisir la destination —
+existante ou nouvelle — déplace la ligne ; si le produit existe déjà
+là-bas, les pots se regroupent.
 
 ### Boutons + / −
 
-Sur la ligne principale quand l'ingrédient ne vit que dans un endroit ;
-dans le détail déplié sinon. Le compteur de la ligne reste la somme, jamais
+Sur la seconde ligne quand l'ingrédient ne vit que dans un endroit ; dans
+le détail déplié sinon. Le compteur de la ligne reste la somme, jamais
 sous 0.
 
 ### Rachat automatique — réserve minimum
@@ -66,9 +81,11 @@ l'emplacement.
 
 ### Bouton Modifier (crayon ✎)
 
-Ouvre le panneau de l'ingrédient :
-- **Renommer** — un nom déjà connu **fusionne** les deux (confirmation en
-  deux touches) ; stock, courses et recettes suivent ;
+Ouvre le **sous-écran** de l'ingrédient (25/07/2026 : il occupe l'écran
+seul, croix pour revenir à la liste) :
+- **Renommer** — une icône ✎ sur le nom le change en champ de saisie ; un
+  nom déjà connu **fusionne** les deux (confirmation en deux touches) ;
+  stock, courses et recettes suivent ;
 - **Genre** (master list) ;
 - **Réserve minimum** (voir ci-dessus) ;
 - **Supprimer** — toutes ses lignes d'emplacement, ses lots et sa ligne de
@@ -98,15 +115,32 @@ Si un emplacement du produit est marqué « à dates » (réglage dans le pannea
 
 ### Formulaire d'ajout
 
-Nom, nombre de pots, emplacement, où acheter, puis Ajouter. L'emplacement se
-choisit dans une **liste déroulante** des emplacements existants (avec
-« Nouvel emplacement… » pour en créer un). Le champ nom **suggère les
-ingrédients déjà connus** (stock et recettes) pour éviter les orthographes
-différentes du même produit.
+**Barre minimale** (25/07/2026) : une seule ligne — nom de l'ingrédient,
+bouton « ⋯ », micro, Ajouter (1 pot par défaut, sans emplacement). Le
+bouton « ⋯ » déplie les **détails** : nombre de pots, emplacement, où
+acheter — chacun sur sa ligne. L'emplacement se choisit dans une **liste
+déroulante des emplacements de la résidence courante** (plus aucune liste
+par défaut — 25/07/2026), avec « Nouvel emplacement… » pour en créer un.
+**L'emplacement choisi est retenu d'un ajout à l'autre** (27/07/2026 —
+pratique pour ranger une série au même endroit) et rappelé en gris à côté
+du bouton « ⋯ ». Le champ nom **suggère les ingrédients déjà connus**
+(stock et recettes) pour éviter les orthographes différentes du même
+produit.
 
 Au micro : dire par exemple « trois oignons » — le nom et la quantité se
 préremplissent, vérifier puis toucher Ajouter. La dictée du clavier
 iPhone/iPad fonctionne aussi dans chaque champ.
+
+**Dictée plus sûre** (27/07/2026, remarques Olivier) :
+- « **4 épices** » n'est plus compris comme 4 × « épices » : si le texte
+  entier correspond à un ingrédient connu (stock, recettes ou master list,
+  traits d'union et chiffres confondus), il est gardé tel quel — un vrai
+  nombre devant un autre nom (« 2 cumin ») marche comme avant.
+- Les noms **écorchés par la transcription** (« nuoc mame », « ras el
+  anout ») sont rapprochés de la master list : la bonne orthographe est
+  proposée dans le champ (message « Entendu … → … »). En validant par
+  Ajouter, la transcription entendue est **mémorisée comme alias** : les
+  fois suivantes, elle est reconnue directement.
 
 ### Recherche et filtres
 
@@ -135,17 +169,34 @@ seul** : les onglets restent accessibles, changer d'onglet suspend
 l'inventaire, revenir sur Inventaire reprend exactement où vous étiez
 (il survit aussi à un rechargement de la page).
 
+**Mettre en pause / reprendre** (27/07/2026, remarque Olivier) : un bouton
+« **Mettre en pause** » dans l'inventaire rend la main sur la liste des
+emplacements (pour la consulter, gérer, ranger des achats…). Un bandeau
+« Reprendre l'inventaire de … » et le bouton « **Reprendre** » sur
+l'emplacement concerné relancent l'inventaire là où il en était. Démarrer
+un inventaire sur un **autre** emplacement pendant une pause demande une
+confirmation (« Confirmer ») : la pause serait perdue.
+
 Pendant l'inventaire, si un nom dicté ou tapé correspond à **plusieurs
 produits** (« carvi » → carvi, carvi noir, carvi noir entier), un menu
 propose de choisir — ou de créer un nouveau produit. Jamais de pari.
 Depuis le 16/07/2026, les **orthographes proches sont retrouvées aussi** :
 « clou de girofle » retrouve « Clous de girofle » (singulier/pluriel).
 Un alias déjà confirmé est déclaré directement ; un simple rapprochement
-passe toujours par le menu de choix.
+passe toujours par le menu de choix. Depuis le 27/07/2026, le menu propose
+aussi les ingrédients proches de la **master list entière** (mention
+« connu ailleurs — sera créé ici ») — pour les noms difficiles (« nuoc
+mam », « ras el hanout ») transcrits de travers ; une correction choisie
+après une dictée est **mémorisée comme alias** et reconnue directement les
+fois suivantes. Le garde-fou « 4 épices » de l'onglet Stock s'applique
+aussi : un ingrédient connu n'est jamais découpé en quantité + nom.
 
 **Corriger une saisie « vue »** (16/07/2026) : toucher le nom d'une ligne
 déjà vue ouvre un panneau « ce n'était pas le bon produit ? » — choisir la
 bonne variante (le comptage se transfère) ou « remettre à vérifier ».
+**Toucher le nombre** d'une ligne vue (27/07/2026) ouvre la **saisie
+directe de la quantité** (Entrée ou sortie du champ valide ; 0 remet la
+ligne « à vérifier ») — plus besoin d'appuyer dix fois sur « + ».
 
 **Micro** (16/07/2026) : un deuxième appui sur le micro arrête toujours la
 dictée, y compris sur iPhone — et ce qui a été entendu jusqu'à la coupure
@@ -153,22 +204,24 @@ est traité (message « Rien entendu » sinon).
 
 ### Master list des ingrédients
 
-Une ligne dépliante « Master list des ingrédients » montre **tous** les
-ingrédients connus (stock + recettes), rangés par **genre** (Épices,
-Légumes, Viandes…), les **non classés en tête**. Pendant qu'elle est
-ouverte, la section Emplacements s'efface (elle revient en refermant).
+La ligne « Master list des ingrédients » ouvre un **sous-écran dédié**
+(25/07/2026, croix pour revenir) montrant **tous** les ingrédients connus
+(stock + recettes), rangés par **genre** (Épices, Légumes, Viandes…), les
+**non classés en tête**.
 - Le genre de chaque ligne se choisit dans un **menu déroulant** ; il vit
   sur l'ingrédient canonique (ses alias le partagent).
-- « **Gérer les genres** » ouvre la master list des genres : créer,
-  **renommer** (un nom existant fusionne et reclasse les ingrédients),
-  supprimer (les ingrédients redeviennent non classés), et régler le
-  **sourcing par défaut** du genre — type (marché / internet / boutique) et
-  commentaire (nom du marché, site…).
-- **Toucher le nom d'un ingrédient** ouvre sa fiche : le **renommer**
-  (« beurre demi-sel » → « beurre salé » : le stock et les courses suivent,
-  l'ancien nom devient un alias, un nom déjà connu **fusionne** — confirmé
-  en deux touches), régler son **sourcing** propre (vide = celui du genre),
-  et voir la **liste des recettes** qui l'utilisent.
+- « **Gérer les genres** » remplace la liste le temps du réglage : créer,
+  **renommer au crayon ✎** (un nom existant fusionne et reclasse les
+  ingrédients), supprimer (les ingrédients redeviennent non classés), et
+  régler le **sourcing par défaut** du genre — type (marché / internet /
+  boutique) et commentaire (nom du marché, site…).
+- **Toucher le nom d'un ingrédient** ouvre sa fiche : le **renommer au
+  crayon ✎** (« beurre demi-sel » → « beurre salé » : le stock et les
+  courses suivent, l'ancien nom devient un alias, un nom déjà connu
+  **fusionne** — confirmé en deux touches), régler son **sourcing** propre
+  (vide = celui du genre), et voir la **liste des recettes** qui
+  l'utilisent. Une seule saisie ouverte à la fois : ouvrir une fiche
+  referme « Gérer les genres », et inversement.
 - Le **sourcing alimente les courses** : quand un produit part en liste,
   son magasin est prérempli (commentaire du sourcing, sinon le type) — sans
   écraser un magasin déjà choisi sur le produit.
@@ -184,28 +237,32 @@ jamais. Rien n'est jamais fusionné sans votre accord. Si les deux noms sont
 longs (tronqués sur iPhone), **toucher la question l'affiche en entier**
 (16/07/2026).
 
-### Gérer un emplacement (bouton « Gérer »)
+### Ajouter et gérer les emplacements (25/07/2026)
 
-Un panneau se déplie sous l'emplacement :
+Les emplacements appartiennent à la **résidence courante**. Une zone
+« **Nouvel emplacement** » en bas de la liste en crée un (vide). Le bouton
+« Gérer » ouvre le **sous-écran** de l'emplacement (croix pour revenir) :
+- **Renommer au crayon ✎** sur le nom ; un nom déjà existant **fusionne**
+  les deux emplacements (confirmation en deux touches) — les produits se
+  réunissent, les doublons regroupent leurs pots, la date d'inventaire de la
+  destination est conservée.
 - **Emplacement « à dates »** : une case à cocher active le suivi par lots
   datés (congélateur, cave…) — voir « Emplacements à dates » de l'onglet
   Stock. La mention « à dates » apparaît sur la ligne de l'emplacement.
   En dessous, le **seuil de rappel** (« n mois avant rappel “à utiliser”
   dans la Semaine », 6 par défaut) se règle par emplacement.
-- **Renommer** : nouveau nom libre ; un nom déjà existant **fusionne** les
-  deux emplacements (confirmation en deux touches) — les produits se
-  réunissent, les doublons regroupent leurs pots, la date d'inventaire de la
-  destination est conservée.
 - **Déplacer des produits** : cocher les produits, choisir la destination
   (existante ou nouvelle), « Déplacer (n) ». Un produit déplacé garde
   quantité, magasin et état « à racheter » ; s'il existe déjà à destination,
   les pots se regroupent en une seule ligne.
-- Un emplacement sans produit et jamais inventorié disparaît de la liste.
+- **Supprimer l'emplacement** : possible seulement **vide** (sinon déplacer
+  ou fusionner d'abord), confirmation en deux touches.
 - Déclarer un produit trouvé : au micro (« trois cumin moulu »), ou taper
   quelques lettres et toucher la ligne. Chaque déclaration ajoute des pots ;
   un produit inconnu est créé (mention « nouveau »).
-- Corriger : compteur − / + sur chaque ligne vue ; redescendre à zéro remet
-  le produit « à vérifier ».
+- Corriger : compteur − / + sur chaque ligne vue, ou **toucher le nombre**
+  pour saisir la quantité directement (27/07/2026) ; redescendre à zéro
+  remet le produit « à vérifier ».
 - « Terminer l'inventaire » affiche le bilan des non-trouvés ; confirmer les
   passe à zéro pot (et en courses automatiques). **Rien n'est écrit au stock
   avant cette confirmation.**
@@ -218,14 +275,21 @@ La liste fait la **somme de trois origines** : le réapprovisionnement du
 stock (« auto », « réserve »), les **ingrédients des repas à venir**
 (« semaine »), et les achats libres ajoutés à la main.
 
+**Lignes compactes** (27/07/2026, comme au Stock) : chaque ligne ne montre
+que la **case, le nom et le statut** (« auto », « réserve », « semaine »,
+« je l'ai »). **Toucher le nom** affiche le nom complet et déplie la ligne
+des boutons : bascule « Je l'ai déjà » / « À acheter » (lignes semaine),
+crayon ✎ du lieu d'achat, poubelle (lignes réappro et achats libres).
+
 ### Lignes « semaine » (automatiques)
 
 Calculées en direct depuis les événements à venir : dès qu'une recette est
 ajoutée, retirée ou ajustée, la liste se met à jour — quantités comprises.
 Elles n'ont pas de poubelle (elles disparaissent d'elles-mêmes quand le
-besoin disparaît) ; **toucher le nom** bascule « je l'ai déjà » (ligne barrée,
-pas à acheter) ↔ « à acheter ». Un ingrédient déjà couvert par le
-réapprovisionnement n'est pas doublonné.
+besoin disparaît) ; la bascule « je l'ai déjà » (ligne barrée, pas à
+acheter) ↔ « à acheter » est un bouton de la ligne dépliée (27/07/2026 —
+avant, c'était le toucher du nom, qui déplie désormais). Un ingrédient
+déjà couvert par le réapprovisionnement n'est pas doublonné.
 
 ### Case à cocher
 
@@ -251,7 +315,8 @@ lieu).
 ### Formulaire d'ajout
 
 Ajoute un produit à acheter sans fiche de stock (ex. « saumon entier »).
-Il disparaît une fois rangé.
+Barre minimale (25/07/2026) : le produit seul — le lieu d'achat se règle
+ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rangé.
 
 ## Onglet Recettes
 
@@ -282,14 +347,14 @@ Il disparaît une fois rangé.
     connus au fil de la frappe** et réduit la liste aux recettes qui le
     contiennent. Présent aussi dans la « Recherche avancée » de la Semaine.
   - **Gérer les sources** (voir plus bas).
-- **Gérer les sources** : renommer (un nom existant **fusionne** les deux),
-  créer une source (livre, site) — la liste reste courte et maîtrisée. Le
-  choix de la source et le pays d'origine se règlent dans l'éditeur de la
-  fiche.
-- **« ▸ Importer une recette (URL, photos) »** (sous la recherche), deux
-  chemins vers la même **fiche pré-remplie à relire** — rien n'est
-  enregistré avant « **Enregistrer la recette** », la fiche s'ouvre alors
-  dans la liste :
+- **Gérer les sources** : un **sous-écran** (25/07/2026) — renommer au
+  crayon ✎ (un nom existant **fusionne** les deux), créer une source
+  (livre, site) — la liste reste courte et maîtrisée. Le choix de la source
+  et le pays d'origine se règlent dans l'éditeur de la fiche.
+- **« Importer une recette (URL, photos, texte) »** (sous la recherche)
+  ouvre un **sous-écran** (25/07/2026), trois chemins vers la même **fiche
+  pré-remplie à relire** — rien n'est enregistré avant « **Enregistrer la
+  recette** », la fiche s'ouvre alors en écran dédié :
   - **Depuis une URL** : coller l'adresse d'une page de recette et
     « Récupérer la recette ». L'application lit la **recette structurée
     publiée par le site** (aucune IA) : titre, source (créée si nouvelle),
@@ -316,8 +381,10 @@ Il disparaît une fois rangé.
     (« Page », copie privée du foyer). Au premier usage depuis le site en
     ligne, Chrome demande l'autorisation d'accéder au réseau local
     (bulle près de la barre d'adresse) : cliquer « Autoriser », une fois.
-- Toucher une ligne déplie la fiche (réorganisée le 16/07/2026, commentaires
-  Olivier) : **source avec l'étoile ★ wish list à sa droite**, lien « Voir
+- Toucher une ligne ouvre la fiche en **écran dédié** (25/07/2026 : la
+  liste, la recherche et l'import disparaissent, la croix × ramène à la
+  liste — jamais de fiche mélangée à la liste) : **source avec l'étoile ★
+  wish list à sa droite**, lien « Voir
   en ligne », vignettes photos, **ingrédients**, **texte de la recette**,
   puis la zone « **Commentaires** » en pleine largeur — une seule, commune
   à toutes les réalisations (décision Q3) —, les dates des réalisations, et
@@ -340,6 +407,8 @@ Il disparaît une fois rangé.
   générique reste « beurre ») ; « **(facultatif)** » en fin de ligne marque
   l'ingrédient facultatif. Le texte de la recette est libre. Le champ
   « **Pour N personnes** » sert au calcul des quantités de la semaine.
+  Pendant l'édition, l'éditeur **remplace la fiche** (une seule saisie à la
+  fois — 25/07/2026).
 - **Photos** : les boutons du bas ouvrent l'appareil photo (ou le sélecteur
   de fichier) ; plusieurs photos possibles — pages du livre et plats des
   réalisations. Les vignettes s'affichent sur la fiche (× pour supprimer,
@@ -358,8 +427,9 @@ Il disparaît une fois rangé.
 ## Onglet Semaine
 
 - **À venir** d'un côté (ordre chronologique), **Passés** de l'autre (du plus
-  récent au plus ancien). Chaque événement a un bouton « **Modifier** »
-  (date, type, convives, contraintes — les courses se recalculent) ; les
+  récent au plus ancien). Chaque événement a un bouton « **Modifier** » qui
+  ouvre un **sous-écran** (25/07/2026 — date, type, convives, contraintes,
+  chacun sur sa ligne ; les courses se recalculent) ; les
   passés ont en plus « **Fait** » : la liste de leurs recettes s'affiche et,
   pour chacune, « Oui, faite » consigne la réalisation à la date de
   l'événement (« Non » écarte la question). Les recettes des événements à
@@ -390,7 +460,8 @@ Il disparaît une fois rangé.
   (accents et casse ignorés) **et par les liens confirmés dans « Ingrédients
   à rapprocher »** (onglet Inventaire).
 - **Ajuster une recette pour un événement** : toucher la recette dans
-  l'événement déplie ses ingrédients aux quantités de l'événement (recette
+  l'événement ouvre un **sous-écran** (25/07/2026) avec ses ingrédients aux
+  quantités de l'événement (recette
   « pour 4 » servie à 8 = doublées ; une même recette sur deux événements
   compte deux fois). Le champ « Ajuster la recette : % » et les quantités
   corrigées ligne à ligne ne valent que **pour cet événement** (0 = retour
@@ -407,19 +478,26 @@ Il disparaît une fois rangé.
 
 - Chacun a son compte personnel (email + mot de passe) ; le foyer partage
   stock et courses.
-- Ouvert, le panneau occupe l'écran **seul** : le contenu de l'onglet
-  s'efface et revient dès qu'on choisit un onglet (16/07/2026).
-- **Résidences** (lot 5, 16/07/2026) : en tête du panneau, le menu déroulant
-  choisit la **résidence courante de cet appareil** — ses stocks, courses,
-  inventaires et sa semaine. Le titre de l'app l'affiche (« Notre foyer ·
-  Argenteuil »). Renommer et « Nouvelle résidence » à côté. Les recettes,
-  sources, réalisations, wish list et master list restent communes au foyer.
-  Un inventaire mis en pause reste attaché à sa résidence (une note
-  l'indique si on regarde depuis une autre maison).
-- L'icône silhouettes en haut à droite ouvre le **panneau Foyer** : code
-  d'invitation à transmettre (l'invité crée son compte puis « Rejoindre ce
-  foyer »), **sauvegarde des données** et déconnexion. Principe : les écrans
+- « Foyer et compte » est un **écran comme les autres** (25/07/2026) : on y
+  entre par le menu déroulant (iPhone) ou l'icône silhouettes (PC), et le
+  menu l'affiche comme écran courant. En direct : le **sélecteur de
+  résidence**, le bouton « **Gérer les résidences** », le **code
+  d'invitation** (l'invité crée son compte puis « Rejoindre ce foyer »),
+  les **sauvegardes** et la **déconnexion**. Principe : les écrans
   quotidiens restent libres des actions exceptionnelles.
+- **Résidences** (lot 5 du 16/07/2026, revu le 25/07/2026) : le menu
+  déroulant choisit la **résidence courante de cet appareil** — ses stocks,
+  courses, inventaires et sa semaine. Le titre de l'app l'affiche
+  (« Notre foyer · Argenteuil »). Les recettes, sources, réalisations,
+  wish list et master list restent communes au foyer. Un inventaire mis en
+  pause reste attaché à sa résidence (une note l'indique si on regarde
+  depuis une autre maison).
+- « **Gérer les résidences** » ouvre un **sous-écran** : une ligne par
+  résidence, **renommage au crayon ✎** directement sur le nom, **corbeille**
+  pour supprimer (confirmation avec alerte : tous les stocks, emplacements,
+  courses, lots et événements de la résidence sont perdus, pour tout le
+  foyer ; la **dernière résidence ne se supprime pas** ; supprimer la
+  courante bascule sur une autre), et zone d'ajout en bas.
 - **Sauvegarde** : « Exporter les données (fichier JSON) » télécharge
   l'ensemble des données du foyer (stock, courses, recettes, semaine,
   master list… — hors fichiers photos), à ranger sur OneDrive. Quand la

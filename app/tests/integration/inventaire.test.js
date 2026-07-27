@@ -12,7 +12,8 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, declare, adjustSeen, startInventory, finishInventory,
-  abandonInventory, resumeInventory, removeShopEntry, isDismissed, looseMatch
+  abandonInventory, resumeInventory, removeShopEntry, isDismissed, looseMatch,
+  pauseInventory, unpauseInventory, invIsHere
 } from '../../src/lib/store.svelte.js'
 
 const mem = new Map()
@@ -132,6 +133,26 @@ describe('NP6 — interruption et abandon', () => {
 
     expect(store.inv.loc).toBe('Cuisine')
     expect(store.inv.seen[cumin.id]).toBe(2)
+  })
+
+  test('pause explicite : sauvegardée, elle survit à un rechargement, la reprise la lève (27/07/2026)', async () => {
+    const cumin = await seed('Cumin', 1)
+    startInventory('Cuisine')
+    declare(cumin, 2)
+
+    pauseInventory()
+    expect(store.inv.paused).toBe(true)
+    expect(invIsHere()).toBe(true) // l'inventaire reste attaché à la résidence
+
+    store.inv = null // rechargement de l'app
+    resumeInventory()
+    expect(store.inv.paused).toBe(true)
+    expect(store.inv.seen[cumin.id]).toBe(2)
+
+    unpauseInventory()
+    expect(store.inv.paused).toBe(false)
+    await finishInventory()
+    expect(cumin.qty).toBe(2)
   })
 
   test('abandonner ne laisse aucune écriture : le stock est intact', async () => {
