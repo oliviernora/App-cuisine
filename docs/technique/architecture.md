@@ -37,12 +37,16 @@ iPhone / iPad / PC (navigateur ou icône écran d'accueil)
 | `src/lib/store.svelte.js` | état partagé, opérations, synchros, cache hors ligne |
 | `src/lib/supabase.js` | client Supabase (URL + clé dans `.env`) |
 | `src/lib/seed.js` | inventaire initial des épices |
-| `src/lib/passard.js`, `passard-fiches.js` | collection Alain Passard (import + fiches) |
 | `src/app.css` | design system « Marché » (jetons + composants) |
 | `tests/` | tests d'intégration (voir cahier-de-tests.md) |
 | `scripts/check-schema.mjs` | conformité du schéma réel (obligatoire avant livraison) |
 | `scripts/extract-enex.mjs`, `enex-lots.mjs`, `enex-merge.mjs` | pipeline d'import Evernote (voir `Evernote/README.md`) |
 | `scripts/make-icons.mjs` | génération des icônes PWA |
+| `tests/helpers/passard.js`, `passard-data.js` | fixture des tests : amorçage de la collection Passard (fonction retirée de l'app le 27/07/2026) |
+
+Le code qui a rempli sa mission (POC de l'étape 0, pipeline d'extraction
+Passard, fiches et amorçage Passard, tests associés) est conservé dans
+`archive/` à la racine du dépôt (27/07/2026).
 
 ## Modèle de données
 

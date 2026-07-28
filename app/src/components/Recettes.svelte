@@ -1,16 +1,12 @@
 <script>
-  import { store, lastMade, addRealisation, importPassard, ingredientsOf, saveRecipeDetails,
-    fillPassardDetails, passardFillableCount, searchRecipes, renameSource, addSource, setRecipeSource,
+  import { store, lastMade, addRealisation, ingredientsOf, saveRecipeDetails,
+    searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
     attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
-  import { PASSARD_FICHES } from '../lib/passard-fiches.js'
   import SousEcran from './SousEcran.svelte'
-
-  const ficheUrls = new Set(PASSARD_FICHES.map(f => f.url))
-  const fillable = $derived(passardFillableCount(ficheUrls))
 
   let search = $state('')
   let open = $state(null)
@@ -181,12 +177,6 @@
     if (!confirm('Supprimer cette photo ?')) return
     busy = true
     await deletePhoto(photo)
-    busy = false
-  }
-
-  async function amorcer() {
-    busy = true
-    await importPassard()
     busy = false
   }
 
@@ -609,21 +599,10 @@
     </button>
   </div>
 
-  {#if fillable > 0}
-    <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
-      <button type="button" disabled={busy}
-        onclick={async () => { busy = true; await fillPassardDetails(); busy = false }}>
-        Compléter les fiches Passard — ingrédients et recette ({fillable})
-      </button>
-    </div>
-  {/if}
-
   {#if store.recipes.length === 0}
     <div class="empty">
-      <p>Aucune recette pour l'instant.</p>
-      <button type="button" class="inv-start" disabled={busy} onclick={amorcer}>
-        Importer les 105 recettes d'Alain Passard (vidéos Le Point)
-      </button>
+      <p>Aucune recette pour l'instant. Importez-en une (URL, photos, texte)
+        ou créez la vôtre.</p>
     </div>
   {:else}
     <p class="group-title">Recettes <span class="n">· {list.length}</span></p>

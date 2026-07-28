@@ -417,8 +417,9 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   l'envoi et stockées dans un espace **privé du foyer** (copie privée —
   jamais public). Limite actuelle : les photos ne sont pas encore
   consultables hors ligne.
-- État vide : bouton d'import des **105 recettes vidéo d'Alain Passard**
-  (série Le Point, dont 91 avec article et 5 déjà cuisinées).
+- (Le bouton d'amorçage « 105 recettes d'Alain Passard » de l'état vide a
+  été retiré le 27/07/2026 — mission accomplie, les recettes et leurs
+  fiches sont en base depuis le 07/07 ; le code vit dans `archive/`.)
 - Limite actuelle : les recettes ne se synchronisent pas en temps réel entre
   appareils (rechargées à l'ouverture de l'application) ; les vidéos restent
   des fichiers du PC (dossier « Alain Passard »), non lisibles depuis

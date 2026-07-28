@@ -12,8 +12,9 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, storageFiles, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, importPassard, addRealisation, addRecipePhoto, photosOf, photoUrl, deletePhoto
+  store, addRealisation, addRecipePhoto, photosOf, photoUrl, deletePhoto
 } from '../../src/lib/store.svelte.js'
+import { importPassard } from '../helpers/passard.js'
 
 const fakeFile = () => new Blob(['fausse image'], { type: 'image/jpeg' })
 

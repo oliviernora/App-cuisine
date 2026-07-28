@@ -12,8 +12,9 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, importPassard, setWishlist, saveRecipeDetails, parseIngredientLine, ingredientsOf
+  store, setWishlist, saveRecipeDetails, parseIngredientLine, ingredientsOf
 } from '../../src/lib/store.svelte.js'
+import { importPassard } from '../helpers/passard.js'
 
 beforeEach(async () => {
   resetFake()

@@ -8,6 +8,17 @@ en fin de document. Le suivi (validation, couverture) est tenu à part, dans
 `docs/technique/suivi-cas-utilisation.md`. Les cas marqués *(proposition)*
 attendent la validation d'Olivier.
 
+Depuis le 27/07/2026 (demande Olivier), les cas sont organisés en **grandes
+familles** ; un **écran d'accueil** de l'application reprendra ces familles
+en icônes (décision Olivier 27/07 : l'accueil s'ajoute à la navigation par
+onglets, il ne la remplace pas) :
+1. **Gérer les ingrédients**
+2. **Faire les courses**
+3. **Préparer la semaine**
+4. **Gérer les recettes**
+5. **Gérer les inventaires**
+(+ une section transverse : le foyer et les maisons.)
+
 Règles de fond (décisions Olivier) :
 - un produit peut exister dans plusieurs emplacements à la fois ; chaque
   ligne est propre à son emplacement, et l'inventaire de chaque emplacement
@@ -16,13 +27,18 @@ Règles de fond (décisions Olivier) :
   somme de tous les emplacements ; le **rachat automatique** se déclenche
   quand cette somme passe **sous la réserve minimum** de l'ingrédient
   (1 par défaut) — jamais emplacement par emplacement (16/07/2026) ;
+- la **liste des ingrédients est unique**, accessible de deux manières :
+  par l'écran des stocks (tous les ingrédients) et par un emplacement de
+  l'inventaire (les ingrédients de cet endroit) — dans les deux cas, la
+  même liste et les mêmes possibilités de gestion *(proposition
+  27/07/2026)* ;
 - les écrans quotidiens restent libres des actions exceptionnelles.
 
 ---
 
 # Cas nominaux
 
-## Stocks, courses, inventaires
+## Famille 1 — Gérer les ingrédients
 
 ### N1 — Je cuisine, j'épuise un ingrédient, il revient tout seul
 
@@ -34,14 +50,162 @@ Règles de fond (décisions Olivier) :
    habituellement. S'il m'en reste ailleurs, rien ne se passe.
 3. En fin de semaine, je fais mes courses : le cumin m'est proposé au bon
    magasin, je l'achète, je le coche.
-4. De retour à la maison, je range mes achats : les produits cochés quittent
-   la liste et m'attendent « **à mettre en stock** » en tête de l'onglet
-   Inventaire ; pour chacun je vérifie la quantité reçue, je choisis
-   l'emplacement (proposé d'après l'existant) et je range — mon stock
-   affiche à nouveau du cumin. *(Décision Q2 du 16/07/2026.)*
+4. De retour à la maison, **je range mes courses** (cas N13) : chaque
+   produit sorti des sacs est rapproché de la liste, sa quantité confirmée,
+   son emplacement choisi — mon stock affiche à nouveau du cumin.
+   *(Reformulé le 27/07/2026 — remplace le flux « à mettre en stock » de la
+   décision Q2 du 16/07/2026 ; à valider.)*
 
 **Résultat attendu** : à aucun moment je n'ai eu à « penser » au cumin ; le
 stock affiché correspond toujours à la réalité de mes placards.
+
+### N14 — Je gère ma liste d'ingrédients *(proposition 27/07/2026)*
+
+1. J'accède à **la** liste de mes ingrédients par deux portes : l'écran des
+   **stocks** (tous les ingrédients) ou un **emplacement** de l'inventaire
+   (les ingrédients de cet endroit). Dans les deux cas : la même liste, les
+   mêmes gestes.
+2. Je **recherche** un ingrédient et je marque en un geste que **j'en ai
+   encore ou que c'est épuisé** (épuisé partout → il part en courses).
+3. Je **modifie** un ingrédient : son nom, son genre, son emplacement, sa
+   réserve minimum, où l'acheter.
+4. J'**ajoute** un ingrédient nouveau — éventuellement avec un stock à
+   zéro, marqué « à acheter » : il part directement en liste de courses.
+5. Je peux aussi **retirer** un ingrédient, ou le **mettre en courses**
+   sans attendre qu'il s'épuise (réserve).
+
+**Résultat attendu** : une seule liste d'ingrédients, jamais deux vérités ;
+je la gère depuis l'écran qui me convient sur le moment.
+
+## Famille 2 — Faire les courses
+
+### N3 — Je prépare mes courses *(reformulé par Olivier)*
+
+1. Les ingrédients s'ajoutent à la liste **au fur et à mesure**, de trois
+   provenances : les **stocks vides** (rachat automatique), les **recettes
+   de la semaine**, et mes **ajouts à la main** *(précisé le 27/07/2026)*.
+2. J'indique la **quantité** voulue, notamment si j'achète en gros (trois
+   pots de cumin en promotion, un carton de conserves) — la quantité
+   réellement reçue se confirme au rangement (N13).
+3. Ces produits rejoignent la liste de courses, chacun sous son magasin,
+   avec leur quantité ; je peux **définir ou changer le lieu d'achat**
+   d'une ligne (crayon) — il est mémorisé pour les prochaines fois
+   (16/07/2026).
+NOUVEAU : 4. je dispose d'un menu pour gérer les lieux d'achat, ajouter des nouveaux lieux, les renommer ou les supprimer. Chaque lieu peut être physique ou sur Internet. Je peux mettre des commentaires. Sur Internet j'ai l'URL. En lieu physique, il est possible d'ajouter l'adresse. Je peux visualiser les ingrédients achetables sur un lieu. 
+
+**Résultat attendu** : la liste de courses combine ce que l'application
+détecte toute seule et ce que je décide d'y mettre, quantités comprises.
+
+### N4 — Je fais mes courses dans plusieurs endroits
+
+1. Ma liste de la semaine contient des produits du marché, de Grand Frais et
+   d'une boutique spécialisée.
+2. Au marché, je vois d'abord les produits du marché ; je coche au fur et à
+   mesure. Même chose ensuite chez Grand Frais.
+3. Pendant les courses, le fonctionnement est celui d'une liste de tâches
+   (à la « Microsoft To Do », demande Olivier 27/07/2026 — à valider) :
+   les produits **à acheter restent en haut**, groupés par magasin
+   (décision 27/07) ; ce que je coche **descend en bas**, dans la liste des
+   achetés ; je peux **décocher** un produit coché par erreur — il remonte.
+4. **Je peux aussi voir les autres listes si je le veux** : je tombe au
+   marché sur un produit prévu pour Grand Frais — je le coche directement.
+5. De retour, je range tout (N13) : le stock est à jour ; il ne reste sur
+   la liste que ce que je n'ai pas trouvé.
+
+**Résultat attendu** : une seule liste, organisée par lieu d'achat mais
+jamais cloisonnée, qui survit à une tournée en plusieurs étapes.
+
+### N13 — Je range mes courses *(proposition 27/07/2026 — remplace le flux « à mettre en stock » de la décision Q2)*
+
+1. De retour des courses, j'ouvre l'écran de **rangement**, mes sacs devant
+   moi.
+2. Pour chaque produit sorti d'un sac, je **commence à saisir son nom, ou
+   je le dicte** à la voix.
+3. S'il correspond à ma liste de courses, l'application m'affiche **les
+   candidats possibles** pour que je choisisse le bon : « huile » me
+   propose « huile d'olive » et « huile de tournesol » si les deux sont
+   dans ma liste.
+4. S'il n'est pas dans la liste, c'est un **nouvel ingrédient** — je l'ai
+   acheté en plus, il entre au stock quand même.
+5. Pour chaque produit je choisis l'**emplacement** — par défaut, si
+   l'ingrédient est connu, **le dernier emplacement connu** — et je peux
+   corriger la **quantité** (trois pots achetés = trois pots rangés). Dans
+   un emplacement « à dates », le rangement crée un lot daté du jour.
+
+**Résultat attendu** : ranger les sacs et tenir le stock sont un seul et
+même geste ; rien n'entre au stock sans emplacement ni quantité vérifiée.
+
+## Famille 3 — Préparer la semaine
+
+### N10 — Je planifie ma semaine *(fusionné par Olivier : recettes, courses et planning ensemble)*
+
+1. Je pose les événements : dîner maison mardi (4 personnes), repas de
+   l'association samedi (20 personnes, halal, pas épicé), pique-nique
+   dimanche.
+2. J'associe les recettes — bibliothèque, wish list, ou nouveauté. La
+   semaine se lit d'un coup d'œil : jours, plats, convives, contraintes.
+3. Les quantités suivent toutes seules le nombre de convives ; je modère à
+   la main ou en pourcentage (gros appétits, plat riche parmi d'autres).
+4. **Je vérifie ma liste de courses** : ce qui manque par rapport à mon
+   stock s'y ajoute en un geste ; les lots anciens du congélateur me sont
+   rappelés (N7).
+5. **Je planifie mes courses** : à ma demande, l'application propose les
+   tournées de la semaine d'après les créneaux de mes magasins
+   (`creneaux-courses.md`) — marché samedi matin, commande Internet à J-7.
+   J'ajuste, je valide ; à terme, les sorties vont dans mon agenda Google.
+   Le jour venu, la liste du magasin est prête (N4).
+6. Après coup, je **marque les plats faits** et j'ajoute les photos — la
+   réalisation est consignée sur chaque recette à la date de l'événement
+   (voir N8).
+
+**Résultat attendu** : le menu est posé une fois, visible par le foyer ; la
+liste et le planning de courses en découlent sans calcul mental ; aucune
+tournée oubliée, les commandes Internet passées assez tôt.
+
+## Famille 4 — Gérer les recettes
+
+### N8 — Je fais une recette et je la consigne *(fusionné par Olivier)*
+
+1. Lorsque je fais une recette, je peux **ajouter son livre ou son site**
+   s'il n'existe pas déjà dans ma bibliothèque (un livre : titre, auteur,
+   ISBN si disponible, pays, quelques catégories — le titre seul suffit).
+2. Je **photographie la recette** (ou PDF, ou URL, ou saisie du texte) :
+   l'application en extrait titre, ingrédients et étapes ; je relis, je
+   corrige, j'enregistre. C'est ma copie privée — consultable hors ligne,
+   jamais publique, partagée seulement avec le foyer.
+3. Je **consigne mes réalisations** d'un geste (« J'ai fait cette
+   recette », datée du jour) et j'ajoute la photo du plat ; la recette
+   porte tout son historique. Mes **commentaires** (doses, tours de main,
+   avis des convives) vivent dans une zone unique de la fiche, commune à
+   toutes les réalisations (décision Q3 du 16/07/2026), et je peux amender
+   ma copie sans perdre le texte d'origine.
+4. En volume : je peux **importer une liste de livres ou de sites** (export
+   d'un logiciel de scan de livres, avec ISBN) et **capturer des recettes
+   par lot** (scan de plusieurs pages d'un livre).
+
+**Résultat attendu** : faire une recette et la consigner est un seul geste
+naturel ; la bibliothèque se construit au fil de l'eau ou par imports.
+
+### N9 — Je retrouve une recette
+
+1. « C'était quoi ce plat brésilien fait cet hiver ? » : je cherche par mot,
+   ingrédient, pays, livre, ou date de réalisation.
+2. Depuis une recette : sa source, ses dates, mes notes, sa photo ; je peux
+   l'ajouter à la **wish list** (favori) ou **à la semaine en cours**.
+
+### N11 — La wish list et le beau produit *(proposition)*
+
+1. Je garde une wish list de recettes à faire un jour ; elles signalent
+   leurs **ingrédients difficiles à sourcer**, à commander à l'avance.
+2. Au marché, un beau turbot : je cherche dans la wish list les recettes qui
+   conviennent à ce produit, et je décide en connaissance.
+3. La recette choisie rejoint la semaine ; ses manquants, la liste de
+   courses.
+
+**Résultat attendu** : le beau produit imprévu trouve sa recette, et les
+ingrédients rares sont commandés à temps.
+
+## Famille 5 — Gérer les inventaires
 
 ### N2 — Je fais l'inventaire d'un emplacement (dicté par Olivier)
 
@@ -56,7 +220,13 @@ caisse, en vrac.
    - sans la voix, la recherche doit être très facile ;
    - produit inconnu de l'inventaire → il est **créé** ;
    - produit déjà vu pendant cet inventaire → sa quantité **augmente** ;
-   - je peux **corriger une erreur**.
+   - je peux **corriger une erreur** — mauvais produit **ou mauvais
+     nombre** (je saisis directement la bonne quantité — 27/07/2026) ;
+   - la dictée comprend **mes ingrédients à moi** (27/07/2026) : les noms
+     venus d'ailleurs (nuoc mam, ras el hanout) et ceux qui commencent par
+     un nombre (« quatre-épices », jamais compris comme 4 × épices) ; en
+     cas de doute elle me propose le bon, et **retient ma correction** pour
+     les fois suivantes.
 3. Dans un **emplacement daté** (voir N7) : quand un produit est identifié,
    l'application propose la liste de ses lots déjà connus avec leur date —
    je valide la date inscrite sur le produit que je tiens — et un bouton
@@ -68,60 +238,27 @@ caisse, en vrac.
 **Résultat attendu** : au fur et à mesure des inventaires, le stock global
 tous emplacements évolue, et les achats automatiques suivent.
 
-### N3 — Je prépare mes courses *(reformulé par Olivier)*
-
-1. Je prépare mes courses en **indiquant un produit manquant** que
-   l'application n'aurait pas repéré, ou en **prévoyant un ingrédient à
-   acheter** (réserve, besoin à venir).
-2. J'indique la **quantité** voulue, notamment si j'achète en gros (trois
-   pots de cumin en promotion, un carton de conserves) — la quantité
-   réellement reçue se confirme au rangement (« à mettre en stock »).
-3. Ces produits rejoignent la liste de courses, chacun sous son magasin,
-   avec leur quantité ; je peux **définir ou changer le lieu d'achat**
-   d'une ligne (crayon) — il est mémorisé pour les prochaines fois
-   (16/07/2026).
-
-**Résultat attendu** : la liste de courses combine ce que l'application
-détecte toute seule et ce que je décide d'y mettre, quantités comprises.
-
-### N4 — Je fais mes courses dans plusieurs endroits
-
-1. Ma liste de la semaine contient des produits du marché, de Grand Frais et
-   d'une boutique spécialisée.
-2. Au marché, je vois d'abord les produits du marché ; je coche au fur et à
-   mesure. Même chose ensuite chez Grand Frais.
-3. **Je peux aussi voir les autres listes si je le veux** : je tombe au
-   marché sur un produit prévu pour Grand Frais — je le coche directement.
-4. De retour, je range tout : le stock est à jour ; il ne reste sur la liste
-   que ce que je n'ai pas trouvé.
-
-**Résultat attendu** : une seule liste, organisée par lieu d'achat mais
-jamais cloisonnée, qui survit à une tournée en plusieurs étapes.
-
-### N5 — Nous tenons le stock à plusieurs
-
-1. Pendant que je suis au marché, mon mari finit un pot de crème à la maison
-   et le signale.
-2. Le produit apparaît sur ma liste de courses pendant mes achats.
-3. J'achète la crème, je coche ; à la maison, mon mari voit qu'elle est en
-   route.
-
-**Résultat attendu** : chacun agit de son côté, personne n'écrase le travail
-de l'autre, tout le monde voit le même état à tout moment.
+*(Complément 27/07/2026, proposition : sans faire de comptage, je peux
+aussi simplement **visualiser un emplacement et gérer ses ingrédients** —
+c'est la seconde porte d'entrée de la liste des ingrédients, voir N14.)*
 
 ### N6 — Je réorganise mes rangements et j'y déplace mes produits
 
 1. **Un produit change de place** (le safran part en réserve) : je l'indique
-   en un geste ; il garde quantité, magasin et état « à racheter ». S'il
-   existe déjà à destination, les pots se regroupent.
-2. **Plusieurs produits changent de place** : je les coche dans la liste et
+   en un geste, **directement depuis sa ligne du stock** (27/07/2026) ; il
+   garde quantité, magasin et état « à racheter ». S'il existe déjà à
+   destination, les pots se regroupent.
+2. **Je range une série de produits au même endroit** (27/07/2026) :
+   j'ajoute chaque produit au stock en précisant l'emplacement — retenu
+   d'un ajout à l'autre, je ne le re-choisis pas à chaque fois.
+3. **Plusieurs produits changent de place** : je les coche dans la liste et
    je les déplace en lot, sans ressaisie.
-3. **Une boîte casse**, remplacée par une plus grande : je fusionne deux
+4. **Une boîte casse**, remplacée par une plus grande : je fusionne deux
    emplacements — les produits se retrouvent dans le nouveau, les doublons
    se regroupent.
-4. **Une boîte devient deux plus petites** : je crée le nouvel emplacement
+5. **Une boîte devient deux plus petites** : je crée le nouvel emplacement
    et j'y déplace les produits concernés (cochés en liste).
-5. **Un rangement se déplace ou change de nom** : tous ses produits suivent
+6. **Un rangement se déplace ou change de nom** : tous ses produits suivent
    en un geste.
 
 **Résultat attendu** : les rangements de la vraie vie changent souvent ;
@@ -152,59 +289,18 @@ bœuf », la flèche montre les trois dates ; j'en prends une → la plus
 ancienne est proposée. À la cave, une caisse de 6 bouteilles entre avec sa
 date ; quand je bois une bouteille, j'indique sa date.*
 
-## Recettes
+## Transverse — le foyer et les maisons
 
-### N8 — Je fais une recette et je la consigne *(fusionné par Olivier)*
+### N5 — Nous tenons le stock à plusieurs
 
-1. Lorsque je fais une recette, je peux **ajouter son livre ou son site**
-   s'il n'existe pas déjà dans ma bibliothèque (un livre : titre, auteur,
-   ISBN si disponible, pays, quelques catégories — le titre seul suffit).
-2. Je **photographie la recette** (ou PDF, ou URL) : l'IA en extrait titre,
-   ingrédients et étapes ; je relis, je corrige, j'enregistre. C'est ma
-   copie privée — consultable hors ligne, jamais publique, partagée
-   seulement avec le foyer.
-3. Je **consigne mes réalisations** d'un geste (« J'ai fait cette
-   recette », datée du jour) et j'ajoute la photo du plat ; la recette
-   porte tout son historique. Mes **commentaires** (doses, tours de main,
-   avis des convives) vivent dans une zone unique de la fiche, commune à
-   toutes les réalisations (décision Q3 du 16/07/2026), et je peux amender
-   ma copie sans perdre le texte d'origine.
-4. En volume : je peux **importer une liste de livres ou de sites** (export
-   d'un logiciel de scan de livres, avec ISBN) et **capturer des recettes
-   par lot** (scan de plusieurs pages d'un livre).
+1. Pendant que je suis au marché, mon mari finit un pot de crème à la maison
+   et le signale.
+2. Le produit apparaît sur ma liste de courses pendant mes achats.
+3. J'achète la crème, je coche ; à la maison, mon mari voit qu'elle est en
+   route.
 
-**Résultat attendu** : faire une recette et la consigner est un seul geste
-naturel ; la bibliothèque se construit au fil de l'eau ou par imports.
-
-### N9 — Je retrouve une recette
-
-1. « C'était quoi ce plat brésilien fait cet hiver ? » : je cherche par mot,
-   ingrédient, pays, livre, ou date de réalisation.
-2. Depuis une recette : sa source, ses dates, mes notes, sa photo.
-
-## Semaine
-
-### N10 — Je planifie ma semaine *(fusionné par Olivier : recettes, courses et planning ensemble)*
-
-1. Je pose les événements : dîner maison mardi (4 personnes), repas de
-   l'association samedi (20 personnes, halal, pas épicé), pique-nique
-   dimanche.
-2. J'associe les recettes — bibliothèque, wish list, ou nouveauté. La
-   semaine se lit d'un coup d'œil : jours, plats, convives, contraintes.
-3. Les quantités suivent toutes seules le nombre de convives ; je modère à
-   la main ou en pourcentage (gros appétits, plat riche parmi d'autres).
-4. **Je vérifie ma liste de courses** : ce qui manque par rapport à mon
-   stock s'y ajoute en un geste ; les lots anciens du congélateur me sont
-   rappelés (N7).
-5. **Je planifie mes courses** : à ma demande, l'application propose les
-   tournées de la semaine d'après les créneaux de mes magasins
-   (`creneaux-courses.md`) — marché samedi matin, commande Internet à J-7.
-   J'ajuste, je valide ; à terme, les sorties vont dans mon agenda Google.
-   Le jour venu, la liste du magasin est prête (N4).
-
-**Résultat attendu** : le menu est posé une fois, visible par le foyer ; la
-liste et le planning de courses en découlent sans calcul mental ; aucune
-tournée oubliée, les commandes Internet passées assez tôt.
+**Résultat attendu** : chacun agit de son côté, personne n'écrase le travail
+de l'autre, tout le monde voit le même état à tout moment.
 
 ### N12 — Mes trois maisons *(proposition, décision Q6 du 16/07/2026)*
 
@@ -219,18 +315,6 @@ tournée oubliée, les commandes Internet passées assez tôt.
 
 **Résultat attendu** : je passe d'une maison à l'autre sans mélanger les
 placards, et ma bibliothèque de cuisine me suit partout.
-
-### N11 — La wish list et le beau produit *(proposition)*
-
-1. Je garde une wish list de recettes à faire un jour ; elles signalent
-   leurs **ingrédients difficiles à sourcer**, à commander à l'avance.
-2. Au marché, un beau turbot : je cherche dans la wish list les recettes qui
-   conviennent à ce produit, et je décide en connaissance.
-3. La recette choisie rejoint la semaine ; ses manquants, la liste de
-   courses.
-
-**Résultat attendu** : le beau produit imprévu trouve sa recette, et les
-ingrédients rares sont commandés à temps.
 
 ---
 
@@ -255,12 +339,13 @@ manipulation.
 
 ### NP3 — J'ai coché par erreur
 
-Je décoche : rien d'autre ne doit avoir changé, ni sur la liste ni au stock.
+Je décoche : le produit remonte dans « à acheter » ; rien d'autre ne doit
+avoir changé, ni sur la liste ni au stock.
 
 ### NP4 — J'ai acheté plusieurs pots d'un coup
 
-Trois pots de cumin en promotion : en rangeant mes achats, mon stock doit
-indiquer trois pots.
+Trois pots de cumin en promotion : en rangeant mes courses (N13), mon stock
+doit indiquer trois pots.
 
 ### NP5 — Pas de réseau au marché
 
@@ -270,7 +355,10 @@ ce que la synchronisation attende le retour du réseau.
 ### NP6 — Je suis interrompu en plein inventaire
 
 On sonne à la porte ; je reviens une heure plus tard : l'inventaire est
-toujours « en cours », rien n'est perdu. Je peux aussi l'abandonner : tout
+toujours « en cours », rien n'est perdu. Je peux aussi le **mettre en pause
+moi-même** (27/07/2026) pour retrouver la liste des emplacements et faire
+autre chose (consulter, gérer, ranger des achats), puis le **reprendre** là
+où j'en étais — même le lendemain. Je peux enfin l'abandonner : tout
 revient à l'état d'avant. **Un inventaire interrompu ne produit jamais un
 stock à moitié faux.**
 
@@ -279,7 +367,7 @@ stock à moitié faux.**
 Il rejoint la bonne tournée s'il en reste une dans la semaine ; sinon,
 l'application me le signale.
 
-### NP9 — L'extraction IA se trompe *(proposition)*
+### NP9 — L'extraction se trompe *(proposition)*
 
 La lecture automatique n'est jamais enregistrée sans ma relecture, et la
 photo d'origine reste jointe.
@@ -303,6 +391,12 @@ pas acheté, et ce qui l'est déjà m'est signalé pour compléter.
 
 Un convive végétarien s'annonce : je vois si le menu convient, et je trouve
 un remplacement dans la wish list filtrée par contrainte.
+
+### NP14 — Je range un produit que je n'avais pas prévu d'acheter *(proposition 27/07/2026)*
+
+Au rangement des courses (N13), un produit acheté sur un coup de tête n'est
+pas dans la liste : il est créé comme nouvel ingrédient, avec son
+emplacement et sa quantité — jamais perdu, jamais bloquant.
 
 *(NP7 : numéro retiré — signalement croisé pendant l'inventaire, refusé par
 Olivier.)*

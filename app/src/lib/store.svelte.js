@@ -1432,62 +1432,10 @@ export async function deletePhoto(photo) {
   store.photos = store.photos.filter(p => p.id !== photo.id)
 }
 
-/** Amorce la bibliothèque avec les 105 recettes vidéo d'Alain Passard. */
-export async function importPassard() {
-  const { PASSARD_SOURCE, PASSARD_RECIPES } = await import('./passard.js')
-  const hid = store.household.id
-  // Garde-fou : ne jamais réimporter si la source existe déjà dans la base
-  // (un onglet resté sur l'état « aucune recette » a déjà causé un double import).
-  const { data: dejaLa } = await supabase.from('sources')
-    .select('id').eq('household_id', hid).eq('title', PASSARD_SOURCE.title).limit(1)
-  if (dejaLa?.length) return
-  const { data: src, error } = await supabase.from('sources')
-    .insert({ ...PASSARD_SOURCE, household_id: hid }).select().single()
-  if (error || !src) { store.schemaWarning = true; return }
-  const rows = PASSARD_RECIPES.map(r => ({
-    household_id: hid, source_id: src.id, title: r.title, url: r.url, video: r.video
-  }))
-  const { data: created } = await supabase.from('recipes').insert(rows).select()
-  if (!created) { store.schemaWarning = true; return }
-  store.sources.push(src)
-  store.recipes.push(...created)
-  const done = PASSARD_RECIPES.filter(r => r.done)
-    .map(r => created.find(c => c.video === r.video)).filter(Boolean)
-  if (done.length) {
-    const { data: reals } = await supabase.from('realisations')
-      .insert(done.map(d => ({
-        household_id: hid, recipe_id: d.id, made_on: null,
-        comment: 'Déjà cuisinée (import Alain Passard, date non notée)'
-      }))).select()
-    if (reals) store.realisations.push(...reals)
-  }
-}
-
-/**
- * Complète les recettes Passard (ingrédients + texte) depuis les fiches
- * extraites des articles Le Point. Idempotent : ne touche que les recettes
- * dont l'URL correspond et qui n'ont encore ni ingrédients ni texte.
- */
-export async function fillPassardDetails() {
-  const { PASSARD_FICHES } = await import('./passard-fiches.js')
-  const byUrl = new Map(PASSARD_FICHES.map(f => [f.url, f]))
-  let filled = 0
-  for (const recipe of store.recipes) {
-    const fiche = recipe.url && byUrl.get(recipe.url)
-    if (!fiche) continue
-    if (recipe.steps || ingredientsOf(recipe.id).length) continue
-    await saveRecipeDetails(recipe, fiche.ingredients.join('\n'), fiche.steps)
-    if (store.schemaWarning) return filled
-    filled++
-  }
-  return filled
-}
-
-/** Nombre de recettes complétables par les fiches Passard. */
-export function passardFillableCount(ficheUrls) {
-  return store.recipes.filter(r =>
-    r.url && ficheUrls.has(r.url) && !r.steps && !ingredientsOf(r.id).length).length
-}
+/* (L'amorçage Passard — importPassard, fillPassardDetails — a rempli sa
+ * mission le 07/07/2026 et a été retiré de l'application le 27/07/2026,
+ * décision Olivier ; les données vivent en base, le code dans archive/
+ * et tests/helpers/.) */
 
 /* ----- Rangements (cas N6) -----
  * Déplacer un produit conserve quantité, magasin et état « à racheter ».

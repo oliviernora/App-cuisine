@@ -14,10 +14,11 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, addEvent, attachRecipe, importPassard, saveRecipeDetails, weekNeeds,
+  store, addEvent, attachRecipe, saveRecipeDetails, weekNeeds,
   formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride,
   toggleAvailable, setDone, clearDone
 } from '../../src/lib/store.svelte.js'
+import { importPassard } from '../helpers/passard.js'
 
 const TODAY = new Date().toISOString().slice(0, 10)
 

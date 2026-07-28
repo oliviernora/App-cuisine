@@ -16,4 +16,4 @@ Voici mes nouvelles remarques :
   → **CORRIGÉ (27/07/2026)** : la page réserve désormais exactement la hauteur réelle de la barre du bas (mesurée en continu, y compris quand l'indice passe sur plusieurs lignes ou que le dépliant « ⋯ » est ouvert) — le bas de page est toujours atteignable, sur tous les onglets.
 
 ---
-Livraison du 27/07/2026 : 156 tests verts (12 nouveaux), build OK, schéma 16/16 (aucune migration), parcours réels vérifiés sur 5173. Reste : republier (`app/mettre-en-ligne.cmd`) puis M59-M62 sur iPhone (cahier de tests).
+Livraison du 27/07/2026 : 156 tests verts (12 nouveaux), build OK, schéma 16/16 (aucune migration), parcours réels vérifiés sur 5173. Prod publiée le 27/07 à 18h25 (bundle vérifié en ligne). Reste : recharger l'app sur chaque appareil, puis M59-M62 sur iPhone (cahier de tests).

@@ -12,11 +12,12 @@ vi.mock('../../src/lib/supabase.js', async () => {
 
 import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
-  store, addItem, changeQty, importPassard, saveRecipeDetails, sameIngredient,
+  store, addItem, changeQty, saveRecipeDetails, sameIngredient,
   setIngredientCategory, addCategory, renameCategory, removeCategory,
   setCategorySourcing, setIngredientSourcing, sourcingOf,
   renameIngredient, recipesUsing, masterList
 } from '../../src/lib/store.svelte.js'
+import { importPassard } from '../helpers/passard.js'
 
 beforeEach(async () => {
   resetFake()

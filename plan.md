@@ -2,8 +2,28 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
-### Chantier du 27/07/2026 : commentaires 2 — LIVRÉ, À REPUBLIER
-Les 8 remarques de docs/utilisateur/commentaires 2.md sont traitées en
+### Chantier commentaires 3 (27/07/2026 au soir) : familles de cas + refonte courses — LOT 0 LIVRÉ, LOTS 1-4 EN ATTENTE DE VALIDATION
+Les commentaires 3 (docs/utilisateur/commentaires 3.md) demandent :
+courses façon « To Do » (à acheter en haut / achetés en bas, décoche),
+écran « Ranger les courses » (saisie/dictée → candidats de la liste →
+emplacement par défaut = dernier connu + quantité), liste d'ingrédients
+unique à deux portes (stocks / emplacement d'inventaire), écran d'accueil
+à 5 familles, et cas d'utilisation restructurés en familles.
+Décisions d'Olivier (questions du 27/07 au soir) : accueil EN PLUS des
+onglets ; « À acheter » groupé par magasin ; le rangement REMPLACE
+« À mettre en stock » (Q2) ; « marquer utilisé ou non » = j'en ai
+encore / c'est épuisé.
+- **Lot 0 FAIT (27/07 au soir)** : cas-utilisation.md restructuré en
+  5 familles + transverse ; nouveaux cas N13 (ranger les courses),
+  N14 (gérer la liste d'ingrédients), NP14 ; N1/N3/N4/N10 amendés ;
+  suivi à jour. **VALIDATION D'OLIVIER ATTENDUE avant tout code.**
+- Lot 1 : courses façon To Do (sections, décoche). Lot 2 : écran
+  « Ranger les courses » (N13). Lot 3 : liste d'ingrédients unifiée
+  (N14). Lot 4 : écran d'accueil par familles.
+
+### Chantier du 27/07/2026 : commentaires 2 — LIVRÉ ET PUBLIÉ le 27/07
+Les 8 remarques de docs/utilisateur/Archive/commentaires-2-2026-07-27.md
+(annoté puis archivé) sont traitées en
 4 lots (décisions d'Olivier du 27/07 : emplacement mémorisé à l'ajout ;
 rapprochement vocal + alias mémorisés ; motif lignes compactes sur
 Stock + Courses) :
@@ -26,13 +46,23 @@ Stock + Courses) :
    appliqué à toutes les largeurs (à confirmer par Olivier sur PC).
 État : 156 tests verts (12 nouveaux dont dictee.test.js), build OK,
 check:schema 16/16 (aucune migration), parcours réels vérifiés sur 5173
-(voir cahier de tests, passage du 27/07), commentaires 2.md annoté.
-**Reste : republier (`app/mettre-en-ligne.cmd`, main d'Olivier) puis
-M59-M62 sur iPhone** (M62 = dictée réelle au micro). M56-M58 du 25/07
-et M47/M48-M50/M55 toujours en attente aussi.
+(voir cahier de tests, passage du 27/07). **PROD PUBLIÉE le 27/07 à 18h25
+par Olivier** (bundle vérifié en ligne). Cas d'utilisation amendés (N2, N6,
+NP6 — à faire valider par Olivier) et fichiers de commentaires traités
+archivés dans docs/utilisateur/Archive/ (« commentaires 3.md » vide, prêt
+pour les prochaines remarques). **Reste : recharger l'app sur chaque
+appareil, puis M59-M62 sur iPhone** (M62 = dictée réelle au micro).
+M56-M58 du 25/07 et M47/M48-M50/M55 toujours en attente aussi.
+**Ménage du 27/07 au soir** (décisions Olivier) : amorçage Passard retiré
+de l'app (importPassard/fillPassardDetails + boutons — mission accomplie),
+code et pipeline archivés dans `archive/` (avec le POC de l'étape 0),
+importPassard conservé en fixture de tests (`tests/helpers/passard.js`) ;
+153 tests verts, bundle allégé (precache 511 → 416 Ko). Ce ménage partira
+en prod à la prochaine republication.
 
 ### Chantier du 25/07/2026 : commentaires UX iPhone — LIVRÉ, À REPUBLIER
-Les commentaires du 25/07 (docs/utilisateur/commentaires.md) sont traités
+Les commentaires du 25/07 (archivés :
+docs/utilisateur/Archive/commentaires-2026-07-25.md) sont traités
 en 5 lots, questions répondues par Olivier (généraliser les sous-écrans,
 supprimer les emplacements par défaut, suppression d'emplacement si vide,
 barre d'ajout minimale) :

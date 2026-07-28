@@ -201,7 +201,7 @@ Règles :
   « Voir en ligne (site) », « pour N personnes », ingrédients, texte,
   historique des réalisations, formulaire « J'ai fait cette recette », et
   l'éditeur (ingrédients un par ligne, pays, source). L'état vide propose
-  l'import d'amorçage (collection Alain Passard).
+  l'import d'une recette (URL, photos, texte).
 - **Gérer un emplacement** (onglet Inventaire — action exceptionnelle) :
   chaque emplacement a un bouton « Gérer » qui déplie un panneau sous sa
   ligne : renommer, fusionner dans un autre emplacement, déplacer des
