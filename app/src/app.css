@@ -203,6 +203,30 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
 
 .empty { padding: 32px 8px; text-align: center; color: var(--muted); }
 
+/* Écran d'accueil (27/07/2026) : les 5 familles de cas d'utilisation en
+ * tuiles, leurs étapes en raccourcis. */
+.accueil {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px; padding-top: 16px;
+}
+.tuile {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); padding: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.tuile-tete {
+  display: flex; align-items: center; gap: 10px;
+  font: inherit; font-weight: 700; font-size: 1.02rem; text-align: left;
+  background: none; border: none; color: var(--ink); cursor: pointer; padding: 0;
+}
+.tuile-tete svg { width: 26px; height: 26px; flex: 0 0 auto; color: var(--accent); }
+.tuile-etapes { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.tuile-etapes button {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font: inherit; font-size: 0.88rem; text-align: left; padding: 3px 0;
+}
+.tuile-etapes button:active { color: var(--accent); }
+
 .addbar {
   /* --clavier : hauteur du clavier virtuel (iPhone), posée par App.svelte —
    * la barre remonte au-dessus du clavier au lieu d'être recouverte (16/07/2026) */

@@ -31,6 +31,16 @@ bout en bout) : voir `cas-utilisation.md`.
   barres d'ajout disparaissent ; une **croix ×** ferme et revient où on
   était. Une seule saisie ouverte à la fois.
 
+## Écran d'accueil (28/07/2026, commentaires 3)
+
+L'application s'ouvre sur l'**accueil** : les **cinq familles de cas
+d'utilisation** en tuiles — Gérer les ingrédients, Faire les courses,
+Préparer la semaine, Gérer les recettes, Gérer les inventaires — chacune
+avec ses **étapes en raccourcis** (« Ranger les courses » et « Lieux
+d'achat » ouvrent directement le bon écran). L'accueil **s'ajoute** à la
+navigation par onglets (premier onglet, icône maison) : il ne la remplace
+pas (décision Olivier 27/07/2026).
+
 ## Onglet Stock
 
 Refondu le 16/07/2026 (commentaires Olivier) : le stock se lit **par
@@ -49,6 +59,10 @@ Le détail « ▸ » déplie chaque endroit avec sa quantité, ses boutons + / �
 et un bouton « **Déplacer** » (27/07/2026) : choisir la destination —
 existante ou nouvelle — déplace la ligne ; si le produit existe déjà
 là-bas, les pots se regroupent.
+
+La seconde ligne porte aussi le bouton « **Épuisé** » (28/07/2026, N14) :
+en un geste, toutes les lignes de l'ingrédient passent à zéro (lots datés
+vidés aussi) — le rachat automatique suit.
 
 ### Boutons + / −
 
@@ -153,14 +167,17 @@ iPhone/iPad fonctionne aussi dans chaque champ.
 
 ## Onglet Inventaire
 
-### À mettre en stock (réception des achats — 16/07/2026, décision Q2)
+*(La réception des achats — « à mettre en stock », décision Q2 du
+16/07/2026 — vit désormais dans l'écran « **Ranger les courses** » de
+l'onglet Courses : voir cette section. Décision du 28/07/2026, cas N13.)*
 
-En tête de l'onglet, les achats passés par « Ranger les achats » (Courses)
-attendent leur rangement : pour chaque produit, **quantité reçue** (le vrai
-nombre de pots — trois achetés = trois) et **emplacement** (proposé d'après
-l'existant, modifiable, nouveau possible), puis « **Ranger** » fait entrer
-le stock. Dans un emplacement « à dates », le rangement crée un **lot daté**
-du jour. Tant qu'un produit est là, il ne revient pas en courses.
+### Ingrédients d'un emplacement (28/07/2026, cas N14)
+
+**Toucher un emplacement** de la liste ouvre « Ingrédients — {nom} » : la
+**même liste que l'onglet Stock**, filtrée sur cet endroit, avec les mêmes
+gestes (recherche, lignes compactes, ±, panier, Épuisé, ✎ Modifier,
+déplacement) — et la barre d'ajout **préréglée sur l'emplacement**. C'est
+la seconde porte d'entrée de la liste unique des ingrédients.
 
 Liste des emplacements avec leur nombre de produits et la **date du dernier
 inventaire** (« jamais inventorié » sinon). Le bouton « Inventaire » de
@@ -275,6 +292,12 @@ La liste fait la **somme de trois origines** : le réapprovisionnement du
 stock (« auto », « réserve »), les **ingrédients des repas à venir**
 (« semaine »), et les achats libres ajoutés à la main.
 
+**Façon liste de tâches** (28/07/2026, commentaires 3 — comme Microsoft
+To Do) : les produits **à acheter restent en haut**, groupés par magasin ;
+ce que je coche **descend en bas** dans « **Achetés — à ranger** » ;
+décocher un produit le fait remonter. Les achetés attendent là leur
+rangement (bouton « **Ranger les courses (n)** », voir plus bas).
+
 **Lignes compactes** (27/07/2026, comme au Stock) : chaque ligne ne montre
 que la **case, le nom et le statut** (« auto », « réserve », « semaine »,
 « je l'ai »). **Toucher le nom** affiche le nom complet et déplie la ligne
@@ -297,12 +320,37 @@ Cocher = acheté (la ligne se barre). La pastille de l'onglet compte ce qui
 reste à acheter (les « je l'ai » ne comptent pas). Décocher est possible
 tant que les achats ne sont pas rangés.
 
-### Bouton « Ranger les achats » (revu le 16/07/2026, décision Q2)
+### Écran « Ranger les courses » (28/07/2026, cas N13 — remplace « À mettre en stock » de la décision Q2)
 
-Les lignes cochées quittent la liste et passent « **à mettre en stock** »
-en tête de l'onglet Inventaire — c'est là que la quantité réelle et
-l'emplacement se choisissent (plus de +1 automatique). Une ligne
-« semaine » achetée passe en « je l'ai ».
+De retour des courses, le bouton « **Ranger les courses (n)** » ouvre
+l'écran de rangement, sacs devant soi :
+- pour chaque produit sorti d'un sac, **quelques lettres ou le micro**
+  suffisent ; les **candidats de la liste** s'affichent (« huile » propose
+  « huile d'olive » et « huile de tournesol » si les deux y sont) ;
+- un produit **hors liste** (acheté en plus) entre au stock quand même
+  (« Nouveau produit ») ;
+- pour chaque produit : la **quantité réelle** (trois achetés = trois) et
+  l'**emplacement** — proposé d'après le **dernier emplacement connu** de
+  l'ingrédient ; un emplacement « à dates » crée un **lot daté** du jour ;
+- une ligne « **semaine** » (ingrédient de recette) est simplement marquée
+  « je l'ai » — rien n'entre au stock, le besoin est couvert.
+L'écran est aussi accessible par le raccourci « Ranger les courses » de
+l'écran d'accueil.
+
+### Lieux d'achat (28/07/2026, N3 point 4)
+
+Le bouton « **Lieux d'achat** » (bas de l'onglet) ouvre leur gestion :
+- **ajouter** un lieu, **physique** (adresse facultative) ou **Internet**
+  (URL, avec lien « Ouvrir le site »), plus un **commentaire** libre
+  (horaires, jour de marché…) ;
+- **renommer au crayon ✎** — le nouveau nom suit partout : lignes de
+  courses, magasins mémorisés des ingrédients, sourcing ;
+- **supprimer** (deux touches) — les lignes qui portaient ce lieu
+  repartent dans « Autre » ;
+- « **Ingrédients achetables ici (n)** » : la liste des ingrédients dont le
+  magasin mémorisé ou le sourcing pointe vers ce lieu ;
+- au premier passage, « **Reprendre ces lieux** » crée d'un geste les lieux
+  déjà utilisés en texte libre dans vos courses et votre sourcing.
 
 ### Crayon ✎ — lieu d'achat (16/07/2026)
 

@@ -1,7 +1,10 @@
 <script>
-  import { store, addShopEntry, setDone, removeShopEntry, clearDone, formatQty,
+  import { store, addShopEntry, setDone, removeShopEntry, formatQty,
     toggleAvailable, setEntryStore } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import SousEcran from './SousEcran.svelte'
+  import RangerCourses from './RangerCourses.svelte'
+  import LieuxAchat from './LieuxAchat.svelte'
   import { addbarHeight } from '../lib/addbar.js'
   import { TRASH } from '../lib/icons.js'
 
@@ -9,19 +12,42 @@
 
   let name = $state('')
 
-  /* Les lignes « reçues » (achetées et rangées) ont quitté la liste : elles
-   * attendent leur mise en stock dans l'onglet Inventaire (Q2, 16/07/2026). */
+  /* Courses façon liste de tâches (N4, décision Olivier 27/07/2026) : les
+   * produits à acheter en haut, groupés par magasin ; ce qui est coché
+   * descend dans « Achetés » en bas (décocher le remonte). Le rangement se
+   * fait produit par produit dans l'écran « Ranger les courses » (N13). */
   const groups = $derived.by(() => {
-    const entries = store.shop.filter(s => !s.received)
+    const entries = store.shop.filter(s => !s.done && !s.received)
       .toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
     return [...Map.groupBy(entries, s => s.store || 'Autre')]
       .sort((a, b) => a[0].localeCompare(b[0], 'fr'))
   })
 
+  const bought = $derived(store.shop.filter(s => s.done || s.received)
+    .toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })))
+
+  let ranger = $state(false)
+  let lieuxOpen = $state(false)
+
+  /* Raccourcis de l'écran d'accueil (27/07/2026) : ouvrir directement le
+   * rangement ou les lieux d'achat. */
+  if (store.uiAction === 'ranger-courses') { ranger = true; store.uiAction = null }
+  else if (store.uiAction === 'lieux-achat') { lieuxOpen = true; store.uiAction = null }
+
   /* Lieu d'achat par ligne (commentaire Olivier 16/07/2026) : le crayon
    * ouvre un petit panneau ; le lieu est mémorisé sur l'ingrédient. */
   let editId = $state(null)
   let editStore = $state('')
+
+  function toggleEdit(entry) {
+    editId = editId === entry.id ? null : entry.id
+    editStore = entry.store ?? ''
+  }
+
+  async function saveStore(entry) {
+    await setEntryStore(entry, editStore)
+    editId = null
+  }
 
   /* Lignes compactes (remarque Olivier 27/07/2026) : case + nom seulement ;
    * toucher le nom déplie le nom complet et la ligne des boutons. */
@@ -35,16 +61,6 @@
   function statusNote(entry) {
     if (entry.origin === 'semaine') return entry.available ? 'je l\'ai' : 'semaine'
     return entry.item_id ? (entry.manual ? 'réserve' : 'auto') : ''
-  }
-
-  function toggleEdit(entry) {
-    editId = editId === entry.id ? null : entry.id
-    editStore = entry.store ?? ''
-  }
-
-  async function saveStore(entry) {
-    await setEntryStore(entry, editStore)
-    editId = null
   }
 
   /* Barre d'ajout minimale (25/07/2026) : le produit seul — le lieu d'achat
@@ -61,7 +77,18 @@
     <p class="offline-banner">La base de données doit être mise à jour (migration en
       attente) : la dernière modification n'a pas pu être enregistrée.</p>
   {/if}
-  {#if groups.length === 0}
+
+  {#if ranger}
+    <SousEcran titre="Ranger les courses" fermer={() => ranger = false}>
+      <RangerCourses />
+    </SousEcran>
+  {:else if lieuxOpen}
+    <SousEcran titre="Lieux d'achat" fermer={() => lieuxOpen = false}>
+      <LieuxAchat />
+    </SousEcran>
+  {:else}
+
+  {#if groups.length === 0 && bought.length === 0}
     <p class="empty">Liste de courses vide. Les ingrédients épuisés s'ajoutent ici automatiquement.</p>
   {/if}
 
@@ -69,7 +96,7 @@
     <p class="group-title">{storeKey} <span class="n">· {group.length}</span></p>
     <ul>
       {#each group as entry (entry.id)}
-        <li class="row" class:done={entry.done || entry.available}>
+        <li class="row" class:done={entry.available}>
           <input type="checkbox" checked={entry.done} disabled={entry.available} aria-label="Acheté"
             onchange={e => setDone(entry, e.target.checked)}>
           <button type="button" class="rowbtn-full info" aria-expanded={sel === entry.id}
@@ -110,20 +137,37 @@
     </ul>
   {/each}
 
-  {#if store.shop.some(s => s.done && !s.received)}
-    <div class="toolbar">
-      <button type="button" onclick={clearDone}>Ranger les achats — ils passeront « à mettre en stock » (Inventaire)</button>
-    </div>
+  {#if bought.length}
+    <p class="group-title">Achetés — à ranger <span class="n">· {bought.length}</span></p>
+    <ul>
+      {#each bought as entry (entry.id)}
+        <li class="row done">
+          <input type="checkbox" checked aria-label="Acheté — décocher pour remettre à acheter"
+            onchange={() => setDone(entry, false)}>
+          <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
+          <span class="note">{entry.origin === 'semaine' ? 'semaine' : entry.store || ''}</span>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  <div class="toolbar">
+    {#if bought.length}
+      <button type="button" onclick={() => ranger = true}>Ranger les courses ({bought.length})</button>
+    {/if}
+    <button type="button" onclick={() => lieuxOpen = true}>Lieux d'achat</button>
+  </div>
   {/if}
 </section>
 
+{#if !ranger && !lieuxOpen}
 <div class="addbar" use:addbarHeight>
   <form onsubmit={submit} autocomplete="off">
     <input class="f-name" bind:value={name} placeholder="Produit à acheter" required>
     <button class="submit">Ajouter</button>
   </form>
 </div>
+{/if}
 
 <datalist id="stores-edit">
-  {#each [...new Set([...STORES, ...store.shop.map(s => s.store).filter(Boolean)])] as s (s)}<option value={s}></option>{/each}
+  {#each [...new Set([...store.lieux.map(l => l.name), ...STORES, ...store.shop.map(s => s.store).filter(Boolean)])] as s (s)}<option value={s}></option>{/each}
 </datalist>

@@ -3,13 +3,20 @@
   import { store, addItem, changeQty, toggleOrder, stockGroups, shopEntryOf,
     setIngredientMin, renameIngredient, removeIngredient, setIngredientCategory, categoryOf,
     knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot,
-    parseDictation, dictationMatches, sameDictation, confirmMerge, moveItem } from '../lib/store.svelte.js'
+    parseDictation, dictationMatches, sameDictation, confirmMerge, moveItem,
+    markEpuise } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import SousEcran from './SousEcran.svelte'
   import { addbarHeight } from '../lib/addbar.js'
   import { MINUS, PLUS, CART, CART_PLUS, MIC } from '../lib/icons.js'
 
   const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
+
+  /* Deux portes d'entrée vers la même liste (N14, décision Olivier
+   * 27/07/2026) : sans `loc`, tout le stock (onglet Stock) ; avec `loc`,
+   * les ingrédients présents dans cet emplacement (depuis l'Inventaire),
+   * barre d'ajout préréglée sur l'emplacement. */
+  let { loc = '' } = $props()
 
   let search = $state('')
   let genreFilter = $state('')
@@ -19,7 +26,9 @@
     ...store.refs.map(r => r.category).filter(Boolean)])].toSorted((a, b) => a.localeCompare(b, 'fr')))
   let name = $state('')
   let qty = $state(1)
-  let itemLoc = $state('')
+  /* svelte-ignore state_referenced_locally — capture initiale voulue : la
+   * porte d'entrée (loc) ne change pas pour une instance donnée. */
+  let itemLoc = $state(loc)
   let itemStore = $state('')
   let newLoc = $state(false)
 
@@ -45,6 +54,7 @@
    * le détail par endroit se déplie quand il y a plusieurs emplacements. */
   const groups = $derived.by(() => {
     let list = stockGroups()
+    if (loc) list = list.filter(g => g.rows.some(r => r.loc === loc))
     if (search) list = list.filter(g => fold(g.name).includes(fold(search)))
     if (genreFilter) list = list.filter(g => categoryOf(g.name) === genreFilter)
     return list
@@ -372,6 +382,10 @@
               onclick={() => toggleDetail(g)}>{open === g.key ? '▾' : '▸'} {locLabel(g)}</button>
           {:else}
             <span class="note">{locLabel(g)}</span>
+          {/if}
+          {#if g.total > 0}
+            <button type="button" class="inv-manage" title="C'est épuisé — tout passe à zéro, racheté automatiquement"
+              onclick={() => markEpuise(g.name)}>Épuisé</button>
           {/if}
           <button class="icon-btn" class:cart-on={inList} class:cart-missing={missing} type="button"
             aria-label="Commander"

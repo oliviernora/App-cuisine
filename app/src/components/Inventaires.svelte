@@ -4,9 +4,10 @@
     masterList, setIngredientCategory, isDatedLoc, setLocationDated, setLocationStaleMonths,
     addCategory, renameCategory, removeCategory, setCategorySourcing,
     setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
-    receivedEntries, receivedLoc, stashReceived, invIsHere, unpauseInventory,
+    invIsHere, unpauseInventory,
     SOURCING_TYPES } from '../lib/store.svelte.js'
   import SousEcran from './SousEcran.svelte'
+  import Stock from './Stock.svelte'
 
   const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
     'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
@@ -34,6 +35,9 @@
   }
 
   let managed = $state(null)
+  /* Seconde porte de la liste d'ingrédients (N14, 27/07/2026) : toucher un
+   * emplacement ouvre la même liste que l'onglet Stock, filtrée. */
+  let voirLoc = $state(null)
   let newName = $state('')
   let confirmMerge = $state(false)
   let selected = $state([])
@@ -128,23 +132,9 @@
 
   const merges = $derived(pendingMerges())
 
-  /* Réception des achats (Q2, 16/07/2026) : les lignes « reçues » depuis
-   * « Ranger les achats » se mettent en stock ici, avec la vraie quantité
-   * et l'emplacement — c'est aussi la réponse à NP4. */
-  const received = $derived(receivedEntries())
-  let stashQty = $state({})
-  let stashLoc = $state({})
-
-  function defaultQty(entry) {
-    return entry.qty ? Math.max(1, Math.round(Number(entry.qty))) : 1
-  }
-
-  async function ranger(entry) {
-    busy = true
-    await stashReceived(entry, stashQty[entry.id] ?? defaultQty(entry), stashLoc[entry.id] ?? receivedLoc(entry))
-    busy = false
-    message = `« ${entry.name} » rangé.`
-  }
+  /* (La réception des achats — « à mettre en stock », Q2 du 16/07/2026 —
+   * vit désormais dans l'écran « Ranger les courses » de l'onglet Courses,
+   * décision Olivier 27/07/2026, cas N13.) */
 
   /* Les deux noms peuvent être longs et tronqués (iPhone surtout) : un
    * toucher sur la question la déplie en entier (demande Olivier 16/07). */
@@ -257,7 +247,13 @@
     </div>
   {/if}
 
-  {#if managed}
+  {#if voirLoc}
+    <!-- Ingrédients d'un emplacement : la même liste que l'onglet Stock,
+         filtrée (N14, décision Olivier 27/07/2026). -->
+    <SousEcran titre={'Ingrédients — ' + voirLoc} fermer={() => voirLoc = null}>
+      <Stock loc={voirLoc} />
+    </SousEcran>
+  {:else if managed}
     <!-- Gérer un emplacement : sous-écran dédié (commentaires Olivier 25/07/2026). -->
     <SousEcran titre={managed} fermer={() => managed = null}>
       <div class="manage-panel">
@@ -455,35 +451,6 @@
     </SousEcran>
   {:else}
 
-  {#if received.length}
-    <p class="group-title">À mettre en stock <span class="n">· {received.length}</span></p>
-    <p class="note">Achats rangés depuis les courses : vérifier la quantité reçue,
-      choisir l'emplacement, puis « Ranger ».</p>
-    <ul>
-      {#each received as entry (entry.id)}
-        <li class="row"><span class="name" title={entry.name}>{entry.name}</span></li>
-        <li class="manage-panel">
-          <div class="manage-row">
-            <label>Quantité reçue
-              <input class="f-qty" type="number" inputmode="numeric" min="1"
-                value={stashQty[entry.id] ?? defaultQty(entry)}
-                oninput={e => stashQty[entry.id] = e.target.value}
-                aria-label={'Quantité reçue de ' + entry.name}>
-            </label>
-            <label>Emplacement
-              <input list="manage-locs" placeholder="Emplacement"
-                value={stashLoc[entry.id] ?? receivedLoc(entry)}
-                oninput={e => stashLoc[entry.id] = e.target.value}
-                aria-label={'Emplacement de rangement de ' + entry.name}>
-            </label>
-            <button type="button" class="inv-start" disabled={busy || !(stashLoc[entry.id] ?? receivedLoc(entry)).trim()}
-              onclick={() => ranger(entry)}>Ranger</button>
-          </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
   {#if merges.length}
     <p class="group-title">Ingrédients à rapprocher <span class="n">· {merges.length}</span></p>
     <ul>
@@ -515,10 +482,11 @@
     {#each locs as name (name)}
       <li class="loc-item">
         <div class="row">
-          <div class="info">
+          <button type="button" class="rowbtn-full info" title="Voir et gérer les ingrédients de cet emplacement"
+            onclick={() => voirLoc = name}>
             <span class="name">{name}{#if isDatedLoc(name)} <span class="note">· à dates</span>{/if}</span>
             <span class="note">{count(name)} produits · {lastDate(name)}</span>
-          </div>
+          </button>
           <button type="button" class="inv-manage" onclick={() => openManage(name)}>Gérer</button>
           <button type="button" class="inv-start" class:danger-btn={confirmStart === name}
             onclick={() => demarrer(name)}>

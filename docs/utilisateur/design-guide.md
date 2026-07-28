@@ -71,6 +71,28 @@ Règles :
 
 ## Composants établis
 
+- **Écran d'accueil en tuiles** (28/07/2026, commentaires 3) : cinq tuiles
+  (`--surface`, coins arrondis, icône accent 26 px + titre gras), une par
+  **famille de cas d'utilisation**, avec les **étapes en raccourcis**
+  (petits boutons gris « ▸ … » qui naviguent, certains ouvrant directement
+  un sous-écran — Ranger les courses, Lieux d'achat). Grille responsive
+  (`minmax(250px, 1fr)`). L'accueil est le premier onglet (icône maison) et
+  l'écran d'ouverture ; il s'ajoute aux onglets, il ne les remplace pas.
+- **Courses façon liste de tâches** (28/07/2026, à la Microsoft To Do) :
+  « à acheter » en haut groupé par magasin, « **Achetés — à ranger** » en
+  bas (lignes barrées, case cochée) ; décocher fait remonter. Le bouton
+  « Ranger les courses (n) » ouvre l'écran de rangement.
+- **Écran de rangement** (28/07/2026, N13) : un champ + micro en tête
+  (« Produit sorti du sac »), les **candidats de la liste** en dessous
+  (+ « Nouveau produit … — acheté hors liste ») ; choisir ouvre le
+  formulaire quantité + emplacement (défaut : dernier connu) ; un message
+  confirme chaque rangement (« Rangé : … × n → … ») ; « Tout est rangé »
+  quand le panier est vide.
+- **Lieux d'achat** (28/07/2026) : sous-écran depuis les Courses — lignes
+  dépliantes « ▸ nom · type », renommage ✎ en place, type
+  physique/Internet (adresse ou URL + lien), commentaire, « Ingrédients
+  achetables ici (n) » dépliable, suppression en deux touches, reprise en
+  un geste des lieux déjà utilisés en texte libre.
 - **Sous-écran** (25/07/2026, commentaires Olivier — motif central) : toute
   édition ou sous-menu occupe l'écran **seul** — recherche, filtres, listes
   et barres d'ajout disparaissent le temps de la saisie ; une **croix ×**

@@ -3,6 +3,7 @@
     switchResidence, addResidence, renameResidence, deleteResidence, invIsHere } from './lib/store.svelte.js'
   import Auth from './components/Auth.svelte'
   import Onboarding from './components/Onboarding.svelte'
+  import Accueil from './components/Accueil.svelte'
   import Stock from './components/Stock.svelte'
   import Shopping from './components/Shopping.svelte'
   import Inventory from './components/Inventory.svelte'
@@ -11,15 +12,19 @@
   import Semaine from './components/Semaine.svelte'
   import Icon from './components/Icon.svelte'
   import SousEcran from './components/SousEcran.svelte'
-  import { LOGOUT, USERS, BOX, CART, BOOK, CALENDAR, CLIPBOARD, TRASH } from './lib/icons.js'
+  import { LOGOUT, USERS, HOME, BOX, CART, BOOK, CALENDAR, CLIPBOARD, TRASH } from './lib/icons.js'
 
-  let tab = $state('stock')
+  /* L'application s'ouvre sur l'écran d'accueil — les 5 familles de cas
+   * d'utilisation en tuiles (décision Olivier 27/07/2026 : l'accueil
+   * s'ajoute aux onglets, il ne les remplace pas). */
+  let tab = $state('accueil')
   let menuOpen = $state(false)
   const shopCount = $derived(store.shop.filter(s => !s.done && !s.available).length)
 
   /* Sur petit écran, les onglets collapsent en menu déroulant (pratique
    * responsive classique), avec « Foyer et compte » dans le même menu. */
   const TABS = [
+    { id: 'accueil', label: 'Accueil', icon: HOME },
     { id: 'stock', label: 'Stock', icon: BOX },
     { id: 'shop', label: 'Courses', icon: CART },
     { id: 'recettes', label: 'Recettes', icon: BOOK },
@@ -32,10 +37,11 @@
   const FOYER = { id: 'foyer', label: 'Foyer et compte', icon: USERS }
   const currentTab = $derived(tab === 'foyer' ? FOYER : TABS.find(t => t.id === tab))
 
-  let prevTab = 'stock' // pour revenir de « Foyer et compte » via le bouton d'en-tête
+  let prevTab = 'accueil' // pour revenir de « Foyer et compte » via le bouton d'en-tête
 
-  function pick(id) {
+  function pick(id, action) {
     if (id === 'foyer' && tab !== 'foyer') prevTab = tab
+    if (action) store.uiAction = action // raccourci d'accueil, consommé par l'écran cible
     tab = id
     menuOpen = false
   }
@@ -158,21 +164,11 @@
         {/if}
       </div>
       <nav class="tabs">
-        <button type="button" class:active={tab === 'stock'} onclick={() => pick('stock')}>
-          <Icon d={BOX} /><span class="tlabel">Stock</span>
-        </button>
-        <button type="button" class:active={tab === 'shop'} onclick={() => pick('shop')}>
-          <Icon d={CART} /><span class="tlabel">Courses</span>{#if shopCount > 0}<span class="count">{shopCount}</span>{/if}
-        </button>
-        <button type="button" class:active={tab === 'recettes'} onclick={() => pick('recettes')}>
-          <Icon d={BOOK} /><span class="tlabel">Recettes</span>
-        </button>
-        <button type="button" class:active={tab === 'semaine'} onclick={() => pick('semaine')}>
-          <Icon d={CALENDAR} /><span class="tlabel">Semaine</span>
-        </button>
-        <button type="button" class:active={tab === 'inv'} onclick={() => pick('inv')}>
-          <Icon d={CLIPBOARD} /><span class="tlabel">Inventaire</span>
-        </button>
+        {#each TABS as t (t.id)}
+          <button type="button" class:active={tab === t.id} onclick={() => pick(t.id)}>
+            <Icon d={t.icon} /><span class="tlabel">{t.label}</span>{#if t.id === 'shop' && shopCount > 0}<span class="count">{shopCount}</span>{/if}
+          </button>
+        {/each}
       </nav>
     </div>
   </header>
@@ -266,6 +262,8 @@
           <p>Version publiée le {__BUILD__}</p>
         </div>
       {/if}
+    {:else if tab === 'accueil'}
+      <Accueil ouvrir={pick} />
     {:else if tab === 'stock'}
       <Stock />
     {:else if tab === 'shop'}

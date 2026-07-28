@@ -2,7 +2,30 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
-### Chantier commentaires 3 (27/07/2026 au soir) : familles de cas + refonte courses — LOT 0 LIVRÉ, LOTS 1-4 EN ATTENTE DE VALIDATION
+### Chantier commentaires 3 — LIVRÉ le 28/07/2026, MIGRATION « stores » EN ATTENTE puis REPUBLIER
+GO d'Olivier le 28/07 (avec un ajout NOUVEAU au cas N3 : gestion des
+lieux d'achat). Les 5 lots sont LIVRÉS (code + tests + parcours réels,
+détail au cahier de tests, passage du 28/07) :
+1. Courses façon To Do (à acheter par magasin / « Achetés — à ranger » en
+   bas, décoche = remonte).
+2. Écran « Ranger les courses » (N13, remplace « À mettre en stock » de
+   l'Inventaire) : saisie/dictée → candidats → quantité + emplacement
+   (défaut = dernier connu), hors liste = NP14, ligne semaine → « je
+   l'ai ».
+3. Liste d'ingrédients unifiée (N14) : toucher un emplacement de
+   l'Inventaire ouvre le Stock filtré ; bouton « Épuisé » en un geste.
+4. Lieux d'achat (N3.4) : table `stores` (physique/Internet, URL,
+   adresse, commentaire), renommage en cascade, achetables par lieu,
+   reprise des lieux existants — sous-écran depuis les Courses.
+5. Écran d'accueil : 5 familles en tuiles + raccourcis, premier onglet.
+État : 162 tests verts, build OK, parcours réels sur 5173.
+**RESTE : (1) MIGRATION `supabase/migration-2026-07-28-lieux-achat.sql`
+à appliquer (main d'Olivier — d'ici là, bandeau « migration en attente »
+normal et lieux d'achat inactifs) ; (2) `npm run check:schema` (17 tables)
+après migration ; (3) republier (`app/mettre-en-ligne.cmd`) ; (4) M63-M67
+sur iPhone (cahier).**
+
+### Chantier commentaires 3 (27/07/2026 au soir) : familles de cas + refonte courses — lot 0 (doc)
 Les commentaires 3 (docs/utilisateur/commentaires 3.md) demandent :
 courses façon « To Do » (à acheter en haut / achetés en bas, décoche),
 écran « Ranger les courses » (saisie/dictée → candidats de la liste →

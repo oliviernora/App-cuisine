@@ -16,7 +16,7 @@ import { resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addEvent, attachRecipe, saveRecipeDetails, weekNeeds,
   formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride,
-  toggleAvailable, setDone, clearDone
+  toggleAvailable, setDone, rangerLigne
 } from '../../src/lib/store.svelte.js'
 import { importPassard } from '../helpers/passard.js'
 
@@ -113,7 +113,7 @@ describe('N10 — quantités mises à l\'échelle par recette et par événement
     expect(ligne.qty).toBe(3000)
   })
 
-  test('« je l\'ai » se mémorise ; « Ranger les achats » couvre le besoin sans le supprimer', async () => {
+  test('« je l\'ai » se mémorise ; ranger une ligne semaine la passe « je l\'ai » (N13)', async () => {
     await setupWeek('500 g asperges vertes\n2 citrons', 4, 4)
     const asperges = store.shop.find(s => s.name === 'asperges vertes')
     const citrons = store.shop.find(s => s.name === 'citrons')
@@ -123,10 +123,11 @@ describe('N10 — quantités mises à l\'échelle par recette et par événement
     expect(weekNeeds().find(n => n.name === 'asperges vertes').entry.available).toBe(true)
 
     await setDone(citrons, true)
-    await clearDone()
+    await rangerLigne(citrons)
     const apres = store.shop.find(s => s.name === 'citrons')
-    expect(apres.available).toBe(true) // acheté = je l'ai, la synchro ne le recrée pas
+    expect(apres.available).toBe(true) // acheté = je l'ai, rien n'entre au stock
     expect(apres.done).toBe(false)
+    expect(store.items.some(i => i.name === 'citrons')).toBe(false)
   })
 
   test('quantité renvoyée en texte par la base (« 1.5 ») : pas de réécriture en boucle', async () => {

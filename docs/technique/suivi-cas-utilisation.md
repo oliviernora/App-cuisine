@@ -11,10 +11,12 @@ familles (décision : en plus des onglets). Numérotation conservée ;
 nouveaux cas : N13 (je range mes courses — remplace le flux Q2 « à mettre
 en stock », décision 27/07), N14 (je gère ma liste d'ingrédients — une
 liste, deux portes d'entrée), NP14 (produit imprévu au rangement).
-Amendés : N1 (étape 4 → N13), N3 (trois provenances), N4 (à acheter en
-haut par magasin / achetés en bas, décoche — façon To Do), N10 (étape 6 :
-marquer les plats faits + photos). **Tous à valider par Olivier avant
-implémentation.**
+Amendés : N1 (étape 4 → N13), N3 (trois provenances + point 4 NOUVEAU :
+lieux d'achat, ajouté par Olivier), N4 (à acheter en haut par magasin /
+achetés en bas, décoche — façon To Do), N10 (étape 6 : marquer les plats
+faits + photos). **GO d'Olivier donné le 28/07 (« ok. j'ai fait une modif
+(NOUVEAU). go pour implémenter ») — implémenté le 28/07** (voir cahier de
+tests, passage du 28/07).
 
 Renumérotation du 06/07/2026 (revue d'Olivier, fusions) : N3 reformulé
 (« je prépare mes courses », quantités incluses) ; ex-N6+N7 → N6
@@ -43,12 +45,13 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | NP4 plusieurs pots d'un coup | décidé le 16/07 (Q2) | **couvert, testé** (lot 3 du 16/07) | la quantité reçue se confirme au rangement (« à mettre en stock », onglet Inventaire) |
 | NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
 | NP6 inventaire interrompu | validé, amendé 27/07 (pause volontaire et reprise — à valider) | couvert, testé (complété 27/07) | pause explicite « Mettre en pause » + bandeau « Reprendre » (commentaires 2 du 27/07) ; démarrer un autre inventaire pendant une pause = confirmation en 2 touches |
-| N13 je range mes courses | **proposition 27/07 — à valider** (remplace le flux Q2 « à mettre en stock ») | non couvert (lot 2 du chantier commentaires 3) | saisie/dictée par produit, candidats de la liste (« huile » → huile d'olive/tournesol), nouvel ingrédient sinon, emplacement par défaut = dernier connu, quantité |
-| N14 je gère ma liste d'ingrédients | **proposition 27/07 — à valider** | partiel (les gestes existent, les deux portes d'entrée unifiées restent à faire — lot 3) | une seule liste : écran stocks (ensemble) et emplacement d'inventaire (filtrée) ; « visualiser et gérer » un emplacement sans comptage |
+| N13 je range mes courses | validé (GO Olivier 28/07, remplace le flux Q2 « à mettre en stock ») | **couvert, testé** (28/07) | écran « Ranger les courses » : saisie/dictée, candidats (« huile » → huile d'olive/tournesol), « Nouveau produit » hors liste, emplacement par défaut = dernier connu, lot daté si congélateur, ligne semaine → « je l'ai » ; vérifié en réel sur 5173 |
+| N14 je gère ma liste d'ingrédients | validé (GO Olivier 28/07) | **couvert, testé** (28/07) | une seule liste, deux portes : onglet Stock, et « Ingrédients — {emplacement} » depuis l'Inventaire (Stock filtré, barre d'ajout préréglée) ; « Épuisé » en un geste (tout à zéro → courses) ; ajouter à zéro = déjà couvert par le rachat auto |
+| N3.4 lieux d'achat | validé (ajout NOUVEAU d'Olivier du 28/07 au cas N3) | couvert, testé (28/07) — **M66 en réel après la migration stores** | table stores + gestion complète (physique/Internet, URL/adresse, commentaire, renommage en cascade, achetables, reprise des lieux existants) |
 | NP8 produit après planning | proposition | non couvert | avec N10 |
 | NP9-NP11 (recettes) | propositions | non couverts | étape 4 |
 | NP12-NP13 (semaine) | propositions | non couverts | étape 5 |
-| NP14 produit imprévu au rangement | proposition 27/07 | non couvert | avec N13 |
+| NP14 produit imprévu au rangement | proposition 27/07 | **couvert, testé** (28/07) | « Nouveau produit » de l'écran de rangement (rangerNouveau, fusion si déjà présent à l'emplacement) |
 
 NP1 à NP13 : non revus par Olivier lors de sa relecture du 06/07/2026 (il
 n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).

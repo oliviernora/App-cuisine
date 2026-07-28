@@ -26,8 +26,10 @@ export const store = $state({
   ingredients: [],
   refs: [],
   categories: [], // genres d'ingrédients (master list des genres + sourcing par défaut)
+  lieux: [], // lieux d'achat gérés (N3 point 4, 27/07/2026) — table stores
   photos: [],
   inv: null,
+  uiAction: null, // raccourci de l'écran d'accueil, consommé par l'écran cible (27/07/2026)
   recipesLoaded: false, // avant le chargement, la synchro des courses de la semaine ne tourne pas
   schemaWarning: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine
@@ -382,6 +384,18 @@ export async function addItem(fields) {
   await syncShop()
 }
 
+/** « C'est épuisé » (N14, décision Olivier 27/07/2026) : toutes les lignes
+ * de l'ingrédient passent à zéro d'un geste — le rachat automatique suit
+ * (somme sous la réserve minimum). Les lots datés sont vidés aussi. */
+export async function markEpuise(name) {
+  for (const item of store.items.filter(i => sameIngredient(i.name, name) && i.qty > 0)) {
+    item.qty = 0
+    await supabase.from('items').update({ qty: 0 }).eq('id', item.id)
+    if (isDatedLoc(item.loc)) await trimLotsTo(item, 0)
+  }
+  await syncShop()
+}
+
 export async function changeQty(item, delta) {
   item.qty = Math.max(0, item.qty + delta)
   await supabase.from('items').update({ qty: item.qty }).eq('id', item.id)
@@ -418,7 +432,10 @@ export async function addShopEntry(name, storeName, qty = null, unit = '') {
 
 export async function setDone(entry, done) {
   entry.done = done
-  await supabase.from('shopping').update({ done }).eq('id', entry.id)
+  const fields = { done }
+  // Décocher une ligne « reçue » d'avant la bascule N13 la remet à acheter.
+  if (!done && entry.received) { entry.received = false; fields.received = false }
+  await supabase.from('shopping').update(fields).eq('id', entry.id)
 }
 
 /** Retirer du panier un produit épuisé le marque « manquant » au lieu de le voir revenir (NP1). */
@@ -431,39 +448,14 @@ export async function removeShopEntry(entry) {
   }
 }
 
-/** Ranger les achats (décision Olivier 16/07/2026, Q2) : chaque ligne cochée
- * devient « reçue, à mettre en stock » — l'intégration au stock (quantité
- * réelle, emplacement) se fait depuis l'onglet Inventaire, ce qui règle
- * aussi NP4 (plusieurs pots d'un coup). Une ligne « semaine » achetée
- * devient « je l'ai » (le besoin est couvert). */
-export async function clearDone() {
-  const done = store.shop.filter(s => s.done && !s.received)
-  const semaine = done.filter(s => s.origin === 'semaine')
-  const autres = done.filter(s => s.origin !== 'semaine')
-  for (const entry of autres) entry.received = true
-  if (autres.length) {
-    const { error } = await supabase.from('shopping').update({ received: true }).in('id', autres.map(d => d.id))
-    if (error) store.schemaWarning = true
-  }
-  for (const entry of semaine) {
-    entry.done = false
-    entry.available = true
-    await supabase.from('shopping').update({ done: false, available: true }).eq('id', entry.id)
-  }
-  await syncShop()
-}
-
-/* ----- Réception des achats (Q2, décision Olivier 16/07/2026) -----
- * Les lignes « reçues » (received) attendent leur rangement dans l'onglet
- * Inventaire : quantité réelle et emplacement se choisissent au moment de
- * ranger. Tant qu'une ligne est reçue, le besoin est couvert : la synchro
- * n'en recrée pas (elle est done, jamais retirée ni doublonnée). */
-
-/** Les achats reçus, à mettre en stock. */
-export function receivedEntries() {
-  return store.shop.filter(s => s.received)
-    .toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
-}
+/* ----- Rangement des courses (N13, décision Olivier 27/07/2026 —
+ * remplace le flux « à mettre en stock » de la décision Q2 du 16/07) -----
+ * Les lignes cochées restent « achetées » en bas de la liste jusqu'à leur
+ * rangement, produit par produit, dans l'écran « Ranger les courses » :
+ * quantité réelle et emplacement se choisissent à ce moment-là (NP4).
+ * Tant qu'une ligne est cochée, le besoin est couvert : la synchro n'en
+ * recrée pas. La colonne shopping.received ne sert plus qu'aux éventuelles
+ * lignes d'avant la bascule (traitées comme achetées). */
 
 /** Emplacement proposé pour ranger un achat : celui du produit lié, sinon
  * celui d'une ligne du même ingrédient. */
@@ -473,22 +465,41 @@ export function receivedLoc(entry) {
   return linked?.loc ?? ''
 }
 
-/** Range un achat reçu : +n au stock à l'emplacement choisi (lot daté si
- * l'emplacement l'est), la ligne quitte « à mettre en stock ». */
-export async function stashReceived(entry, qty, loc) {
+/** Entre un produit au stock à l'emplacement choisi : fusion si
+ * l'ingrédient y existe déjà, lot daté du jour si l'emplacement l'est.
+ * Sert au rangement des courses (N13), y compris pour un produit acheté
+ * hors liste (NP14). */
+export async function rangerNouveau(name, qty, loc, storeName = '') {
   const n = Math.max(1, Math.round(Number(qty) || 1))
   const dest = loc.trim()
-  store.shop = store.shop.filter(s => s.id !== entry.id)
-  await supabase.from('shopping').delete().eq('id', entry.id)
   const today = new Date().toISOString().slice(0, 10)
-  let item = store.items.find(i => i.loc === dest && sameIngredient(i.name, entry.name))
+  let item = store.items.find(i => i.loc === dest && sameIngredient(i.name, name))
   if (!item) {
-    await addItem({ name: entry.name, qty: isDatedLoc(dest) ? 0 : n, loc: dest, store: entry.store || '' })
+    await addItem({ name, qty: isDatedLoc(dest) ? 0 : n, loc: dest, store: storeName })
     if (!isDatedLoc(dest)) return
     item = store.items[store.items.length - 1]
   }
   if (isDatedLoc(dest)) await enterLot(item, n, today)
   else await changeQty(item, n)
+}
+
+/** Range un achat : +n au stock à l'emplacement choisi, la ligne quitte la
+ * liste de courses. */
+export async function stashReceived(entry, qty, loc) {
+  store.shop = store.shop.filter(s => s.id !== entry.id)
+  await supabase.from('shopping').delete().eq('id', entry.id)
+  await rangerNouveau(entry.name, qty, loc, entry.store || '')
+}
+
+/** Range une ligne achetée (N13, décision Olivier 27/07/2026) : une ligne
+ * de recette de la semaine passe « je l'ai » (le besoin est couvert, rien
+ * n'entre au stock) ; toute autre ligne entre au stock et quitte la liste. */
+export async function rangerLigne(entry, qty, loc) {
+  if (entry.origin === 'semaine') {
+    if (!entry.available) await toggleAvailable(entry)
+    return
+  }
+  await stashReceived(entry, qty, loc)
 }
 
 /** Définit ou change le lieu d'achat d'une ligne de courses ; mémorisé sur
@@ -501,6 +512,94 @@ export async function setEntryStore(entry, storeName) {
   const rows = store.items.filter(i => sameIngredient(i.name, entry.name))
   for (const it of rows) it.store = s
   if (rows.length) await supabase.from('items').update({ store: s }).in('id', rows.map(i => i.id))
+}
+
+/* ----- Lieux d'achat (N3 point 4, décision Olivier 27/07/2026) -----
+ * Un lieu est physique (adresse) ou sur Internet (URL), avec un commentaire
+ * libre. Communs au foyer : un site sert à toutes les résidences. Les
+ * lignes de courses et le sourcing portent toujours le nom en texte — le
+ * renommage d'un lieu les suit partout. */
+
+export async function addLieu(name, kind = 'physique') {
+  const n = name.trim()
+  if (!n || store.lieux.some(l => fold(l.name) === fold(n))) return
+  const { data, error } = await supabase.from('stores')
+    .insert({ household_id: store.household.id, name: n, kind }).select().single()
+  if (error || !data) { store.schemaWarning = true; return }
+  store.lieux.push(data)
+}
+
+/** Type, URL, adresse, commentaire d'un lieu. */
+export async function updateLieu(lieu, fields) {
+  Object.assign(lieu, fields)
+  const { error } = await supabase.from('stores').update(fields).eq('id', lieu.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Renomme un lieu partout : lignes de courses, magasin mémorisé des
+ * ingrédients, sourcing des fiches et des genres. */
+export async function renameLieu(lieu, newName) {
+  const n = newName.trim()
+  const old = lieu.name
+  if (!n || n === old) return
+  await updateLieu(lieu, { name: n })
+  const shopRows = store.shop.filter(s => s.store === old)
+  for (const s of shopRows) s.store = n
+  if (shopRows.length) await supabase.from('shopping').update({ store: n }).in('id', shopRows.map(s => s.id))
+  const itemRows = store.items.filter(i => i.store === old)
+  for (const i of itemRows) i.store = n
+  if (itemRows.length) await supabase.from('items').update({ store: n }).in('id', itemRows.map(i => i.id))
+  const refRows = store.refs.filter(r => r.sourcing_note === old)
+  for (const r of refRows) r.sourcing_note = n
+  if (refRows.length) await supabase.from('ingredient_refs').update({ sourcing_note: n }).in('id', refRows.map(r => r.id))
+  const catRows = store.categories.filter(c => c.sourcing_note === old)
+  for (const c of catRows) c.sourcing_note = n
+  if (catRows.length) await supabase.from('ingredient_categories').update({ sourcing_note: n }).in('id', catRows.map(c => c.id))
+}
+
+/** Supprime un lieu ; les lignes qui le portaient repartent sans lieu (« Autre »). */
+export async function removeLieu(lieu) {
+  store.lieux = store.lieux.filter(l => l !== lieu)
+  await supabase.from('stores').delete().eq('id', lieu.id)
+  const shopRows = store.shop.filter(s => s.store === lieu.name)
+  for (const s of shopRows) s.store = ''
+  if (shopRows.length) await supabase.from('shopping').update({ store: '' }).in('id', shopRows.map(s => s.id))
+  const itemRows = store.items.filter(i => i.store === lieu.name)
+  for (const i of itemRows) i.store = ''
+  if (itemRows.length) await supabase.from('items').update({ store: '' }).in('id', itemRows.map(i => i.id))
+}
+
+/** Lieux déjà utilisés en texte libre (magasins mémorisés, sourcing) mais
+ * pas encore gérés — proposés à la reprise en un geste. */
+export function lieuxNonRepris() {
+  const known = new Set(store.lieux.map(l => fold(l.name)))
+  const seen = new Map()
+  for (const s of [...store.items.map(i => i.store), ...store.shop.map(x => x.store),
+    ...store.refs.map(r => r.sourcing_note), ...store.categories.map(c => c.sourcing_note)]) {
+    const t = (s ?? '').trim()
+    if (t && !known.has(fold(t)) && !seen.has(fold(t))) seen.set(fold(t), t)
+  }
+  return [...seen.values()].toSorted((a, b) => a.localeCompare(b, 'fr'))
+}
+
+export async function reprendreLieux() {
+  for (const name of lieuxNonRepris()) {
+    await addLieu(name, fold(name) === 'internet' ? 'internet' : 'physique')
+  }
+}
+
+/** Ingrédients achetables sur un lieu : magasin mémorisé de l'ingrédient,
+ * ou sourcing correspondant (fiche, sinon genre). */
+export function lieuIngredients(name) {
+  const out = new Map()
+  for (const i of store.items) {
+    if (i.store === name) out.set(fold(canonicalName(i.name)), canonicalName(i.name))
+  }
+  for (const ing of masterList()) {
+    const s = sourcingOf(ing.name)
+    if (s.note === name || (!s.note && s.sourcing === name)) out.set(fold(ing.name), ing.name)
+  }
+  return [...out.values()].toSorted((a, b) => a.localeCompare(b, 'fr'))
 }
 
 export async function signOut() {
@@ -528,7 +627,8 @@ export function exportPayload() {
     event_recipes: store.eventRecipes,
     ingredient_refs: store.refs,
     ingredient_categories: store.categories,
-    recipe_photos: store.photos
+    recipe_photos: store.photos,
+    stores: store.lieux
   }
 }
 
@@ -541,7 +641,7 @@ export function exportPayload() {
 // Ordre d'insertion : parents avant enfants (suppression en ordre inverse).
 const RESTORE_TABLES = ['residences', 'locations', 'items', 'shopping', 'item_lots',
   'sources', 'recipes', 'recipe_ingredients', 'realisations', 'events',
-  'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos']
+  'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos', 'stores']
 
 /** Vérifie qu'un fichier est bien une sauvegarde exploitable (sinon lève).
  * Une sauvegarde d'avant les résidences (16/07/2026) reste acceptée : ses
@@ -552,6 +652,7 @@ export function checkBackup(data) {
   }
   for (const table of RESTORE_TABLES) {
     if (table === 'residences') continue // absente des sauvegardes antérieures au 16/07/2026
+    if (table === 'stores') continue // absente des sauvegardes antérieures au 28/07/2026
     if (!Array.isArray(data[table])) throw new Error(`sauvegarde incomplète (« ${table} » absent).`)
   }
 }
@@ -577,7 +678,7 @@ export async function restoreBackup(data) {
       if (error) throw new Error(`restauration interrompue (${table}) : ${error.message}`)
     }
     for (const table of RESTORE_TABLES) {
-      const rows = data[table].map(r => ({ ...r, household_id: hid }))
+      const rows = (data[table] ?? []).map(r => ({ ...r, household_id: hid }))
       for (let i = 0; i < rows.length; i += 500) {
         const { error } = await supabase.from(table).insert(rows.slice(i, i + 500))
         if (error) throw new Error(`restauration interrompue (${table}) : ${error.message}`)
@@ -620,6 +721,11 @@ async function loadRecipes() {
   store.refs = rf.data
   store.categories = ic.data
   store.photos = ph.data
+  // Lieux d'achat (27/07/2026) : requête à part — table absente tant que la
+  // migration n'est pas appliquée, sans bloquer le reste du chargement.
+  const lx = await supabase.from('stores').select().eq('household_id', hid)
+  if (lx.error) store.schemaWarning = true
+  else store.lieux = lx.data
   store.recipesLoaded = true
   await syncWeekShopping()
 }

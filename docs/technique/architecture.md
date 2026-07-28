@@ -29,7 +29,10 @@ iPhone / iPad / PC (navigateur ou icône écran d'accueil)
 | `src/components/Auth.svelte` | connexion / création de compte |
 | `src/components/Onboarding.svelte` | créer ou rejoindre un foyer, import initial |
 | `src/components/Stock.svelte` | stock : recherche, filtres, lignes, voix, ajout |
-| `src/components/Shopping.svelte` | courses par magasin (réappro + semaine), rangement |
+| `src/components/Accueil.svelte` | écran d'accueil : 5 familles en tuiles + raccourcis (28/07/2026) |
+| `src/components/Shopping.svelte` | courses façon To Do (à acheter par magasin / achetés en bas) |
+| `src/components/RangerCourses.svelte` | écran « Ranger les courses » (N13) : saisie/dictée → candidats → stock |
+| `src/components/LieuxAchat.svelte` | gestion des lieux d'achat (N3.4) : physique/Internet, achetables |
 | `src/components/Recettes.svelte` | bibliothèque : recherche multicritère, fiches, sources |
 | `src/components/Semaine.svelte` | événements à venir/passés, recettes, ajustements, courses de la semaine |
 | `src/components/Inventaires.svelte` | emplacements, master list des ingrédients, rapprochements |
@@ -56,7 +59,7 @@ Passard, fiches et amorçage Passard, tests associés) est conservé dans
 | `household_members` | qui appartient à quel foyer | clé (foyer, utilisateur) |
 | `residences` | résidences du foyer (Argenteuil, Montalivet…) | 16/07/2026 ; la résidence courante est un choix PAR APPAREIL (localStorage) |
 | `items` | stock : nom, emplacement, pots (`qty`), magasin, `dismissed` (« manquant » retiré du panier), `residence_id` | un même produit peut exister dans plusieurs emplacements ; le stock se lit par ingrédient (somme des emplacements) |
-| `shopping` | courses : libellé, magasin, `done`, `manual`, `qty`/`unit`, `origin` (`reappro`/`semaine`), `available` (« je l'ai »), `received` (« à mettre en stock »), lien `item_id`, `residence_id` | une seule entrée par ingrédient lié (index unique) |
+| `shopping` | courses : libellé, magasin, `done`, `manual`, `qty`/`unit`, `origin` (`reappro`/`semaine`), `available` (« je l'ai »), `received` (hérité — les lignes cochées attendent leur rangement depuis le 28/07, N13), lien `item_id`, `residence_id` | une seule entrée par ingrédient lié (index unique) |
 | `locations` | emplacements : nom, date du dernier inventaire, `dated` (« à dates »), `stale_months` (seuil « à utiliser »), `residence_id` | unicité du nom PAR résidence |
 | `item_lots` | lots datés d'un produit dans un emplacement « à dates » | sortie du plus ancien proposée ; `residence_id` |
 | `sources` | livres et sites (liste courte, gérée) | |
@@ -68,6 +71,7 @@ Passard, fiches et amorçage Passard, tests associés) est conservé dans
 | `event_recipes` | recettes d'un événement + ajustements : `scale_pct`, `qty_overrides` | clé (événement, recette) |
 | `ingredient_refs` | master list : nom canonique, alias, refus, genre (`category`), sourcing, **réserve minimum** (`min`, défaut 1), `dismissed` | rapprochements confirmés à la main ; le rachat auto compare la SOMME des emplacements à `min` (16/07/2026) |
 | `ingredient_categories` | genres de la master list + sourcing par défaut | |
+| `stores` | lieux d'achat (N3.4, 28/07/2026) : nom, `kind` (physique/internet), `url`, `address`, `comment` | communs au foyer (pas par résidence) ; unicité (foyer, nom) ; migration `supabase/migration-2026-07-28-lieux-achat.sql` |
 
 Schéma complet : `supabase/schema.sql`. ATTENTION : Postgres renvoie les
 colonnes `numeric` en texte — toute comparaison de quantités passe par

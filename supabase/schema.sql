@@ -279,3 +279,21 @@ create policy "photos du foyer — suppression" on storage.objects for delete to
 -- Synchronisation temps réel entre appareils.
 alter publication supabase_realtime add table items;
 alter publication supabase_realtime add table shopping;
+
+-- Lieux d'achat (N3 point 4, décision Olivier 27/07/2026) : entités gérées
+-- (physique ou Internet, URL / adresse, commentaire), communes au foyer.
+-- Les lignes de courses et le sourcing continuent de porter le nom en texte.
+create table stores (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  name text not null,
+  kind text not null default 'physique', -- physique | internet
+  url text not null default '',
+  address text not null default '',
+  comment text not null default '',
+  created_at timestamptz not null default now(),
+  unique (household_id, name)
+);
+alter table stores enable row level security;
+create policy "lieux d'achat du foyer" on stores
+  for all using (is_member(household_id)) with check (is_member(household_id));

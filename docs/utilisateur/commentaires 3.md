@@ -1,3 +1,14 @@
+> STATUT (28/07/2026) : TRAITÉ — cas d'utilisation restructurés en familles
+> (validés avec le NOUVEAU point lieux d'achat), puis les 5 lots livrés :
+> courses façon To Do, écran « Ranger les courses » (remplace « À mettre en
+> stock »), liste d'ingrédients unifiée + « Épuisé », lieux d'achat
+> (physique/Internet, achetables), écran d'accueil en tuiles.
+> 162 tests verts, parcours réels vérifiés sur 5173 (cahier de tests,
+> passage du 28/07). RESTE : appliquer la migration
+> `supabase/migration-2026-07-28-lieux-achat.sql` (main d'Olivier — d'ici
+> là un bandeau « migration en attente » s'affiche et les lieux d'achat
+> sont inactifs), puis republier et dérouler M63-M67 sur iPhone.
+
 Nouveaux commentaires :
 
 Dans les cas d'utilisation, nous allons faire une modification importante liée aux courses :
