@@ -25,11 +25,18 @@ enregistrement groupé.
 - État : 172 tests verts (10 nouveaux), build OK, parcours réel sur 5173
   (fiche pré-remplie par Google Books, refus PROPRE d'écrire sans
   migration — bandeau, rien de perdu).
-**RESTE : (1) MIGRATION `supabase/migration-2026-08-02-sources-livres.sql`
-(publisher, year, cover_path — SQL Editor, main d'Olivier) puis
-`npm run check:schema` → 17/17 ; (2) republier
-(`app/mettre-en-ligne.cmd`) ; (3) M68-M69 sur iPhone (scan caméra réel) ;
-(4) COMMIT (avec les modifications des 27-28/07 toujours non commitées).**
+**MIGRATION APPLIQUÉE le 02/08 en session** (GO d'Olivier, SQL Editor
+piloté par l'API Monaco, « Success », check:schema 17/17) et
+**enregistrement réel vérifié** : un livre de test (Salt Fat Acid Heat,
+ISBN 9781476753836) ajouté sur 5173 — fiche Google Books + couverture
+dans le bucket, vignette affichée dans Gérer les sources.
+**COMMITS faits le 02/08** (1c83351 passation 28/07, 357b723 chantier
+scan, + celui-ci).
+**RESTE : (1) NETTOYER le livre de test** (2 lignes SQL, bloquées en
+session par le garde-fou de permissions — voir message de session du
+02/08) ; **(2) REPUBLIER** (`app/mettre-en-ligne.cmd`, le déploiement
+Vercel a aussi été bloqué par le garde-fou) ; **(3) M68-M69 sur iPhone**
+(scan caméra réel).
 
 ### Chantier commentaires 3 — LIVRÉ, MIGRÉ ET PUBLIÉ le 28/07/2026
 GO d'Olivier le 28/07 (avec un ajout NOUVEAU au cas N3 : gestion des
