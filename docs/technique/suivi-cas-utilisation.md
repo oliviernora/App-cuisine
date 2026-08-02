@@ -48,10 +48,12 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | N13 je range mes courses | validé (GO Olivier 28/07, remplace le flux Q2 « à mettre en stock ») | **couvert, testé** (28/07) | écran « Ranger les courses » : saisie/dictée, candidats (« huile » → huile d'olive/tournesol), « Nouveau produit » hors liste, emplacement par défaut = dernier connu, lot daté si congélateur, ligne semaine → « je l'ai » ; vérifié en réel sur 5173 |
 | N14 je gère ma liste d'ingrédients | validé (GO Olivier 28/07) | **couvert, testé** (28/07) | une seule liste, deux portes : onglet Stock, et « Ingrédients — {emplacement} » depuis l'Inventaire (Stock filtré, barre d'ajout préréglée) ; « Épuisé » en un geste (tout à zéro → courses) ; ajouter à zéro = déjà couvert par le rachat auto |
 | N3.4 lieux d'achat | validé (ajout NOUVEAU d'Olivier du 28/07 au cas N3) | couvert, testé (28/07) — **M66 en réel après la migration stores** | table stores + gestion complète (physique/Internet, URL/adresse, commentaire, renommage en cascade, achetables, reprise des lieux existants) |
+| N15 documenter la bibliothèque par scan ISBN | **GO Olivier 02/08** (décisions : couverture copiée dans le stockage du foyer ; sous-écran Sources + multi-scan avec pile en bas d'écran) | **couvert, testé** (02/08) — **migration `sources` à appliquer**, puis M68-M69 sur iPhone | ScanLivre.svelte (caméra ZXing EAN-13 chargée à la demande, saisie manuelle en secours), livre-isbn.js (Google Books puis Open Library), saveBookSource (complément d'une fiche du même titre — champs vides seulement), couvertures dans Gérer les sources ; N8 amendé (renvoi vers N15) |
 | NP8 produit après planning | proposition | non couvert | avec N10 |
 | NP9-NP11 (recettes) | propositions | non couverts | étape 4 |
 | NP12-NP13 (semaine) | propositions | non couverts | étape 5 |
 | NP14 produit imprévu au rangement | proposition 27/07 | **couvert, testé** (28/07) | « Nouveau produit » de l'écran de rangement (rangerNouveau, fusion si déjà présent à l'emplacement) |
+| NP15 scan de livre sans résultat | GO Olivier 02/08 (avec N15) | **couvert, testé** (02/08) | ISBN à la main (normalizeIsbn 13/10), introuvable → fiche à remplir jamais bloquante, doublon détecté par ISBN et par titre (complément, jamais d'écrasement) |
 
 NP1 à NP13 : non revus par Olivier lors de sa relecture du 06/07/2026 (il
 n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).

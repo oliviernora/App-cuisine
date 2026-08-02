@@ -2,7 +2,36 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
-### Chantier commentaires 3 — LIVRÉ le 28/07/2026, MIGRATION « stores » EN ATTENTE puis REPUBLIER
+### Chantier bibliothèque par scan ISBN — LIVRÉ le 02/08/2026, MIGRATION EN ATTENTE
+Demande d'Olivier du 02/08 : scanner le code-barres (ISBN) d'un livre et
+retrouver sa référence sur le web, photo de couverture comprise, pour
+documenter vite la base des 240 livres. **Décisions d'Olivier (02/08)** :
+(a) couverture COPIÉE dans le stockage privé du foyer ; (b) bouton dans le
+sous-écran Sources, PLUS une option « multi-scan » : scan à la chaîne, les
+livres en cours s'affichent en bas de l'écran, relecture puis
+enregistrement groupé.
+**LIVRÉ le 02/08** (détail au cahier de tests, passage du 02/08) :
+- Cas N15 (amendé multi-scan) + NP15 rédigés, N8 amendé, docs à jour
+  (fonctionnalités, design guide, suivi, cahier).
+- `livre-isbn.js` : validation ISBN 13/10 (clé vérifiée), recherche
+  Google Books puis Open Library (sans clé). `ScanLivre.svelte` : caméra
+  ZXing EAN-13 chargée À LA DEMANDE (bundle démarrage inchangé ~430 Ko),
+  saisie manuelle en secours, fiche à relire avant enregistrement,
+  multi-scan (pile en bas, ✎/×, enregistrement groupé). Store :
+  saveBookSource (même titre déjà là = fiche complétée, champs vides
+  seulement — à confirmer par Olivier), couverture compressée dans le
+  bucket `photos` (`<foyer>/couvertures/`), vignettes + auteur + année
+  dans Gérer les sources.
+- État : 172 tests verts (10 nouveaux), build OK, parcours réel sur 5173
+  (fiche pré-remplie par Google Books, refus PROPRE d'écrire sans
+  migration — bandeau, rien de perdu).
+**RESTE : (1) MIGRATION `supabase/migration-2026-08-02-sources-livres.sql`
+(publisher, year, cover_path — SQL Editor, main d'Olivier) puis
+`npm run check:schema` → 17/17 ; (2) republier
+(`app/mettre-en-ligne.cmd`) ; (3) M68-M69 sur iPhone (scan caméra réel) ;
+(4) COMMIT (avec les modifications des 27-28/07 toujours non commitées).**
+
+### Chantier commentaires 3 — LIVRÉ, MIGRÉ ET PUBLIÉ le 28/07/2026
 GO d'Olivier le 28/07 (avec un ajout NOUVEAU au cas N3 : gestion des
 lieux d'achat). Les 5 lots sont LIVRÉS (code + tests + parcours réels,
 détail au cahier de tests, passage du 28/07) :
@@ -19,11 +48,18 @@ détail au cahier de tests, passage du 28/07) :
    reprise des lieux existants — sous-écran depuis les Courses.
 5. Écran d'accueil : 5 familles en tuiles + raccourcis, premier onglet.
 État : 162 tests verts, build OK, parcours réels sur 5173.
-**RESTE : (1) MIGRATION `supabase/migration-2026-07-28-lieux-achat.sql`
-à appliquer (main d'Olivier — d'ici là, bandeau « migration en attente »
-normal et lieux d'achat inactifs) ; (2) `npm run check:schema` (17 tables)
-après migration ; (3) republier (`app/mettre-en-ligne.cmd`) ; (4) M63-M67
-sur iPhone (cahier).**
+**MIGRATION `stores` APPLIQUÉE le 28/07 en session** (GO explicite
+d'Olivier, SQL Editor piloté — injection par l'API Monaco, le Ctrl+V
+simulé ne prend pas —, « Success », check:schema 17/17) et **PROD
+PUBLIÉE le 28/07** (bundle `index-DKdorupe.js` vérifié en ligne, accueil
+affiché SANS bandeau). Au passage : la 1re ligne de
+`app/mettre-en-ligne.cmd` était corrompue par une vieille saisie « ! »
+(réparée, `@echo off` restauré).
+**RESTE : (1) recharger l'app une fois sur chaque appareil (service
+worker) ; (2) M63-M67 sur iPhone (cahier) — M66 = lieux d'achat en réel,
+avec « Reprendre ces lieux » au premier passage ; (3) COMMIT à faire :
+les modifications des sessions des 27-28/07 (chantiers commentaires 2 et
+3, ménage Passard, archive/) ne sont pas commitées.**
 
 ### Chantier commentaires 3 (27/07/2026 au soir) : familles de cas + refonte courses — lot 0 (doc)
 Les commentaires 3 (docs/utilisateur/commentaires 3.md) demandent :

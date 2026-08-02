@@ -827,6 +827,68 @@ export async function setRecipeSource(recipe, sourceId) {
   await supabase.from('recipes').update({ source_id: sourceId }).eq('id', recipe.id)
 }
 
+/* ----- Bibliothèque : livres documentés par ISBN (N15) ----- */
+
+export function findSourceByIsbn(isbn) {
+  return isbn ? store.sources.find(s => s.isbn === isbn) : null
+}
+
+/** Enregistre un livre documenté (scan ISBN, N15), couverture comprise.
+ * Si un livre du même titre existe déjà (ajouté à la main sans ISBN),
+ * sa fiche est complétée au lieu de créer un doublon — seuls ses champs
+ * vides sont remplis. Renvoie { source, completed } ou null (écriture
+ * refusée : migration absente, signalée par le bandeau). */
+export async function saveBookSource({ title, author = '', isbn = '', publisher = '', year = '', country = '', categories = '' }, coverBlob = null) {
+  const t = title.trim()
+  if (!t) return null
+  const existing = store.sources.find(s => s.title.localeCompare(t, 'fr', { sensitivity: 'base' }) === 0)
+  if (existing) {
+    const patch = {}
+    for (const [col, val] of Object.entries({ author, isbn, publisher, year, country, categories })) {
+      if (val && !existing[col]) patch[col] = val
+    }
+    if (Object.keys(patch).length) {
+      const { error } = await supabase.from('sources').update(patch).eq('id', existing.id)
+      if (error) { store.schemaWarning = true; return null }
+      Object.assign(existing, patch)
+    }
+    if (coverBlob && !existing.cover_path) await attachCover(existing, coverBlob)
+    return { source: existing, completed: true }
+  }
+  const { data, error } = await supabase.from('sources')
+    .insert({ household_id: store.household.id, kind: 'livre', title: t, author, isbn, publisher, year, country, categories })
+    .select().single()
+  if (error) { store.schemaWarning = true; return null }
+  store.sources.push(data)
+  if (coverBlob) await attachCover(data, coverBlob)
+  return { source: data, completed: false }
+}
+
+/** Couverture dans le bucket privé du foyer (décision Olivier 02/08/2026 :
+ * copiée chez nous, pas un lien web — hors ligne et pérenne). */
+async function attachCover(source, blob) {
+  const path = `${store.household.id}/couvertures/${source.id}.jpg`
+  const up = await supabase.storage.from('photos').upload(path, await compressImage(blob), { contentType: 'image/jpeg' })
+  if (up.error) return
+  const { error } = await supabase.from('sources').update({ cover_path: path }).eq('id', source.id)
+  if (error) { store.schemaWarning = true; return }
+  source.cover_path = path
+}
+
+/** Rapatrie l'image de couverture trouvée sur le web (même Edge Function
+ * que les photos de plats — contournement CORS). Renvoie un Blob ou null. */
+export async function fetchCoverBlob(coverUrl) {
+  const { data, error } = await supabase.functions.invoke('rapatrier-page', { body: { url: coverUrl, image: true } })
+  if (error || !data?.image) return null
+  const bytes = Uint8Array.from(atob(data.image), c => c.charCodeAt(0))
+  return new Blob([bytes], { type: data.contentType || 'image/jpeg' })
+}
+
+/** URL signée de la couverture d'un livre (bucket privé). */
+export function coverUrl(source) {
+  return photoUrl({ path: source.cover_path })
+}
+
 /* ----- Import d'une recette depuis une URL (A1, décision Olivier 10/07/2026) ----- */
 
 /** Recette déjà importée : même URL, sinon même titre + même source (clé de l'import Evernote). */

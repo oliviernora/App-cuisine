@@ -15,7 +15,7 @@ const CHECKS = {
   shopping: 'id,done,manual,item_id,qty,unit,origin,available,received,residence_id',
   locations: 'id,name,last_inventory_at,dated,stale_months,residence_id',
   item_lots: 'id,item_id,qty,entered_on,residence_id',
-  sources: 'id,kind,title,isbn',
+  sources: 'id,kind,title,isbn,publisher,year,cover_path',
   recipes: 'id,source_id,title,url,video,notes,steps,servings,country,category,wishlist',
   recipe_ingredients: 'id,recipe_id,position,qty,unit,name,hard,note,optional,qty_raw',
   realisations: 'id,recipe_id,made_on,comment',

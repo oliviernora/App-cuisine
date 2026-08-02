@@ -134,6 +134,9 @@ create table sources (
   title text not null,
   author text not null default '',
   isbn text not null default '',
+  publisher text not null default '',
+  year text not null default '',
+  cover_path text not null default '', -- couverture dans le bucket privé « photos » (N15)
   country text not null default '',
   categories text not null default '',
   created_at timestamptz not null default now()

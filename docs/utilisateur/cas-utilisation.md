@@ -168,7 +168,8 @@ tournée oubliée, les commandes Internet passées assez tôt.
 
 1. Lorsque je fais une recette, je peux **ajouter son livre ou son site**
    s'il n'existe pas déjà dans ma bibliothèque (un livre : titre, auteur,
-   ISBN si disponible, pays, quelques catégories — le titre seul suffit).
+   ISBN si disponible, pays, quelques catégories — le titre seul suffit ;
+   le plus rapide est de scanner son code-barres, voir N15).
 2. Je **photographie la recette** (ou PDF, ou URL, ou saisie du texte) :
    l'application en extrait titre, ingrédients et étapes ; je relis, je
    corrige, j'enregistre. C'est ma copie privée — consultable hors ligne,
@@ -204,6 +205,30 @@ naturel ; la bibliothèque se construit au fil de l'eau ou par imports.
 
 **Résultat attendu** : le beau produit imprévu trouve sa recette, et les
 ingrédients rares sont commandés à temps.
+
+### N15 — Je documente ma bibliothèque en scannant mes livres *(proposition 02/08/2026)*
+
+1. J'ai plus de 240 livres de cuisine à référencer ; les saisir un à un à
+   la main serait interminable.
+2. Je prends un livre et j'ouvre « Scanner un livre » : la caméra du
+   téléphone lit le **code-barres (ISBN)** au dos du livre, en une seconde.
+3. L'application **retrouve la fiche du livre sur le web** : titre, auteur,
+   éditeur, année — et la **photo de couverture**.
+4. Elle me présente la fiche pré-remplie ; je complète si je veux (pays,
+   catégories), je valide : le livre rejoint ma bibliothèque, couverture
+   comprise.
+5. Si j'ai une pile de livres, j'active l'option **multi-scan** sur l'écran
+   de scan : je scanne les livres **à la chaîne** ; chaque livre reconnu
+   rejoint la liste des **livres en cours de scan, affichée en bas de
+   l'écran** (couverture et titre), pendant que je passe au suivant. À la
+   fin, je relis cette liste — je peux corriger une fiche ou en retirer
+   une — et j'enregistre tout d'un geste. *(Décision Olivier 02/08/2026.)*
+6. Dans ma bibliothèque, les livres s'affichent **avec leur couverture** :
+   retrouver un livre devient visuel.
+
+**Résultat attendu** : documenter un livre prend quelques secondes ; la
+bibliothèque des 240 livres se construit pile par pile, couvertures
+comprises.
 
 ## Famille 5 — Gérer les inventaires
 
@@ -397,6 +422,16 @@ un remplacement dans la wish list filtrée par contrainte.
 Au rangement des courses (N13), un produit acheté sur un coup de tête n'est
 pas dans la liste : il est créé comme nouvel ingrédient, avec son
 emplacement et sa quantité — jamais perdu, jamais bloquant.
+
+### NP15 — Le scan d'un livre ne donne rien *(proposition 02/08/2026)*
+
+1. **Code-barres absent ou illisible** (livre ancien, jaquette abîmée) : je
+   saisis l'ISBN à la main — la recherche web fonctionne pareil.
+2. **Livre introuvable sur le web** : la fiche s'ouvre vide et je la
+   remplis à la main, comme aujourd'hui — jamais bloquant ; je peux
+   photographier la couverture moi-même.
+3. **Livre déjà dans ma bibliothèque** (même ISBN) : l'application me
+   montre la fiche existante au lieu de créer un doublon.
 
 *(NP7 : numéro retiré — signalement croisé pendant l'inventaire, refusé par
 Olivier.)*

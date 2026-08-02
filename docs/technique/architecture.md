@@ -34,6 +34,8 @@ iPhone / iPad / PC (navigateur ou icône écran d'accueil)
 | `src/components/RangerCourses.svelte` | écran « Ranger les courses » (N13) : saisie/dictée → candidats → stock |
 | `src/components/LieuxAchat.svelte` | gestion des lieux d'achat (N3.4) : physique/Internet, achetables |
 | `src/components/Recettes.svelte` | bibliothèque : recherche multicritère, fiches, sources |
+| `src/components/ScanLivre.svelte` | scanner un livre par ISBN (N15) : caméra ZXing (EAN-13, import dynamique — le chunk ne pèse qu'à l'ouverture), fiche à relire, multi-scan |
+| `src/lib/livre-isbn.js` | validation ISBN 13/10 et recherche web du livre (Google Books puis Open Library, sans clé) |
 | `src/components/Semaine.svelte` | événements à venir/passés, recettes, ajustements, courses de la semaine |
 | `src/components/Inventaires.svelte` | emplacements, master list des ingrédients, rapprochements |
 | `src/components/Inventory.svelte` | mode inventaire (pausable, choix en cas d'ambiguïté) |
@@ -62,7 +64,7 @@ Passard, fiches et amorçage Passard, tests associés) est conservé dans
 | `shopping` | courses : libellé, magasin, `done`, `manual`, `qty`/`unit`, `origin` (`reappro`/`semaine`), `available` (« je l'ai »), `received` (hérité — les lignes cochées attendent leur rangement depuis le 28/07, N13), lien `item_id`, `residence_id` | une seule entrée par ingrédient lié (index unique) |
 | `locations` | emplacements : nom, date du dernier inventaire, `dated` (« à dates »), `stale_months` (seuil « à utiliser »), `residence_id` | unicité du nom PAR résidence |
 | `item_lots` | lots datés d'un produit dans un emplacement « à dates » | sortie du plus ancien proposée ; `residence_id` |
-| `sources` | livres et sites (liste courte, gérée) | |
+| `sources` | livres et sites (liste courte, gérée) ; livres documentés par ISBN (N15, 02/08/2026) : `author`, `isbn`, `publisher`, `year`, `cover_path` (couverture copiée dans le bucket privé « photos », `<foyer>/couvertures/`) | migration `supabase/migration-2026-08-02-sources-livres.sql` |
 | `recipes` | recettes : titre, url, vidéo, texte (`steps`), « pour N » (`servings`), pays (`country`), catégorie, `wishlist`, `notes` (commentaires communs, Q3 16/07) | communes au foyer, PAS par résidence |
 | `recipe_ingredients` | ingrédients structurés : position, `qty`, `unit`, `name`, `qty_raw` (fractions), `hard` (« ! » difficile à sourcer), `note`, `optional` | |
 | `recipe_photos` | photos plat/page (bucket privé « photos ») | rattachables à une réalisation |

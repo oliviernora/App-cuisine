@@ -3,10 +3,11 @@
     searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
-    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor } from '../lib/store.svelte.js'
+    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor, coverUrl } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import SousEcran from './SousEcran.svelte'
+  import ScanLivre from './ScanLivre.svelte'
 
   let search = $state('')
   let open = $state(null)
@@ -57,6 +58,7 @@
   let srcEdit = $state(null)
   let srcEditName = $state('')
   let newSource = $state('')
+  let scanLivre = $state(false) // sous-écran « Scanner un livre » (N15)
 
   /* Les filtres particuliers vivent dans un dépliant refermable (décision
    * Olivier 07/07/2026) ; seule la recherche plein texte reste toujours visible. */
@@ -435,9 +437,16 @@
         {/if}
       </div>
     </SousEcran>
+  {:else if scanLivre}
+    <ScanLivre fermer={() => scanLivre = false} />
   {:else if manageSources}
     <SousEcran titre="Gérer les sources" fermer={() => { manageSources = false; srcEdit = null }}>
       <div class="manage-panel">
+        <div class="manage-row">
+          <button type="button" class="inv-start" onclick={() => scanLivre = true}>
+            Scanner un livre (code-barres)
+          </button>
+        </div>
         <p>Renommer une source (crayon) — un nom déjà existant <strong>fusionne</strong> les deux :</p>
         <ul class="manage-items">
           {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as source (source.id)}
@@ -448,9 +457,17 @@
                   onclick={() => renameOne(source)}>OK</button>
                 <button type="button" class="inv-manage" onclick={() => srcEdit = null}>Annuler</button>
               {:else}
+                {#if source.cover_path}
+                  {#await coverUrl(source) then url}
+                    <img class="cover-thumb" src={url} alt="" loading="lazy">
+                  {/await}
+                {/if}
                 <div class="info">
                   <span class="name" title={source.title}>{source.title}</span>
-                  <span class="note">{store.recipes.filter(r => r.source_id === source.id).length} recette(s)</span>
+                  <span class="note">{[
+                    store.recipes.filter(r => r.source_id === source.id).length + ' recette(s)',
+                    source.author, source.year
+                  ].filter(Boolean).join(' · ')}</span>
                 </div>
                 <button type="button" class="icon-btn" aria-label={'Renommer ' + source.title} title="Renommer"
                   onclick={() => { srcEdit = source.id; srcEditName = source.title }}>✎</button>

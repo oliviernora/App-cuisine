@@ -320,6 +320,24 @@ Règles :
   connues, consultation seule. » Pendant ce temps, les commandes de
   modification sont estompées (opacité 0.45) et inertes ; la consultation
   (recherche, filtres, onglets) reste active.
+- **Écran de scan** (02/08/2026, N15) : la zone caméra est un bloc vidéo
+  pleine largeur (`scan-video`, coins arrondis, fond noir, max 40 % de la
+  hauteur), une consigne courte dessous (« Viser le code-barres au dos du
+  livre »). La saisie manuelle reste toujours offerte sous la caméra — le
+  scan est une accélération, jamais une obligation. Ce qui est reconnu
+  passe TOUJOURS par une **fiche à relire** avant enregistrement (même
+  règle que l'import de recettes).
+- **Vignette de couverture** (`cover-thumb`, 02/08/2026) : petit portrait
+  40 × 56 px, coins arrondis 4 px, à gauche du nom dans les listes de
+  livres (Gérer les sources, pile de scan). Jamais d'image pleine largeur
+  dans une liste.
+- **Pile de travail en bas d'écran** (02/08/2026, multi-scan) : quand une
+  action en chaîne accumule des éléments (livres scannés), ils s'empilent
+  sous la zone d'action en lignes standard (vignette + nom + note), chacune
+  avec ✎ (corriger) et × (retirer), et un bouton unique « Enregistrer
+  N élément(s) » clôt la série. Les éléments incomplets restent dans la
+  pile avec la mention « à compléter (✎) » — rien ne s'enregistre
+  incomplet, rien ne se perd.
 
 ## Comportements
 

@@ -399,6 +399,17 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
   height: 110px; max-width: 160px; object-fit: cover;
   border-radius: var(--radius); display: block;
 }
+/* scan de livres par ISBN (N15) : caméra + vignettes de couverture */
+.scan-video {
+  width: 100%; max-height: 40vh; object-fit: cover;
+  border-radius: var(--radius); background: #000; display: block;
+}
+.scan-multi { align-items: center; gap: 8px; margin: 8px 0; color: var(--ink); }
+.scan-multi input[type="checkbox"] { flex: none; width: auto; }
+.cover-thumb {
+  height: 56px; width: 40px; object-fit: cover; flex: none;
+  border-radius: 4px; display: block;
+}
 /* emplacements datés (N7) : détail des lots sous la ligne du produit */
 .lot-panel {
   padding: 8px 12px; margin: 0 0 6px;

@@ -397,8 +397,19 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   - **Gérer les sources** (voir plus bas).
 - **Gérer les sources** : un **sous-écran** (25/07/2026) — renommer au
   crayon ✎ (un nom existant **fusionne** les deux), créer une source
-  (livre, site) — la liste reste courte et maîtrisée. Le choix de la source
-  et le pays d'origine se règlent dans l'éditeur de la fiche.
+  (livre, site) — la liste reste courte et maîtrisée. Les livres documentés
+  y montrent leur **couverture**, l'auteur et l'année (02/08/2026). Le choix
+  de la source et le pays d'origine se règlent dans l'éditeur de la fiche.
+- **« Scanner un livre (code-barres) »** (dans Gérer les sources,
+  02/08/2026 — cas N15) : la caméra lit l'**ISBN** au dos du livre (saisie
+  manuelle en secours), le web fournit la fiche — titre, auteur, éditeur,
+  année et **couverture**, copiée dans le stockage privé du foyer — à
+  **relire avant d'enregistrer**. Un livre introuvable sur le web se
+  complète à la main (jamais bloquant) ; un titre déjà présent est
+  **complété** au lieu d'être dupliqué ; un ISBN déjà connu est signalé.
+  **Multi-scan** pour une pile de livres : chaque livre reconnu rejoint la
+  liste en bas de l'écran pendant qu'on scanne le suivant (✎ corrige,
+  × retire), un bouton enregistre tout d'un coup.
 - **« Importer une recette (URL, photos, texte) »** (sous la recherche)
   ouvre un **sous-écran** (25/07/2026), trois chemins vers la même **fiche
   pré-remplie à relire** — rien n'est enregistré avant « **Enregistrer la
