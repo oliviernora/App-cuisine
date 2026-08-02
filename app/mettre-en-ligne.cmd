@@ -1,4 +1,4 @@
- ! cd "D:\OneDrive\Claude\Projects\App cuisine\app" && mettre-en-ligne.cmd@echo off
+@echo off
 rem Publie le Garde-manger sur Internet : https://garde-manger-chi.vercel.app
 rem Prerequis (une seule fois par PC) : npx vercel login
 cd /d "%~dp0"
