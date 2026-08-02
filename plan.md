@@ -34,10 +34,11 @@ dans le bucket, vignette affichée dans Gérer les sources.
 scan, + celui-ci).
 **PROD PUBLIÉE le 02/08 en session** (Olivier présent — `vercel deploy
 --prod`, bundle `index-C-psI-Sd.js` vérifié sur l'alias).
-**RESTE : (1) NETTOYER le livre de test** Salt Fat Acid Heat (ISBN
-9781476753836 — 2 lignes SQL données en session, ou le garder s'il est
-dans la bibliothèque réelle) ; **(2) recharger l'app sur chaque appareil**
-(service worker) ; **(3) M68-M69 sur iPhone** (scan caméra réel).
+**LIVRE DE TEST NETTOYÉ le 02/08** (ligne `sources` par SQL ; le fichier
+de couverture par l'interface Storage — depuis 2026, Supabase INTERDIT le
+`delete from storage.objects` en SQL : « Use the Storage API instead »).
+**RESTE : (1) recharger l'app sur chaque appareil** (service worker) ;
+**(2) M68-M69 sur iPhone** (scan caméra réel).
 
 ### Chantier commentaires 3 — LIVRÉ, MIGRÉ ET PUBLIÉ le 28/07/2026
 GO d'Olivier le 28/07 (avec un ajout NOUVEAU au cas N3 : gestion des
