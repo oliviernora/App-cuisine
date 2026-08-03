@@ -18,7 +18,7 @@ de gestion DÉDIÉ pour livres et URL (l'approche filtres ne tiendra pas
 une recette, coller une URL au retour. Méthode : lot 0 (cas
 d'utilisation + questions) puis GO.
 
-### Chantier livres non trouvés (03/08/2026) — LIVRÉ le 03/08 au soir, MIGRATION EN ATTENTE
+### Chantier livres non trouvés (03/08/2026) — LIVRÉ ET MIGRÉ le 03/08 au soir, PUBLICATION EN ATTENTE
 Retour terrain d'Olivier (03/08, tests M68-M69 iPhone) : le scan caméra
 marche (« plus compliqué que d'habitude » — à surveiller), mais **2 livres
 sur 3 non trouvés en ligne** (BookBuddy trouvait les trois). Idée
@@ -54,9 +54,21 @@ les libraires). Photos → simple secours pour les livres absents du web.
 - **Lot 3 FAIT (03/08 soir, MCP)** : outils `livres_a_completer` et
   `completer_source` (complément sans écrasement, couverture rapatriée,
   journal). Procédure : Olivier demande « complète ma bibliothèque ».
-- **RESTE : (1) migration `pending_books` (SQL Editor, main d'Olivier)
-  puis check:schema 18/18 ; (2) redémarrer le serveur MCP ; (3)
-  republier ; (4) M70-M72 (iPhone + première vraie complétion).**
+**MIGRATION APPLIQUÉE le 03/08 au soir en session** (demande d'Olivier,
+SQL Editor piloté par l'API Monaco, avertissement « destructive » = le
+drop policy, confirmé, « Success », check:schema **18/18**) et
+**parcours réel vérifié sur 5173** : ISBN 9782317013522 (Pâtisseries
+marocaines, le Mango d'Olivier) mis de côté pour de vrai — « Livres à
+compléter · 1 » dans Gérer les sources. **Il est resté dans la file
+EXPRÈS : c'est le cas de test de la première vraie complétion.**
+**RESTE, à la reprise (Olivier redémarre Claude Code → le serveur MCP
+charge les nouveaux outils) :
+(1) première complétion réelle : Olivier demande « complète ma
+bibliothèque » → `livres_a_completer` → recherche web →
+`completer_source` (le Mango attend dans la file) ;
+(2) republier la prod (`vercel deploy --prod`, lots BnF + mise de côté
+ensemble) puis recharger l'app sur les appareils ;
+(3) M70-M72 sur iPhone (cahier).**
 
 ### Chantier bibliothèque par scan ISBN — LIVRÉ le 02/08/2026, MIGRATION EN ATTENTE
 Demande d'Olivier du 02/08 : scanner le code-barres (ISBN) d'un livre et
