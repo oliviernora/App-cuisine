@@ -22,8 +22,9 @@ const DIR = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(DIR, '..')
 
 const TABLES = ['items', 'shopping', 'households', 'household_members', 'locations',
-  'item_lots', 'sources', 'recipes', 'realisations', 'events', 'event_recipes',
-  'recipe_ingredients', 'ingredient_refs', 'ingredient_categories', 'recipe_photos']
+  'item_lots', 'sources', 'pending_books', 'recipes', 'realisations', 'events',
+  'event_recipes', 'recipe_ingredients', 'ingredient_refs', 'ingredient_categories',
+  'recipe_photos']
 
 let supabase = null
 let householdId = null
@@ -293,7 +294,7 @@ server.tool(
 
 server.tool(
   'controle_schema',
-  'Vérifie que les 15 tables attendues répondent (équivalent du check:schema) et compte les lignes visibles du foyer.',
+  'Vérifie que les tables attendues répondent (équivalent du check:schema) et compte les lignes visibles du foyer.',
   {},
   outil(async () => {
     const out = []
@@ -403,6 +404,90 @@ server.tool(
     return `FAIT : réalisation consignée pour « ${recipe.title} » (${date ?? 'date non notée'}).`
   })
 )
+
+/* ----- Bibliothèque : livres mis de côté au scan (NP15 révisé, 03/08/2026) -----
+ * Un ISBN introuvable par l'application (Google Books, Open Library, BnF)
+ * est mis de côté ; Claude le retrouve par recherche web (libraires,
+ * éditeurs) et complète la fiche ici, couverture comprise. */
+
+server.tool(
+  'livres_a_completer',
+  'Les livres mis de côté au scan (ISBN introuvable sur le web par l\'application). Pour chacun, chercher l\'ISBN sur le web (libraires, éditeurs), puis appeler completer_source.',
+  {},
+  outil(async () => {
+    const books = await rows('pending_books')
+    if (!books.length) return 'Aucun livre à compléter — la file est vide.'
+    return books.map(b => `- ISBN ${b.isbn} (mis de côté le ${b.created_at.slice(0, 10)}${b.photo_path ? ', photo de couverture jointe : ' + b.photo_path : ''})`).join('\n')
+  })
+)
+
+server.tool(
+  'completer_source',
+  'Documente un livre de la bibliothèque à partir de sa fiche trouvée sur le web : crée la source (ou complète les champs vides d\'un livre du même titre, jamais d\'écrasement), rapatrie la couverture depuis son URL dans le stockage privé du foyer, et retire l\'ISBN de la file « livres à compléter ».',
+  {
+    isbn: z.string().regex(/^97[89]\d{10}$/),
+    titre: z.string(),
+    auteur: z.string().optional(),
+    editeur: z.string().optional(),
+    annee: z.string().regex(/^\d{4}$/).optional(),
+    pays: z.string().optional(),
+    categories: z.string().optional(),
+    couverture_url: z.string().url().optional().describe('URL directe de l\'image de couverture (page libraire ou éditeur)')
+  },
+  outil(async ({ isbn, titre, auteur, editeur, annee, pays, categories, couverture_url }) => {
+    const sources = await rows('sources')
+    if (sources.some(s => s.isbn === isbn)) {
+      journal('completer_source REFUSÉ (doublon)', isbn)
+      return `REFUSÉ : l'ISBN ${isbn} est déjà dans la bibliothèque.`
+    }
+    const t = titre.trim()
+    const champs = { author: auteur ?? '', isbn, publisher: editeur ?? '', year: annee ?? '', country: pays ?? '', categories: categories ?? '' }
+    let source = sources.find(s => s.title.localeCompare(t, 'fr', { sensitivity: 'base' }) === 0)
+    let completed = false
+    if (source) {
+      // Même règle que l'application : seuls les champs vides sont remplis.
+      const patch = Object.fromEntries(Object.entries(champs).filter(([col, val]) => val && !source[col]))
+      const { error } = await supabase.from('sources').update(patch).eq('id', source.id)
+      if (error) throw new Error(error.message)
+      Object.assign(source, patch)
+      completed = true
+    } else {
+      const { data, error } = await supabase.from('sources')
+        .insert({ household_id: householdId, kind: 'livre', title: t, ...champs }).select().single()
+      if (error) throw new Error(error.message)
+      source = data
+    }
+    let couverture = 'sans couverture'
+    if (couverture_url && !source.cover_path) {
+      couverture = await rapatrieCouverture(source, couverture_url)
+    }
+    const pending = (await rows('pending_books')).find(b => b.isbn === isbn)
+    if (pending) {
+      if (pending.photo_path) await supabase.storage.from('photos').remove([pending.photo_path])
+      await supabase.from('pending_books').delete().eq('id', pending.id)
+    }
+    journal('completer_source', `${t} (ISBN ${isbn}) — ${completed ? 'fiche complétée' : 'créé'}, ${couverture}`)
+    return `FAIT : « ${t} » ${completed ? 'complété' : 'ajouté à la bibliothèque'} (${couverture})`
+      + (pending ? ', retiré de la file « livres à compléter ».' : '.')
+  })
+)
+
+/** Télécharge la couverture et la range dans le bucket privé du foyer
+ * (même chemin que l'application : <foyer>/couvertures/<source>.jpg). */
+async function rapatrieCouverture(source, url) {
+  const res = await fetch(url)
+  const type = res.headers.get('content-type') ?? ''
+  if (!res.ok || !type.startsWith('image/')) return `couverture NON rapatriée (${res.status}, ${type || 'type inconnu'})`
+  const bytes = new Uint8Array(await res.arrayBuffer())
+  if (bytes.length > 8 * 1024 * 1024) return 'couverture NON rapatriée (image de plus de 8 Mo)'
+  const path = `${householdId}/couvertures/${source.id}.jpg`
+  const up = await supabase.storage.from('photos').upload(path, bytes, { contentType: type, upsert: true })
+  if (up.error) return 'couverture NON rapatriée (' + up.error.message + ')'
+  const { error } = await supabase.from('sources').update({ cover_path: path }).eq('id', source.id)
+  if (error) return 'couverture NON rapatriée (' + error.message + ')'
+  source.cover_path = path
+  return 'couverture rapatriée'
+}
 
 server.tool(
   'journal_actions',

@@ -27,7 +27,21 @@ racine (Claude Code le charge automatiquement dans ce projet).
   - `journal_actions` : toutes les écritures (et refus) sont consignées
     dans `mcp/journal.jsonl` (hors git), les plus récentes en premier.
   - Pas d'outil de suppression (décision : rien de destructif via le MCP
-    pour l'instant).
+    pour l'instant — le retrait d'un `pending_books` complété est la
+    seule exception, c'est la fin de vie normale de la ligne).
+- B4 (livré le 03/08/2026, NP15 révisé) : **bibliothèque** —
+  - `livres_a_completer` : la file des ISBN mis de côté au scan
+    (introuvables par l'app : Google Books, Open Library, BnF).
+  - `completer_source` : documente un livre trouvé par la recherche web
+    de Claude — création (ou complément des champs vides d'un titre déjà
+    présent, jamais d'écrasement, doublon d'ISBN refusé), couverture
+    rapatriée depuis son URL dans le bucket privé
+    (`<foyer>/couvertures/<source>.jpg`, image ≤ 8 Mo), ligne retirée de
+    la file. Journalisé, comme toute écriture.
+  - Procédure « compléter la bibliothèque » : `livres_a_completer` →
+    recherche web de chaque ISBN (libraires, éditeurs) →
+    `completer_source` un par un → compte rendu à Olivier, qui relit
+    dans l'app (Gérer les sources).
 - B3 (démarré le 10/07/2026) : les lots Evernote importés via le MCP —
   lot 2 (10 recettes) importé le jour même avec GO d'Olivier ; les lots
   suivants suivent le même cycle extraction (agents) → enex-merge →

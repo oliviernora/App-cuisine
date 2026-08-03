@@ -2,7 +2,23 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
-### Chantier livres non trouvés (03/08/2026) — lot 0 (doc) FAIT, GO ATTENDU
+### Prochain chantier : commentaires 4 (docs/utilisateur/commentaires 4.md)
+Olivier a déposé ses commentaires après essai réel (03/08) — à traiter
+APRÈS la migration/publication du chantier livres. En résumé :
+(1) modifier le nom d'un ingrédient en cours d'inventaire (dictée
+écorchée) ; (2) BUG renommages d'emplacements en chaîne/conflit de noms
+(cas concret « soin 1 »/« soin 2 » permutés — tout a merdé) ; (3) BUG
+probable : ingrédient existant dans une AUTRE résidence invisible à la
+déclaration d'inventaire (« Cumin moulu » à Montalivet — la saisie
+partielle « Cum Moul » marche, le nom exact non) ; (4) plusieurs
+inventaires en pause en parallèle (déplacements d'objets) ; (5) rouvrir
+un inventaire / y ajouter des ingrédients venus d'un autre ; (6) écran
+de gestion DÉDIÉ pour livres et URL (l'approche filtres ne tiendra pas
+240 livres) : naviguer, recettes de la source, visiter le site, scanner
+une recette, coller une URL au retour. Méthode : lot 0 (cas
+d'utilisation + questions) puis GO.
+
+### Chantier livres non trouvés (03/08/2026) — LIVRÉ le 03/08 au soir, MIGRATION EN ATTENTE
 Retour terrain d'Olivier (03/08, tests M68-M69 iPhone) : le scan caméra
 marche (« plus compliqué que d'habitude » — à surveiller), mais **2 livres
 sur 3 non trouvés en ligne** (BookBuddy trouvait les trois). Idée
@@ -25,11 +41,22 @@ couverture si le web n'en fournit pas ; (d) photos demandées = couverture
   Library muet sur le français ; BnF trouve 9782016279700 ;
   9782317013522 (Mango) absent des 3 bases → file photos. **RESTE :
   republier, puis M70 sur iPhone.**
-- Lot 2 : mise de côté au scan (ISBN + photos couverture/dos dans le
-  bucket, file par foyer — migration probable).
-- Lot 3 : écran « Livres à compléter » : re-recherche web, OCR local
-  (tesseract.js à la demande, comme ZXing), fiche pré-remplie à relire,
-  photo = couverture de secours.
+**RÉVISION du 03/08 au soir (GO d'Olivier)** : la **recherche web de
+Claude** remplace les photos obligatoires et l'OCR (prouvé en session :
+l'ISBN Mango introuvable partout = « Pâtisseries marocaines », Nadia
+Paprikas, Mango 2018, trouvé par simple recherche web, couverture chez
+les libraires). Photos → simple secours pour les livres absents du web.
+- **Lot 2 FAIT (03/08 soir, app)** : table `pending_books` (migration
+  `supabase/migration-2026-08-03-livres-a-completer.sql`) ; mise de côté
+  en un geste (auto en multi-scan), file « Livres à compléter » dans
+  Gérer les sources (📷 photo de secours, ×). 175 tests verts, build OK,
+  refus propre vérifié sur 5173 avant migration.
+- **Lot 3 FAIT (03/08 soir, MCP)** : outils `livres_a_completer` et
+  `completer_source` (complément sans écrasement, couverture rapatriée,
+  journal). Procédure : Olivier demande « complète ma bibliothèque ».
+- **RESTE : (1) migration `pending_books` (SQL Editor, main d'Olivier)
+  puis check:schema 18/18 ; (2) redémarrer le serveur MCP ; (3)
+  republier ; (4) M70-M72 (iPhone + première vraie complétion).**
 
 ### Chantier bibliothèque par scan ISBN — LIVRÉ le 02/08/2026, MIGRATION EN ATTENTE
 Demande d'Olivier du 02/08 : scanner le code-barres (ISBN) d'un livre et

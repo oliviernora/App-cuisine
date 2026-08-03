@@ -141,6 +141,19 @@ create table sources (
   categories text not null default '',
   created_at timestamptz not null default now()
 );
+-- Livres non trouvés mis de côté au scan (NP15 révisé, 03/08/2026) : Claude
+-- complète les fiches par recherche web (outil MCP completer_source).
+create table pending_books (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  isbn text not null,
+  photo_path text not null default '', -- photo de secours dans le bucket privé « photos »
+  created_at timestamptz not null default now(),
+  unique (household_id, isbn)
+);
+alter table pending_books enable row level security;
+create policy "livres à compléter du foyer" on pending_books
+  for all using (is_member(household_id)) with check (is_member(household_id));
 create table recipes (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id) on delete cascade,

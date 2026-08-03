@@ -3,7 +3,8 @@
     searchRecipes, renameSource, addSource, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
-    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor, coverUrl } from '../lib/store.svelte.js'
+    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor, coverUrl,
+    attachPendingPhoto, removePendingBook } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import SousEcran from './SousEcran.svelte'
@@ -480,6 +481,28 @@
           <button type="button" class="inv-start" disabled={busy || !newSource.trim()}
             onclick={async () => { await addSource(newSource); newSource = '' }}>Ajouter</button>
         </div>
+        {#if store.pendingBooks.length}
+          <p class="group-title">Livres à compléter <span class="n">· {store.pendingBooks.length}</span></p>
+          <p class="note">Mis de côté au scan — demander à Claude de « compléter la
+            bibliothèque » ; photo de secours possible pour les introuvables.</p>
+          <ul class="manage-items">
+            {#each store.pendingBooks as book (book.id)}
+              <li class="row">
+                <div class="info">
+                  <span class="name">ISBN {book.isbn}</span>
+                  <span class="note">{book.photo_path ? 'photo jointe' : 'sans photo'}</span>
+                </div>
+                <label class="icon-btn" title="Photographier la couverture">📷
+                  <input type="file" accept="image/*" capture="environment" hidden
+                    aria-label={'Photo de couverture pour ISBN ' + book.isbn}
+                    onchange={async e => { const f = e.target.files[0]; if (f) await attachPendingPhoto(book, f); e.target.value = '' }}>
+                </label>
+                <button type="button" class="icon-btn" aria-label={'Retirer ISBN ' + book.isbn}
+                  title="Retirer de la liste" onclick={() => removePendingBook(book)}>×</button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
       </div>
     </SousEcran>
   {:else if importOpen}

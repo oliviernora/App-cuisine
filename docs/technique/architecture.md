@@ -65,6 +65,7 @@ Passard, fiches et amorçage Passard, tests associés) est conservé dans
 | `locations` | emplacements : nom, date du dernier inventaire, `dated` (« à dates »), `stale_months` (seuil « à utiliser »), `residence_id` | unicité du nom PAR résidence |
 | `item_lots` | lots datés d'un produit dans un emplacement « à dates » | sortie du plus ancien proposée ; `residence_id` |
 | `sources` | livres et sites (liste courte, gérée) ; livres documentés par ISBN (N15, 02/08/2026) : `author`, `isbn`, `publisher`, `year`, `cover_path` (couverture copiée dans le bucket privé « photos », `<foyer>/couvertures/`) | migration `supabase/migration-2026-08-02-sources-livres.sql` |
+| `pending_books` | livres mis de côté au scan (NP15 révisé, 03/08/2026) : `isbn`, `photo_path` (photo de secours, bucket privé `<foyer>/a-completer/`) | Claude complète les fiches par recherche web (outils MCP `livres_a_completer` / `completer_source`) ; unicité (foyer, isbn) ; migration `supabase/migration-2026-08-03-livres-a-completer.sql` |
 | `recipes` | recettes : titre, url, vidéo, texte (`steps`), « pour N » (`servings`), pays (`country`), catégorie, `wishlist`, `notes` (commentaires communs, Q3 16/07) | communes au foyer, PAS par résidence |
 | `recipe_ingredients` | ingrédients structurés : position, `qty`, `unit`, `name`, `qty_raw` (fractions), `hard` (« ! » difficile à sourcer), `note`, `optional` | |
 | `recipe_photos` | photos plat/page (bucket privé « photos ») | rattachables à une réalisation |

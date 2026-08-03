@@ -14,13 +14,14 @@ vi.mock('../../src/lib/supabase.js', async () => {
 import { tables, storageFiles, edgeFunctions, resetFake } from '../helpers/fake-supabase.js'
 import { normalizeIsbn, lookupBook } from '../../src/lib/livre-isbn.js'
 import {
-  store, addSource, saveBookSource, findSourceByIsbn, fetchCoverBlob, coverUrl
+  store, addSource, saveBookSource, findSourceByIsbn, fetchCoverBlob, coverUrl,
+  mettreDeCote, findPendingBook, attachPendingPhoto, removePendingBook
 } from '../../src/lib/store.svelte.js'
 
 beforeEach(() => {
   resetFake()
   store.household = { id: 'h-test', name: 'Foyer test' }
-  store.sources = []; store.recipes = []
+  store.sources = []; store.recipes = []; store.pendingBooks = []
   store.schemaWarning = false
 })
 
@@ -162,6 +163,32 @@ test('findSourceByIsbn : le même livre scanné deux fois est détecté (NP15)',
   const { source } = await saveBookSource(beena)
   expect(findSourceByIsbn('9780306406157')).toBe(source)
   expect(findSourceByIsbn('')).toBe(null)
+})
+
+/* ----- Livres mis de côté (NP15 révisé, 03/08/2026) ----- */
+
+test('mettreDeCote : l\'ISBN introuvable est gardé, sans doublon ; photo de secours possible', async () => {
+  const book = await mettreDeCote('9782317013522')
+  expect(tables.pending_books).toHaveLength(1)
+  expect(book.isbn).toBe('9782317013522')
+  expect(findPendingBook('9782317013522')).toBe(book)
+
+  // Le même ISBN remis de côté ne crée pas de doublon.
+  expect(await mettreDeCote('9782317013522')).toBe(book)
+  expect(tables.pending_books).toHaveLength(1)
+
+  await attachPendingPhoto(book, new Blob(['couv'], { type: 'image/jpeg' }))
+  expect(book.photo_path).toBe('h-test/a-completer/' + book.id + '.jpg')
+  expect(storageFiles.has(book.photo_path)).toBe(true)
+})
+
+test('removePendingBook : la ligne et sa photo disparaissent (fiche complétée ou retrait manuel)', async () => {
+  const book = await mettreDeCote('9782317013522')
+  await attachPendingPhoto(book, new Blob(['couv']))
+  await removePendingBook(book)
+  expect(tables.pending_books).toHaveLength(0)
+  expect(store.pendingBooks).toHaveLength(0)
+  expect(storageFiles.size).toBe(0)
 })
 
 /* ----- Couverture rapatriée du web ----- */

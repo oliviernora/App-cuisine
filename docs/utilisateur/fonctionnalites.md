@@ -406,12 +406,22 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   année et **couverture**, copiée dans le stockage privé du foyer — à
   **relire avant d'enregistrer**. Trois catalogues sont interrogés tour à
   tour : Google Books, Open Library, puis la **BnF** (03/08/2026 —
-  précieuse pour l'édition française ; elle ne fournit pas de couverture). Un livre introuvable sur le web se
-  complète à la main (jamais bloquant) ; un titre déjà présent est
+  précieuse pour l'édition française ; elle ne fournit pas de couverture).
+  Un livre introuvable sur le web se **met de côté en un geste**
+  (« Claude complétera ») ou se complète à la main (jamais bloquant) ; un
+  titre déjà présent est
   **complété** au lieu d'être dupliqué ; un ISBN déjà connu est signalé.
   **Multi-scan** pour une pile de livres : chaque livre reconnu rejoint la
   liste en bas de l'écran pendant qu'on scanne le suivant (✎ corrige,
-  × retire), un bouton enregistre tout d'un coup.
+  × retire), un bouton enregistre tout d'un coup — les introuvables non
+  corrigés sont alors **mis de côté automatiquement**.
+- **« Livres à compléter »** (dans Gérer les sources, 03/08/2026 — NP15
+  révisé) : la file des ISBN mis de côté. On demande à **Claude** de
+  « compléter la bibliothèque » : il cherche chaque ISBN sur le web
+  (libraires, éditeurs), remplit la fiche et rapatrie la couverture dans
+  le stockage privé du foyer (outils MCP `livres_a_completer` et
+  `completer_source`). Pour un livre absent même du web, un bouton 📷
+  joint une photo de couverture ; × retire de la file.
 - **« Importer une recette (URL, photos, texte) »** (sous la recherche)
   ouvre un **sous-écran** (25/07/2026), trois chemins vers la même **fiche
   pré-remplie à relire** — rien n'est enregistré avant « **Enregistrer la

@@ -27,6 +27,7 @@ export const store = $state({
   refs: [],
   categories: [], // genres d'ingrédients (master list des genres + sourcing par défaut)
   lieux: [], // lieux d'achat gérés (N3 point 4, 27/07/2026) — table stores
+  pendingBooks: [], // livres non trouvés mis de côté au scan (NP15 révisé, 03/08/2026)
   photos: [],
   inv: null,
   uiAction: null, // raccourci de l'écran d'accueil, consommé par l'écran cible (27/07/2026)
@@ -726,6 +727,11 @@ async function loadRecipes() {
   const lx = await supabase.from('stores').select().eq('household_id', hid)
   if (lx.error) store.schemaWarning = true
   else store.lieux = lx.data
+  // Livres mis de côté (03/08/2026) : même motif — requête à part, table
+  // absente tant que la migration n'est pas appliquée.
+  const pb = await supabase.from('pending_books').select().eq('household_id', hid)
+  if (pb.error) store.schemaWarning = true
+  else store.pendingBooks = pb.data
   store.recipesLoaded = true
   await syncWeekShopping()
 }
@@ -873,6 +879,43 @@ async function attachCover(source, blob) {
   const { error } = await supabase.from('sources').update({ cover_path: path }).eq('id', source.id)
   if (error) { store.schemaWarning = true; return }
   source.cover_path = path
+}
+
+/* ----- Livres non trouvés mis de côté (NP15 révisé, 03/08/2026) -----
+ * Le scan garde l'ISBN seul ; Claude complète ensuite les fiches par
+ * recherche web (outil MCP completer_source). Photo de secours possible
+ * pour les livres absents même du web. */
+
+export function findPendingBook(isbn) {
+  return isbn ? store.pendingBooks.find(b => b.isbn === isbn) : null
+}
+
+/** Met un ISBN de côté. Renvoie la ligne, ou null (écriture refusée :
+ * migration absente, signalée par le bandeau). */
+export async function mettreDeCote(isbn) {
+  const existing = findPendingBook(isbn)
+  if (existing) return existing
+  const { data, error } = await supabase.from('pending_books')
+    .insert({ household_id: store.household.id, isbn }).select().single()
+  if (error) { store.schemaWarning = true; return null }
+  store.pendingBooks.push(data)
+  return data
+}
+
+/** Photo de secours (couverture) d'un livre mis de côté, dans le bucket privé. */
+export async function attachPendingPhoto(book, blob) {
+  const path = `${store.household.id}/a-completer/${book.id}.jpg`
+  const up = await supabase.storage.from('photos').upload(path, await compressImage(blob), { contentType: 'image/jpeg', upsert: true })
+  if (up.error) return
+  const { error } = await supabase.from('pending_books').update({ photo_path: path }).eq('id', book.id)
+  if (error) { store.schemaWarning = true; return }
+  book.photo_path = path
+}
+
+export async function removePendingBook(book) {
+  store.pendingBooks = store.pendingBooks.filter(b => b.id !== book.id)
+  if (book.photo_path) await supabase.storage.from('photos').remove([book.photo_path])
+  await supabase.from('pending_books').delete().eq('id', book.id)
 }
 
 /** Rapatrie l'image de couverture trouvée sur le web (même Edge Function

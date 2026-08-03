@@ -8,7 +8,7 @@
   import { tick } from 'svelte'
   import SousEcran from './SousEcran.svelte'
   import { normalizeIsbn, lookupBook } from '../lib/livre-isbn.js'
-  import { saveBookSource, findSourceByIsbn, fetchCoverBlob } from '../lib/store.svelte.js'
+  import { saveBookSource, findSourceByIsbn, fetchCoverBlob, mettreDeCote, findPendingBook } from '../lib/store.svelte.js'
 
   let { fermer } = $props()
 
@@ -77,6 +77,10 @@
       message = `Déjà dans la bibliothèque : « ${existing.title} ».`
       return
     }
+    if (findPendingBook(isbn)) {
+      message = `ISBN ${isbn} déjà mis de côté — Claude complétera la fiche.`
+      return
+    }
     if (multi) {
       const idx = pile.length
       pile.push({ ...ficheVierge(isbn), status: 'recherche' })
@@ -86,9 +90,20 @@
       stopCamera()
       message = 'Recherche du livre…'
       const book = await lookupBook(isbn)
-      message = book ? '' : 'Livre introuvable sur le web — remplir la fiche à la main.'
-      fiche = { ...ficheVierge(isbn), ...(book ?? {}) }
+      message = book ? '' : 'Livre introuvable sur le web — le mettre de côté, ou remplir la fiche à la main.'
+      fiche = { ...ficheVierge(isbn), ...(book ?? {}), notFound: !book }
     }
+  }
+
+  /** NP15 révisé (03/08/2026) : l'ISBN introuvable est gardé de côté,
+   * Claude complétera la fiche par recherche web. */
+  async function setAside() {
+    busy = true
+    const res = await mettreDeCote(fiche.isbn)
+    busy = false
+    if (!res) { message = 'La mise de côté a échoué — voir le bandeau en haut de l\'écran.'; return }
+    message = `ISBN ${fiche.isbn} mis de côté — Claude complétera la fiche.`
+    resumeScan()
   }
 
   function manualSearch() {
@@ -139,17 +154,25 @@
   async function savePile() {
     busy = true
     message = ''
-    let added = 0, completed = 0
+    let added = 0, completed = 0, misDeCote = 0
     for (const item of prets) {
       const cover = item.coverUrl ? await fetchCoverBlob(item.coverUrl) : null
       const res = await saveBookSource(item, cover)
       if (!res) { busy = false; message = 'L\'enregistrement a échoué — voir le bandeau en haut de l\'écran.'; return }
       res.completed ? completed++ : added++
     }
-    pile = pile.filter(i => !i.title.trim() || i.status === 'recherche')
+    /* Les introuvables non corrigés sont mis de côté — Claude complétera
+     * leurs fiches par recherche web (NP15 révisé, 03/08/2026). */
+    const restants = []
+    for (const item of pile.filter(i => !i.title.trim() || i.status === 'recherche')) {
+      if (item.status === 'introuvable' && await mettreDeCote(item.isbn)) misDeCote++
+      else restants.push(item)
+    }
+    pile = restants
     busy = false
     message = `${added} livre(s) ajouté(s)` + (completed ? `, ${completed} fiche(s) complétée(s)` : '')
-      + (pile.length ? ` — ${pile.length} restant(s) à compléter (✎).` : '.')
+      + (misDeCote ? `, ${misDeCote} mis de côté pour Claude` : '')
+      + (pile.length ? ` — ${pile.length} restant(s) dans la pile.` : '.')
   }
 
   function sousTitre(item) {
@@ -187,6 +210,11 @@
           <button type="button" class="inv-start" disabled={busy || !fiche.title.trim()} onclick={saveFiche}>
             {editIndex !== null ? 'OK' : 'Ajouter à la bibliothèque'}
           </button>
+          {#if fiche.notFound && editIndex === null}
+            <button type="button" class="inv-manage" disabled={busy} onclick={setAside}>
+              Mettre de côté — Claude complétera
+            </button>
+          {/if}
           <button type="button" class="inv-manage" disabled={busy} onclick={resumeScan}>Annuler</button>
         </div>
       </div>
