@@ -2,6 +2,31 @@
 
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
+### Chantier livres non trouvés (03/08/2026) — lot 0 (doc) FAIT, GO ATTENDU
+Retour terrain d'Olivier (03/08, tests M68-M69 iPhone) : le scan caméra
+marche (« plus compliqué que d'habitude » — à surveiller), mais **2 livres
+sur 3 non trouvés en ligne** (BookBuddy trouvait les trois). Idée
+d'Olivier : quand un ISBN n'est pas trouvé, le **stocker**, demander des
+**photos** (couverture, dos), et **traiter plus tard** — retrouver le
+livre ou reconstruire la fiche par OCR.
+**Décisions d'Olivier (03/08, questions/réponses)** : (a) BnF ajoutée en
+3e source de recherche (API publique sans clé, forte sur l'édition
+française) ; (b) traitement différé = nouvelle tentative web PUIS OCR
+local (dans le navigateur, rien envoyé à un service externe) qui
+pré-remplit une fiche À RELIRE ; (c) la photo de couverture sert de
+couverture si le web n'en fournit pas ; (d) photos demandées = couverture
++ dos, aucune obligatoire.
+- **Lot 0 FAIT (03/08)** : NP15 amendé (cas-utilisation.md), suivi à
+  jour. **GO d'Olivier attendu avant tout code.**
+- Lot 1 : BnF en 3e repli dans `livre-isbn.js` + tests (petit, autonome —
+  réduit les « non trouvés » à la racine). Reste à PROUVER sur les 2 ISBN
+  d'Olivier (à lui demander) que la BnF les connaît.
+- Lot 2 : mise de côté au scan (ISBN + photos couverture/dos dans le
+  bucket, file par foyer — migration probable).
+- Lot 3 : écran « Livres à compléter » : re-recherche web, OCR local
+  (tesseract.js à la demande, comme ZXing), fiche pré-remplie à relire,
+  photo = couverture de secours.
+
 ### Chantier bibliothèque par scan ISBN — LIVRÉ le 02/08/2026, MIGRATION EN ATTENTE
 Demande d'Olivier du 02/08 : scanner le code-barres (ISBN) d'un livre et
 retrouver sa référence sur le web, photo de couverture comprise, pour

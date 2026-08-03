@@ -427,9 +427,17 @@ emplacement et sa quantité — jamais perdu, jamais bloquant.
 
 1. **Code-barres absent ou illisible** (livre ancien, jaquette abîmée) : je
    saisis l'ISBN à la main — la recherche web fonctionne pareil.
-2. **Livre introuvable sur le web** : la fiche s'ouvre vide et je la
-   remplis à la main, comme aujourd'hui — jamais bloquant ; je peux
-   photographier la couverture moi-même.
+2. **Livre introuvable sur le web** : je le **mets de côté en photos**
+   plutôt que de casser le rythme du scan — l'application garde l'ISBN et
+   me demande deux photos, **la couverture et le dos** (aucune n'est
+   obligatoire), puis je reprends ma pile là où j'en étais. Plus tard,
+   j'ouvre la file des **« Livres à compléter »** : pour chaque livre mis
+   de côté, l'application **retente la recherche web**, **lit le texte de
+   mes photos** (sur l'appareil — rien n'est envoyé à un service externe)
+   et me présente une fiche pré-remplie **à relire** avant d'enregistrer ;
+   si le web n'a pas fourni de couverture, **ma photo de couverture** en
+   tient lieu. La saisie à la main reste possible à tout moment — jamais
+   bloquant. *(Décisions Olivier 03/08/2026.)*
 3. **Livre déjà dans ma bibliothèque** (même ISBN) : l'application me
    montre la fiche existante au lieu de créer un doublon.
 
