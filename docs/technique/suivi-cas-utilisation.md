@@ -28,11 +28,11 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | Cas | Validation | Couverture | Notes |
 |---|---|---|---|
 | N1 épuiser/racheter | validé, amendé 16/07 (rachat sur la SOMME des emplacements, réserve minimum par ingrédient) | couvert, testé, EN PRODUCTION (16/07 au soir, migration appliquée) | l'étape 4 (réception via inventaire, Q2) viendra avec le lot 3 Courses |
-| N2 inventaire | dicté par Olivier, amendé 27/07 (correction du nombre, dictée des noms difficiles — à valider) | couvert, testé | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complété le 08/07 : emplacement « à dates » — le comptage ajuste les lots (sortie du plus ancien, excédent « sans date »), bilan annoncé avant application (décision Olivier 08/07) ; complété le 27/07 (commentaires 2) : saisie directe de la quantité d'une ligne vue, garde-fou « 4 épices », rapprochement des dictées écorchées contre la master list + alias mémorisé après confirmation (décision Olivier 27/07) |
+| N2 inventaire | dicté par Olivier, amendé 27/07 (correction du nombre, dictée des noms difficiles — à valider) ; **amendé 04/08 (commentaires 4, EN ATTENTE DE GO)** : rectifier un nom écorché en cours d'inventaire (décision Olivier 04/08 : la rectification ne touche QUE l'ingrédient ajouté, jamais une fiche existante), produit d'une autre maison reconnu (BUG constaté le 03/08, cause à prouver), inventaires de front + ajout à l'inventaire d'une autre boîte via réouverture — pas de geste « vers l'autre boîte » depuis l'inventaire en cours (décisions Olivier 04/08) | couvert, testé (hors amendements 04/08) | complété le 07/07 : inventaire pausable (les onglets restent visibles, reprise où on en était) et menu de choix en cas d'ambiguïté vocale ; complété le 08/07 : emplacement « à dates » — le comptage ajuste les lots (sortie du plus ancien, excédent « sans date »), bilan annoncé avant application (décision Olivier 08/07) ; complété le 27/07 (commentaires 2) : saisie directe de la quantité d'une ligne vue, garde-fou « 4 épices », rapprochement des dictées écorchées contre la master list + alias mémorisé après confirmation (décision Olivier 27/07) |
 | N3 je prépare mes courses | reformulé par Olivier 06/07, complété 16/07 (lieu d'achat par ligne) | quasi couvert (16/07) | panier « réserve », lieu d'achat modifiable et mémorisé, quantité réelle confirmée au rangement ; reste : quantité voulue à l'AJOUT en liste |
 | N4 courses multi-lieux | validé, amendé | partiel | amendement à couvrir : voir/cocher les autres listes |
 | N5 foyer | validé | couvert | test manuel M4 à dérouler |
-| N6 rangements + déplacements | fusionné par Olivier 06/07, amendé 27/07 (déplacement depuis la ligne du stock, série d'ajouts au même endroit — à valider) | **couvert, testé** (06/07, complété 27/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire ; depuis le 27/07 (commentaires 2) : « Déplacer » par ligne d'emplacement dans le détail ▸ du Stock, et emplacement retenu d'un ajout à l'autre dans la barre d'ajout |
+| N6 rangements + déplacements | fusionné par Olivier 06/07, amendé 27/07 (déplacement depuis la ligne du stock, série d'ajouts au même endroit — à valider) ; **précisé 04/08 (commentaires 4)** : renommages en chaîne fiables (permutation de noms), y compris pendant un inventaire en cours ou en pause (BUG « soin 1 »/« soin 2 » constaté le 03/08, cause à prouver — précision Olivier 04/08 : aucun renommage vers un nom déjà pris dans son scénario, l'inventaire ouvert perd la trace de sa boîte) | **couvert, testé** (06/07, complété 27/07) | déplacement unitaire et par produits cochés, regroupement des doublons, renommage, fusion (2 touches) — panneau « Gérer » de l'onglet Inventaire ; depuis le 27/07 (commentaires 2) : « Déplacer » par ligne d'emplacement dans le détail ▸ du Stock, et emplacement retenu d'un ajout à l'autre dans la barre d'ajout |
 | N7 emplacements datés | proposition précisée (générique + exemples) | **couvert, testé** (08/07) | fait 07/07 : réglage « à dates », entrée par lots datés, sortie du plus ancien, total simple, « sans date » pour l'existant ; fait 08/07 : inventaire des lots (N2, ajustement auto + bilan), rappel des lots anciens dans la Semaine (bloc « À utiliser », N10), seuil d'ancienneté réglable par emplacement (6 mois par défaut — décision Olivier 08/07) |
 | N8 je fais une recette et je la consigne | fusionné par Olivier 06/07 | **partiel** (incréments 1-2, 07/07) | consigner date+commentaire : fait ; 105 recettes Passard importées, 82 fiches remplies dans la vraie base (682 ingrédients, M13 déroulé) ; photos livrées le 07/07 soir (plat — seule ou avec la réalisation — et page du livre, bucket privé du foyer, compression côté client, URL signée) ; reste : extraction IA (clé API), imports en volume (logiciel de scan à préciser), photos hors ligne |
 | N9 retrouver une recette | proposition | **couvert** (07/07) | recherche multicritère (titre, ingrédient, pays, source, mot du texte) dans Recettes ET dans la Semaine ; filtre par source (chips) ; sources gérées (renommer/fusionner/créer) ; pays à remplir (proposition en attente de validation) |
@@ -44,11 +44,12 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | NP3 coché par erreur | validé | couvert, testé | |
 | NP4 plusieurs pots d'un coup | décidé le 16/07 (Q2) | **couvert, testé** (lot 3 du 16/07) | la quantité reçue se confirme au rangement (« à mettre en stock », onglet Inventaire) |
 | NP5 pas de réseau | validé | partiel | consultation hors ligne OK ; cocher hors ligne à faire |
-| NP6 inventaire interrompu | validé, amendé 27/07 (pause volontaire et reprise — à valider) | couvert, testé (complété 27/07) | pause explicite « Mettre en pause » + bandeau « Reprendre » (commentaires 2 du 27/07) ; démarrer un autre inventaire pendant une pause = confirmation en 2 touches |
+| NP6 inventaire interrompu | validé, amendé 27/07 (pause volontaire et reprise — à valider) ; **amendé 04/08 (commentaires 4, EN ATTENTE DE GO)** : plusieurs inventaires en pause en parallèle | couvert, testé (complété 27/07 ; hors amendement 04/08) | pause explicite « Mettre en pause » + bandeau « Reprendre » (commentaires 2 du 27/07) ; démarrer un autre inventaire pendant une pause = confirmation en 2 touches (à remplacer par la liste des inventaires en cours si GO 04/08) |
 | N13 je range mes courses | validé (GO Olivier 28/07, remplace le flux Q2 « à mettre en stock ») | **couvert, testé** (28/07) | écran « Ranger les courses » : saisie/dictée, candidats (« huile » → huile d'olive/tournesol), « Nouveau produit » hors liste, emplacement par défaut = dernier connu, lot daté si congélateur, ligne semaine → « je l'ai » ; vérifié en réel sur 5173 |
 | N14 je gère ma liste d'ingrédients | validé (GO Olivier 28/07) | **couvert, testé** (28/07) | une seule liste, deux portes : onglet Stock, et « Ingrédients — {emplacement} » depuis l'Inventaire (Stock filtré, barre d'ajout préréglée) ; « Épuisé » en un geste (tout à zéro → courses) ; ajouter à zéro = déjà couvert par le rachat auto |
 | N3.4 lieux d'achat | validé (ajout NOUVEAU d'Olivier du 28/07 au cas N3) | couvert, testé (28/07) — **M66 en réel après la migration stores** | table stores + gestion complète (physique/Internet, URL/adresse, commentaire, renommage en cascade, achetables, reprise des lieux existants) |
 | N15 documenter la bibliothèque par scan ISBN | **GO Olivier 02/08** (décisions : couverture copiée dans le stockage du foyer ; sous-écran Sources + multi-scan avec pile en bas d'écran) | **couvert, testé** (02/08) — **migration `sources` à appliquer**, puis M68-M69 sur iPhone | ScanLivre.svelte (caméra ZXing EAN-13 chargée à la demande, saisie manuelle en secours), livre-isbn.js (Google Books puis Open Library), saveBookSource (complément d'une fiche du même titre — champs vides seulement), couvertures dans Gérer les sources ; N8 amendé (renvoi vers N15) |
+| N16 bibliothèque dédiée (livres + sites) | **proposition 04/08 (commentaires 4) — EN ATTENTE DE GO** | non couvert | écran dédié : navigation (couvertures, recherche, tri), fiche source → ses recettes, scanner une recette (livre) / visiter le site + coller l'URL au retour (réutilise l'import A1) ; remplace l'approche « filtres » intenable à 240 livres |
 | NP8 produit après planning | proposition | non couvert | avec N10 |
 | NP9-NP11 (recettes) | propositions | non couverts | étape 4 |
 | NP12-NP13 (semaine) | propositions | non couverts | étape 5 |
@@ -60,24 +61,15 @@ n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
 
 ## Reste à faire transverse
 
-- (Migration appliquée le 06/07/2026 au soir — schéma complet conforme,
-  import Passard réel effectué ; date d'inventaire à constater au prochain
-  inventaire réel.)
 - Amendement N4 (autres listes) et N3 (quantités) : prochain lot courses.
-- (Migration `recipe_ingredients` + `recipes.steps` appliquée le 07/07/2026
-  au matin — check:schema 11/11, remplissage réel des 82 fiches fait, M13
-  déroulé. Au passage : doublon d'import Passard du 06/07 découvert et
-  nettoyé, garde-fou ajouté dans le code + test.)
 - Master list par genres livrée le 07/07, complétée le 08/07 (commentaires
   Olivier) : genres en menu déroulant + « Gérer les genres » (table
   ingredient_categories, sourcing par défaut), fiche ingrédient (renommage
   libre avec fusion, sourcing affiné, recettes associées), filtre par genre
   dans la recherche du Stock, sourcing → magasin prérempli des courses.
-- Fractions livrées le 08/07 (parseIngredientLine : « ½ », « 1/2 »,
-  « 1 ½ » ; qty_raw réaffiché comme saisi ; descriptif après virgule et
-  « (facultatif) ») ; la migration du 08/07 répare les lignes « /2 … » des
-  fiches Passard ; les autres noms douteux (« Aïe », « eau », « ficelle de
-  cuisine ») sortent en SELECT de contrôle à trancher avec Olivier.
+- Fractions livrées le 08/07 (parseIngredientLine) ; reste à trancher
+  avec Olivier : les noms douteux « eau » et « ficelle de cuisine »
+  (repris dans plan.md § En attente d'Olivier).
 - Sauvegarde (exigence NFR) livrée le 08/07 : export JSON dans le panneau
   Foyer + rappel à 7 jours (point orange). Restauration livrée le 09/07
   (décisions Olivier : remplacement complet du foyer, export automatique de

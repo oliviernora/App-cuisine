@@ -138,7 +138,8 @@ Règles métier centrales (implémentées dans `store.svelte.js`) :
 
 ## Décisions techniques (résumé)
 
-Voir `plan.md` pour l'historique complet : PWA plutôt qu'app native (une
+Voir `docs/technique/plan-archive.md` pour l'historique complet : PWA
+plutôt qu'app native (une
 seule base de code PC + iOS), Supabase cloud plutôt qu'auto-hébergé
 (l'hébergement OVH actuel ne le permet pas ; migration possible plus tard),
 Svelte 5 + Vite (code simple et léger), tests Vitest sur simulateur de base

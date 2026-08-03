@@ -230,6 +230,26 @@ ingrédients rares sont commandés à temps.
 bibliothèque des 240 livres se construit pile par pile, couvertures
 comprises.
 
+### N16 — Je navigue dans ma bibliothèque de livres et de sites *(proposition 04/08/2026)*
+
+1. Mes sources de recettes — 240 livres et mes sites favoris — ont leur
+   **écran dédié** : à cette échelle, les filtres de la recherche ne
+   suffisent plus pour s'y retrouver.
+2. J'y **navigue** : couvertures visibles, recherche et tri, livres et
+   sites présentés chacun de leur côté.
+3. J'ouvre une source : sa fiche et **ses recettes** déjà enregistrées.
+4. Depuis un **livre**, un bouton pour **scanner une recette** (photo des
+   pages, comme en N8) : la recette rejoint la bibliothèque, rattachée au
+   livre.
+5. Depuis un **site**, un bouton pour **visiter le site** dans le
+   navigateur ; j'y repère une recette, j'en **copie l'URL**, je reviens
+   dans l'application et je la **colle** — l'import habituel fait le
+   reste, la recette est rattachée à sa source.
+
+**Résultat attendu** : la bibliothèque des livres et des sites se parcourt
+comme une vraie bibliothèque ; chaque source mène à ses recettes, ou à la
+capture d'une nouvelle.
+
 ## Famille 5 — Gérer les inventaires
 
 ### N2 — Je fais l'inventaire d'un emplacement (dicté par Olivier)
@@ -247,6 +267,18 @@ caisse, en vrac.
    - produit déjà vu pendant cet inventaire → sa quantité **augmente** ;
    - je peux **corriger une erreur** — mauvais produit **ou mauvais
      nombre** (je saisis directement la bonne quantité — 27/07/2026) ;
+   - la dictée a **écorché le nom** (« Cumun moulu », ou « Cumin » au
+     lieu de « Cumin moulu ») : je **rectifie le nom** sans quitter
+     l'inventaire. La correction ne porte que sur **l'ingrédient que je
+     viens d'ajouter** — jamais sur la fiche d'un produit existant : la
+     saisie corrigée rejoint la fiche portant le bon nom (créée au
+     besoin), et une fiche née de l'erreur de dictée disparaît avec
+     elle *(décision Olivier 04/08/2026)* ;
+   - un produit déjà connu du foyer mais rangé jusque-là dans une **autre
+     maison** est reconnu comme les autres : son nom exact est proposé,
+     et le déclarer l'ajoute à l'emplacement en cours *(précision
+     04/08/2026 — constaté en défaut le 03/08 : « Cumin moulu »
+     introuvable à Montalivet alors qu'il existe à Argenteuil)* ;
    - la dictée comprend **mes ingrédients à moi** (27/07/2026) : les noms
      venus d'ailleurs (nuoc mam, ras el hanout) et ceux qui commencent par
      un nombre (« quatre-épices », jamais compris comme 4 × épices) ; en
@@ -258,7 +290,15 @@ caisse, en vrac.
    **« Nouveau »** pour saisir un nouveau lot avec sa date.
 4. À la fin, le système me **liste les produits non trouvés** et me demande
    si c'est exact : je confirme (ils passent à zéro) ou je corrige.
-5. L'emplacement porte la **date de son dernier inventaire**.
+5. Quand je réorganise, je mène **plusieurs inventaires de front** —
+   chacun se met en pause et se reprend indépendamment (voir NP6). Si un
+   objet trouvé dans une boîte doit vivre ailleurs, je ne le compte **pas**
+   dans la boîte en cours : je l'ajoute à **l'inventaire de l'autre
+   boîte** — quitte à **rouvrir** cet inventaire s'il était terminé ; la
+   réouverture reprend l'inventaire tel qu'il s'est terminé (les produits
+   déjà vus restent vus, j'ajoute simplement). *(décision Olivier
+   04/08/2026)*
+6. L'emplacement porte la **date de son dernier inventaire**.
 
 **Résultat attendu** : au fur et à mesure des inventaires, le stock global
 tous emplacements évolue, et les achats automatiques suivent.
@@ -284,7 +324,14 @@ c'est la seconde porte d'entrée de la liste des ingrédients, voir N14.)*
 5. **Une boîte devient deux plus petites** : je crée le nouvel emplacement
    et j'y déplace les produits concernés (cochés en liste).
 6. **Un rangement se déplace ou change de nom** : tous ses produits suivent
-   en un geste.
+   en un geste. Les renommages **en chaîne** fonctionnent aussi — par
+   exemple pour permuter deux noms (« soin 2 » → « soin 3 », puis
+   « soin 1 » → « soin 2 », puis « soin 3 » → « soin 1 ») — **y compris
+   pendant qu'un inventaire est en cours ou en pause** sur l'une de ces
+   boîtes : produits et inventaires restent attachés à la **bonne boîte**,
+   quel que soit son nom du moment. *(précision 04/08/2026 — constaté en
+   défaut le 03/08 : après la permutation, impossible de savoir sur
+   quelle boîte portait l'inventaire)*
 
 **Résultat attendu** : les rangements de la vraie vie changent souvent ;
 l'application suit sans jamais exiger de ressaisir les produits un à un.
@@ -383,9 +430,11 @@ On sonne à la porte ; je reviens une heure plus tard : l'inventaire est
 toujours « en cours », rien n'est perdu. Je peux aussi le **mettre en pause
 moi-même** (27/07/2026) pour retrouver la liste des emplacements et faire
 autre chose (consulter, gérer, ranger des achats), puis le **reprendre** là
-où j'en étais — même le lendemain. Je peux enfin l'abandonner : tout
-revient à l'état d'avant. **Un inventaire interrompu ne produit jamais un
-stock à moitié faux.**
+où j'en étais — même le lendemain. **Plusieurs inventaires peuvent être en
+pause en même temps** (04/08/2026) : la liste des inventaires en cours me
+montre où j'en suis et je reprends celui que je veux. Je peux enfin
+l'abandonner : tout revient à l'état d'avant. **Un inventaire interrompu ne
+produit jamais un stock à moitié faux.**
 
 ### NP8 — Un produit s'ajoute après la validation du planning de courses *(proposition)*
 

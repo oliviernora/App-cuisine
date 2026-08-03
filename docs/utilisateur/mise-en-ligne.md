@@ -32,10 +32,9 @@ périodique de Safari.
 
 ## Publier une mise à jour (PC)
 
-Double-cliquer sur **`app/mettre-en-ligne.cmd`** : construction puis
-publication (compte Vercel d'Olivier, connecté une fois pour toutes avec
-`npx vercel login`). L'adresse ne change jamais ; les appareils récupèrent
-la nouvelle version à l'ouverture suivante.
+La procédure complète — avec le garde-fou « appliquer la migration en
+attente AVANT de publier » — est dans `exploitation.md`, section
+« Publier une mise à jour ». Ne pas la dupliquer ici.
 
 ## Réglages faits le 07/07/2026 (pour mémoire)
 
