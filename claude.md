@@ -1,3 +1,12 @@
+Reprise de session — À LIRE EN PREMIER
+- L'état du projet et le travail en cours sont dans `plan.md`, section
+  « Reprise rapide » (tenue à jour à chaque session) : la lire AVANT tout.
+- L'index de la documentation est `docs/README.md` ; l'application est EN
+  LIGNE (https://garde-manger-chi.vercel.app) avec de vraies données — les
+  actions de production (deploy, SQL) exigent un GO explicite d'Olivier.
+- Ce fichier-ci est la spécification générale : il ne décrit pas l'état
+  d'avancement, ne pas y chercher (ni y écrire) l'actualité du projet.
+
 Contexte
 - je suis passionné de cuisine, avec plus de 240 livres de recettes, et de nombreux sites de cuisine dont je me sert
 - je ne fais jamais deux fois la même recette dans l'année - à chaque fois je découvre une autre recette

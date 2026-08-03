@@ -1,6 +1,6 @@
 # Plan d'action — App cuisine
 
-## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
+## Reprise rapide (passation à jour au 03/08/2026 au soir — à lire en premier)
 
 ### Prochain chantier : commentaires 4 (docs/utilisateur/commentaires 4.md)
 Olivier a déposé ses commentaires après essai réel (03/08) — le chantier
