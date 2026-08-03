@@ -404,7 +404,9 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   02/08/2026 — cas N15) : la caméra lit l'**ISBN** au dos du livre (saisie
   manuelle en secours), le web fournit la fiche — titre, auteur, éditeur,
   année et **couverture**, copiée dans le stockage privé du foyer — à
-  **relire avant d'enregistrer**. Un livre introuvable sur le web se
+  **relire avant d'enregistrer**. Trois catalogues sont interrogés tour à
+  tour : Google Books, Open Library, puis la **BnF** (03/08/2026 —
+  précieuse pour l'édition française ; elle ne fournit pas de couverture). Un livre introuvable sur le web se
   complète à la main (jamais bloquant) ; un titre déjà présent est
   **complété** au lieu d'être dupliqué ; un ISBN déjà connu est signalé.
   **Multi-scan** pour une pile de livres : chaque livre reconnu rejoint la

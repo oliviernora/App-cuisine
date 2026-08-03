@@ -1,7 +1,8 @@
 /**
  * Livres par ISBN (N15) : validation du code saisi ou scanné, et recherche
- * de la fiche du livre sur le web — Google Books d'abord, Open Library en
- * repli. Les deux services répondent au navigateur sans clé.
+ * de la fiche du livre sur le web — Google Books, puis Open Library, puis
+ * le catalogue de la BnF (fort sur l'édition française, mais sans photo de
+ * couverture). Les trois services répondent au navigateur sans clé.
  */
 
 /** Normalise une saisie d'ISBN (espaces, tirets) et vérifie sa clé.
@@ -27,7 +28,9 @@ function key13(d12) {
 /** Cherche la fiche du livre sur le web. Renvoie
  * { title, author, publisher, year, coverUrl } ou null si introuvable. */
 export async function lookupBook(isbn, fetchFn = globalThis.fetch) {
-  return await fromGoogleBooks(isbn, fetchFn) ?? await fromOpenLibrary(isbn, fetchFn)
+  return await fromGoogleBooks(isbn, fetchFn)
+    ?? await fromOpenLibrary(isbn, fetchFn)
+    ?? await fromBnf(isbn, fetchFn)
 }
 
 async function fromGoogleBooks(isbn, fetchFn) {
@@ -44,6 +47,38 @@ async function fromGoogleBooks(isbn, fetchFn) {
       coverUrl: (info.imageLinks?.thumbnail ?? '').replace('http://', 'https://')
     }
   } catch { return null }
+}
+
+/** Catalogue général de la BnF (API SRU, XML Dublin Core, sans clé). */
+async function fromBnf(isbn, fetchFn) {
+  try {
+    const query = encodeURIComponent(`bib.isbn any "${isbn}"`)
+    const res = await fetchFn('https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&recordSchema=dublincore&maximumRecords=1&query=' + query)
+    if (!res.ok) return null
+    const xml = await res.text()
+    const dc = name => decodeXml(xml.match(new RegExp('<dc:' + name + '[^>]*>([^<]+)</dc:' + name + '>'))?.[1] ?? '')
+    const title = dc('title').split(' / ')[0].trim()
+    if (!title) return null
+    return {
+      title,
+      author: bnfName(dc('creator')),
+      publisher: dc('publisher').replace(/\s*\([^)]*\)\s*$/, ''),
+      year: dc('date').match(/\d{4}/)?.[0] ?? '',
+      coverUrl: '' // la BnF ne fournit pas de couverture
+    }
+  } catch { return null }
+}
+
+/** « Palatin, Suzy (1965-....). Auteur du texte » → « Suzy Palatin ». */
+function bnfName(creator) {
+  const name = creator.replace(/\([^)]*\)/g, '').split('.')[0].trim()
+  const [last, first] = name.split(',').map(p => p.trim())
+  return first ? first + ' ' + last : last
+}
+
+function decodeXml(s) {
+  return s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
 }
 
 async function fromOpenLibrary(isbn, fetchFn) {

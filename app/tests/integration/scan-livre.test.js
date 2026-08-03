@@ -1,7 +1,8 @@
 /**
  * Tests du cas N15 — documenter la bibliothèque par scan ISBN : validation
- * du code, recherche web (Google Books puis Open Library), enregistrement
- * du livre avec sa couverture, complément d'une fiche existante (NP15).
+ * du code, recherche web (Google Books, Open Library, puis BnF),
+ * enregistrement du livre avec sa couverture, complément d'une fiche
+ * existante (NP15).
  */
 import { vi, test, expect, beforeEach } from 'vitest'
 
@@ -87,8 +88,36 @@ test('lookupBook : Google muet → repli sur Open Library', async () => {
   expect(book.coverUrl).toBe('https://covers.openlibrary.org/b/id/1-M.jpg')
 })
 
+test('lookupBook : Google et Open Library muets → repli sur la BnF (livre français, NP15)', async () => {
+  // Réponse SRU réelle (abrégée) du catalogue BnF pour 9782016279700.
+  const bnfXml = `<?xml version="1.0" encoding="UTF-8"?><srw:searchRetrieveResponse>
+    <srw:numberOfRecords>1</srw:numberOfRecords>
+    <dc:title>Cuisine créole / Suzy Palatin ; photographies, Frédéric Lucano</dc:title>
+    <dc:creator>Palatin, Suzy (1965-....). Auteur du texte</dc:creator>
+    <dc:publisher>Hachette cuisine (Vanves)</dc:publisher>
+    <dc:date>2021</dc:date></srw:searchRetrieveResponse>`
+  const fetchFn = vi.fn(async url => url.includes('catalogue.bnf.fr')
+    ? { ok: true, text: async () => bnfXml }
+    : empty)
+  const book = await lookupBook('9782016279700', fetchFn)
+  expect(book).toEqual({
+    title: 'Cuisine créole',
+    author: 'Suzy Palatin',
+    publisher: 'Hachette cuisine',
+    year: '2021',
+    coverUrl: '' // la BnF ne fournit pas de couverture
+  })
+  expect(fetchFn).toHaveBeenCalledTimes(3)
+})
+
+const bnfEmpty = `<?xml version="1.0"?><srw:searchRetrieveResponse>
+  <srw:numberOfRecords>0</srw:numberOfRecords></srw:searchRetrieveResponse>`
+
 test('lookupBook : introuvable partout (ou réseau en panne) → null, jamais d’exception', async () => {
-  expect(await lookupBook('9780306406157', async () => empty)).toBe(null)
+  const fetchFn = async url => url.includes('catalogue.bnf.fr')
+    ? { ok: true, text: async () => bnfEmpty }
+    : empty
+  expect(await lookupBook('9780306406157', fetchFn)).toBe(null)
   expect(await lookupBook('9780306406157', async () => { throw new Error('offline') })).toBe(null)
 })
 

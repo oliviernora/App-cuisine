@@ -17,10 +17,14 @@ pré-remplit une fiche À RELIRE ; (c) la photo de couverture sert de
 couverture si le web n'en fournit pas ; (d) photos demandées = couverture
 + dos, aucune obligatoire.
 - **Lot 0 FAIT (03/08)** : NP15 amendé (cas-utilisation.md), suivi à
-  jour. **GO d'Olivier attendu avant tout code.**
-- Lot 1 : BnF en 3e repli dans `livre-isbn.js` + tests (petit, autonome —
-  réduit les « non trouvés » à la racine). Reste à PROUVER sur les 2 ISBN
-  d'Olivier (à lui demander) que la BnF les connaît.
+  jour. **GO d'Olivier reçu le 03/08.**
+- **Lot 1 FAIT (03/08)** : BnF en 3e repli dans `livre-isbn.js` + tests
+  (173 verts, build OK, schéma 17/17, parcours réel sur 5173 : fiche
+  Cuisine créole pré-remplie par la BnF). CAUSE RACINE PROUVÉE sur les
+  2 ISBN d'Olivier : Google sans clé en 429 (quota partagé) + Open
+  Library muet sur le français ; BnF trouve 9782016279700 ;
+  9782317013522 (Mango) absent des 3 bases → file photos. **RESTE :
+  republier, puis M70 sur iPhone.**
 - Lot 2 : mise de côté au scan (ISBN + photos couverture/dos dans le
   bucket, file par foyer — migration probable).
 - Lot 3 : écran « Livres à compléter » : re-recherche web, OCR local

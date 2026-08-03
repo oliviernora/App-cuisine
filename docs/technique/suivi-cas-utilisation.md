@@ -53,7 +53,7 @@ planifie ma semaine », courses et planning inclus) ; ex-N14 → N11.
 | NP9-NP11 (recettes) | propositions | non couverts | étape 4 |
 | NP12-NP13 (semaine) | propositions | non couverts | étape 5 |
 | NP14 produit imprévu au rangement | proposition 27/07 | **couvert, testé** (28/07) | « Nouveau produit » de l'écran de rangement (rangerNouveau, fusion si déjà présent à l'emplacement) |
-| NP15 scan de livre sans résultat | GO Olivier 02/08 (avec N15) ; **amendé 03/08** (décisions Olivier : BnF en 3e source, mise de côté photos couverture+dos, file « Livres à compléter », OCR local + relecture, photo = couverture de secours) | couvert partiellement (02/08) — **amendement 03/08 à couvrir** | ISBN à la main (normalizeIsbn 13/10), doublon détecté par ISBN et par titre (complément, jamais d'écrasement) ; introuvable → mise de côté avec photos puis traitement différé (retour terrain 03/08 : 2 livres sur 3 non trouvés, BookBuddy les trouvait) |
+| NP15 scan de livre sans résultat | GO Olivier 02/08 (avec N15) ; **amendé 03/08** (décisions Olivier : BnF en 3e source, mise de côté photos couverture+dos, file « Livres à compléter », OCR local + relecture, photo = couverture de secours) | couvert partiellement — BnF **couverte, testée** (03/08) ; file photos (lots 2-3) à couvrir | ISBN à la main (normalizeIsbn 13/10), doublon détecté par ISBN et par titre (complément, jamais d'écrasement) ; introuvable → mise de côté avec photos puis traitement différé (retour terrain 03/08 : 2 livres sur 3 non trouvés, BookBuddy les trouvait) |
 
 NP1 à NP13 : non revus par Olivier lors de sa relecture du 06/07/2026 (il
 n'a revu que les nominaux). NP7 : numéro retiré (décision Olivier).
