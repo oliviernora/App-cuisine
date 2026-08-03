@@ -4,13 +4,12 @@
     setIngredientMin, renameIngredient, removeIngredient, setIngredientCategory, categoryOf,
     knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot,
     parseDictation, dictationMatches, sameDictation, confirmMerge, moveItem,
-    markEpuise } from '../lib/store.svelte.js'
+    markEpuise, fold } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import SousEcran from './SousEcran.svelte'
   import { addbarHeight } from '../lib/addbar.js'
+  import { creerDictee } from '../lib/dictee.js'
   import { MINUS, PLUS, CART, CART_PLUS, MIC } from '../lib/icons.js'
-
-  const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
 
   /* Deux portes d'entrée vers la même liste (N14, décision Olivier
    * 27/07/2026) : sans `loc`, tout le stock (onglet Stock) ; avec `loc`,
@@ -45,9 +44,6 @@
   let listening = $state(false)
   let voiceAvailable = $state(true)
 
-  function fold(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   /* Le stock se lit par ingrédient (commentaires Olivier du 16/07/2026) : une
    * seule liste alphabétique, la somme de tous les emplacements sur la ligne ;
@@ -218,63 +214,42 @@
 
   let voiceFix = null // { raw, suggested } : dictée écorchée corrigée via la master list
 
-  let rec = null
+  function applyVoice(text) {
+    const parsed = parseDictation(text)
+    /* La dictée est rapprochée de la master list : « 4 épices » redevient
+     * « Quatre-épices », « nuoc mame » propose « Nuoc mam » (27/07/2026).
+     * Plusieurs correspondances incertaines : on garde le texte entendu. */
+    const matches = dictationMatches(parsed.name)
+    const best = matches[0]
+    voiceFix = null
+    let nom = parsed.name
+    if (best && (matches.length === 1 || sameDictation(best, nom) || sameIngredient(best, nom))) {
+      if (fold(best) !== fold(nom) && !sameIngredient(best, nom) && !sameDictation(best, nom))
+        voiceFix = { raw: nom, suggested: best }
+      nom = best
+    }
+    name = nom.charAt(0).toUpperCase() + nom.slice(1)
+    qty = parsed.qty
+    hint = fold(nom) === fold(parsed.name)
+      ? 'Entendu : « ' + text.trim() + ' ». Vérifiez puis touchez Ajouter.'
+      : 'Entendu : « ' + text.trim() + ' » → « ' + nom + ' ». Vérifiez puis touchez Ajouter.'
+  }
+
+  let dictee = null
   onMount(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
+    dictee = creerDictee({
+      onText: applyVoice,
+      onEtat: v => { listening = v },
+      onMessage: m => { hint = m },
+      messageRien: 'Rien entendu — réessayez, ou utilisez la dictée du clavier.'
+    })
+    if (!dictee) {
       voiceAvailable = false
       hint = 'Reconnaissance vocale non disponible dans ce navigateur : utilisez la dictée du clavier.'
-      return
-    }
-    rec = new SR()
-    rec.lang = 'fr-FR'
-    /* interimResults : sur iPhone, couper le micro à la main ne délivre
-     * jamais de résultat « final » — on garde le dernier texte entendu et
-     * on le traite à la fin (retour Olivier 16/07/2026). */
-    rec.interimResults = true
-    let heard = ''
-    const applyVoice = text => {
-      const parsed = parseDictation(text)
-      /* La dictée est rapprochée de la master list : « 4 épices » redevient
-       * « Quatre-épices », « nuoc mame » propose « Nuoc mam » (27/07/2026).
-       * Plusieurs correspondances incertaines : on garde le texte entendu. */
-      const matches = dictationMatches(parsed.name)
-      const best = matches[0]
-      voiceFix = null
-      let nom = parsed.name
-      if (best && (matches.length === 1 || sameDictation(best, nom) || sameIngredient(best, nom))) {
-        if (fold(best) !== fold(nom) && !sameIngredient(best, nom) && !sameDictation(best, nom))
-          voiceFix = { raw: nom, suggested: best }
-        nom = best
-      }
-      name = nom.charAt(0).toUpperCase() + nom.slice(1)
-      qty = parsed.qty
-      hint = fold(nom) === fold(parsed.name)
-        ? 'Entendu : « ' + text.trim() + ' ». Vérifiez puis touchez Ajouter.'
-        : 'Entendu : « ' + text.trim() + ' » → « ' + nom + ' ». Vérifiez puis touchez Ajouter.'
-    }
-    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
-    rec.onend = () => {
-      listening = false
-      if (heard.trim()) { applyVoice(heard); heard = '' }
-      else if (hint === 'Je vous écoute…') hint = 'Rien entendu — réessayez, ou utilisez la dictée du clavier.'
-    }
-    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + '). Utilisez la dictée du clavier.' }
-    rec.onresult = ev => {
-      heard = [...ev.results].map(r => r[0].transcript).join(' ')
-      if (ev.results[ev.results.length - 1].isFinal) { applyVoice(heard); heard = '' }
     }
   })
 
-  /* Le 2e appui arrête TOUJOURS la dictée (demande Olivier 16/07) : l'état
-   * est posé au toucher, sans attendre onstart — absent parfois sur iPhone. */
-  function toggleMic() {
-    if (listening) { listening = false; rec.stop() }
-    else {
-      listening = true
-      try { rec.start() } catch { listening = false }
-    }
-  }
+  function toggleMic() { dictee.toggle() }
 </script>
 
 <section>
@@ -511,7 +486,7 @@
 {/if}
 
 <datalist id="stores">
-  {#each STORES as s (s)}<option value={s}></option>{/each}
+  {#each [...new Set([...store.lieux.map(l => l.name), ...store.items.map(i => i.store).filter(Boolean)])] as s (s)}<option value={s}></option>{/each}
 </datalist>
 <datalist id="known-ingredients">
   {#each knownNames().toSorted((a, b) => a.localeCompare(b, 'fr')) as n (n)}<option value={n}></option>{/each}

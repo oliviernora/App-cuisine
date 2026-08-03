@@ -81,12 +81,14 @@
    * du foyer, après export automatique de l'état actuel + confirmation. */
   let restoreInput = $state(null)
   let restoreMsg = $state('')
+  let restorePending = $state(null) // { data, quand } : sauvegarde lue, en attente de confirmation
 
   async function restaurer(e) {
     const file = e.target.files[0]
     e.target.value = ''
     if (!file) return
     restoreMsg = ''
+    restorePending = null
     let data
     try {
       data = JSON.parse(await file.text())
@@ -96,9 +98,12 @@
       return
     }
     const quand = data.exportedAt ? new Date(data.exportedAt).toLocaleString('fr-FR') : 'date inconnue'
-    if (!confirm(`Restaurer la sauvegarde du ${quand} (${data.items.length} produits, ${data.recipes.length} recettes) ?\n\n` +
-      'Toutes les données actuelles du foyer seront remplacées, pour tous ses membres. ' +
-      'Une sauvegarde de l’état actuel est d’abord téléchargée, pour pouvoir revenir en arrière.')) return
+    restorePending = { data, quand }
+  }
+
+  async function confirmerRestauration() {
+    const { data, quand } = restorePending
+    restorePending = null
     exporter()
     restoreMsg = 'Restauration en cours…'
     try {
@@ -255,6 +260,16 @@
           </button>
           <input type="file" accept=".json,application/json" hidden
             bind:this={restoreInput} onchange={restaurer} />
+          {#if restorePending}
+            <p class="message">Restaurer la sauvegarde du {restorePending.quand}
+              ({restorePending.data.items.length} produits, {restorePending.data.recipes.length} recettes) ?
+              Toutes les données actuelles du foyer seront remplacées, pour tous ses membres.
+              Une sauvegarde de l’état actuel est d’abord téléchargée, pour pouvoir revenir en arrière.</p>
+            <div class="manage-row">
+              <button type="button" class="inv-start danger-btn" onclick={confirmerRestauration}>Confirmer la restauration</button>
+              <button type="button" class="inv-manage" onclick={() => restorePending = null}>Annuler</button>
+            </div>
+          {/if}
           {#if restoreMsg}<p class="message">{restoreMsg}</p>{/if}
           <button type="button" class="linklike" onclick={signOut}>
             <Icon d={LOGOUT} /> Se déconnecter

@@ -23,8 +23,19 @@ function json(body: unknown, status = 200) {
   })
 }
 
+/** Adresse publique en http(s) — refuse les adresses privées (SSRF). */
+function hostOk(url: URL) {
+  const privateHost = /^(localhost$|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[)/
+  return ['http:', 'https:'].includes(url.protocol) && !privateHost.test(url.hostname)
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? ''
+  const who = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
+    headers: { authorization: `Bearer ${token}`, apikey: Deno.env.get('SUPABASE_ANON_KEY')! }
+  })
+  if (!who.ok) return json({ error: 'non connecté' }, 401)
   let url: URL
   let wantImage = false
   try {
@@ -34,19 +45,24 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: 'adresse invalide' }, 400)
   }
-  const privateHost = /^(localhost$|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[)/
-  if (!['http:', 'https:'].includes(url.protocol) || privateHost.test(url.hostname)) {
-    return json({ error: 'adresse invalide' }, 400)
-  }
   try {
-    const res = await fetch(url, {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) garde-manger',
-        accept: wantImage ? 'image/*' : 'text/html'
-      },
-      signal: AbortSignal.timeout(15000)
-    })
-    if (!res.ok) return json({ error: `page en erreur (${res.status})` }, 502)
+    // Redirections suivies à la main : chaque saut repasse par hostOk (SSRF).
+    let res = null as Response | null
+    for (let hop = 0; hop < 4; hop++) {
+      if (!hostOk(url)) return json({ error: 'adresse invalide' }, 400)
+      res = await fetch(url, {
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) garde-manger',
+          accept: wantImage ? 'image/*' : 'text/html'
+        },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(15000)
+      })
+      const loc = res.headers.get('location')
+      if (res.status >= 300 && res.status < 400 && loc) { url = new URL(loc, url); continue }
+      break
+    }
+    if (!res || !res.ok) return json({ error: `page en erreur (${res?.status ?? '?'})` }, 502)
     if (wantImage) {
       const type = (res.headers.get('content-type') ?? '').split(';')[0].trim()
       if (!type.startsWith('image/')) return json({ error: 'pas une image' }, 502)

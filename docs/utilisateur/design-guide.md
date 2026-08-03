@@ -263,7 +263,10 @@ Règles :
   (page du livre) », et « Photo du plat » dans le formulaire de réalisation
   (le nom du fichier choisi s'affiche sur le bouton). Vignettes 110 px à
   coins arrondis, légende « Plat » / « Page », **×** rond sombre en coin pour
-  supprimer (avec confirmation). Jamais d'image pleine page imposée.
+  supprimer — première touche : le × devient une pastille orange
+  « Supprimer ? », deuxième touche : suppression (03/08/2026, dernière
+  fenêtre bloquante remplacée avec la confirmation de restauration du
+  foyer). Jamais d'image pleine page imposée.
 - **Photo proposée à la relecture d'un import** (14/07/2026) : aperçu au
   format vignette (110 px, coins arrondis) accompagné d'une **case à
   cocher** « Joindre la photo du plat », cochée d'avance ; la rangée passe

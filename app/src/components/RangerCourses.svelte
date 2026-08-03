@@ -7,8 +7,9 @@
    * défaut : le dernier connu de l'ingrédient. */
   import { onMount } from 'svelte'
   import { store, rangerLigne, rangerNouveau, receivedLoc, parseDictation,
-    sameIngredient, sameDictation, formatQty } from '../lib/store.svelte.js'
+    sameIngredient, sameDictation, formatQty, fold } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
+  import { creerDictee } from '../lib/dictee.js'
   import { MIC } from '../lib/icons.js'
 
   let search = $state('')
@@ -22,9 +23,6 @@
   let listening = $state(false)
   let voiceAvailable = $state(true)
 
-  function fold(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   /* Les achats à ranger : lignes cochées (+ « reçues » d'avant la bascule). */
   const pool = $derived(store.shop.filter(s => s.done || s.received)
@@ -73,43 +71,25 @@
     voiceQty = 1
   }
 
-  let rec = null
+  function applyVoice(text) {
+    const parsed = parseDictation(text)
+    voiceQty = parsed.qty
+    search = parsed.name
+    hint = 'Entendu : « ' + text.trim() + ' ». Choisissez la ligne à ranger.'
+  }
+
+  let dictee = null
   onMount(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { voiceAvailable = false; hint = 'Pas de reconnaissance vocale ici : tapez quelques lettres.'; return }
-    rec = new SR()
-    rec.lang = 'fr-FR'
-    /* interimResults : sur iPhone, couper le micro à la main ne délivre
-     * jamais de résultat « final » (retour Olivier 16/07/2026). */
-    rec.interimResults = true
-    let heard = ''
-    const applyVoice = text => {
-      const parsed = parseDictation(text)
-      voiceQty = parsed.qty
-      search = parsed.name
-      hint = 'Entendu : « ' + text.trim() + ' ». Choisissez la ligne à ranger.'
-    }
-    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
-    rec.onend = () => {
-      listening = false
-      if (heard.trim()) { applyVoice(heard); heard = '' }
-      else if (hint === 'Je vous écoute…') hint = 'Rien entendu — réessayez, ou tapez quelques lettres.'
-    }
-    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + ').' }
-    rec.onresult = ev => {
-      heard = [...ev.results].map(r => r[0].transcript).join(' ')
-      if (ev.results[ev.results.length - 1].isFinal) { applyVoice(heard); heard = '' }
-    }
+    dictee = creerDictee({
+      onText: applyVoice,
+      onEtat: v => { listening = v },
+      onMessage: m => { hint = m },
+      messageRien: 'Rien entendu — réessayez, ou tapez quelques lettres.'
+    })
+    if (!dictee) { voiceAvailable = false; hint = 'Pas de reconnaissance vocale ici : tapez quelques lettres.' }
   })
 
-  /* Le 2e appui arrête toujours la dictée (demande Olivier 16/07). */
-  function toggleMic() {
-    if (listening) { listening = false; rec.stop() }
-    else {
-      listening = true
-      try { rec.start() } catch { listening = false }
-    }
-  }
+  function toggleMic() { dictee.toggle() }
 </script>
 
 <div class="manage-panel">

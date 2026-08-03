@@ -3,8 +3,9 @@
 ## Reprise rapide (passation du 07/07/2026 au soir — à lire en premier)
 
 ### Prochain chantier : commentaires 4 (docs/utilisateur/commentaires 4.md)
-Olivier a déposé ses commentaires après essai réel (03/08) — à traiter
-APRÈS la migration/publication du chantier livres. En résumé :
+Olivier a déposé ses commentaires après essai réel (03/08) — le chantier
+livres est migré ET publié (03/08 au soir), il ne reste que M70-M72 sur
+iPhone. En résumé :
 (1) modifier le nom d'un ingrédient en cours d'inventaire (dictée
 écorchée) ; (2) BUG renommages d'emplacements en chaîne/conflit de noms
 (cas concret « soin 1 »/« soin 2 » permutés — tout a merdé) ; (3) BUG
@@ -18,7 +19,31 @@ de gestion DÉDIÉ pour livres et URL (l'approche filtres ne tiendra pas
 une recette, coller une URL au retour. Méthode : lot 0 (cas
 d'utilisation + questions) puis GO.
 
-### Chantier livres non trouvés (03/08/2026) — LIVRÉ ET MIGRÉ le 03/08 au soir, PUBLICATION EN ATTENTE
+### Chantier revues + corrections (03/08/2026 soir) — LOTS A-B APPLIQUÉS ET PUBLIÉS
+4 revues indépendantes (code, doc, sécurité, UX) dans `docs/technique/revues/`
++ synthèse en 4 lots + analyse croisée de l'audit externe Antigravity/Gemini
+(retenu : cache hors ligne partiel ; écarté : découpage du store, « faille »
+RLS d'invitation). GO d'Olivier → lots A (sécurité) et B (ménage, ~300 lignes)
+appliqués : détail complet au cahier de tests, passage 03/08 (3). 175 verts,
+build OK, check:schema 18/18. **recipes.video conservé (105 vidéos Passard).**
+**`rapatrier-page` REDÉPLOYÉE le 03/08 au soir** (commande d'Olivier relancée
+depuis la racine — l'échec initial venait du cwd resté dans app/) et vérifiée
+en réel : 401 sans connexion, redirection http→https suivie et revalidée
+(github.com, 200). **PROD REPUBLIÉE le 03/08 au soir (GO d'Olivier)** :
+bundle `index-DSI9g6S3.js` sur l'alias, en-têtes X-Frame-Options DENY /
+nosniff / Referrer-Policy vérifiés en ligne.
+**RESTE :
+(3) recharger les appareils puis M70-M73 sur iPhone (M73 = confirmations
+deux touches + import URL) ;
+(4) optionnel, 1 clic d'Olivier : fermer les inscriptions (Supabase →
+Authentication → Sign-ups) ;
+(5) lot C documentation (archivage plan.md, exploitation.md…) — demande la
+liste des tests iPhone faits/à faire avec Olivier ;
+(6) backlog : étendre le cache hors ligne aux recettes de la semaine
+(écart de spec, vérifié) ; solder shopping.received à la prochaine
+migration ; politique UPDATE du bucket photos (remplacement silencieux).**
+
+### Chantier livres non trouvés (03/08/2026) — LIVRÉ, MIGRÉ ET PUBLIÉ le 03/08 au soir
 Retour terrain d'Olivier (03/08, tests M68-M69 iPhone) : le scan caméra
 marche (« plus compliqué que d'habitude » — à surveiller), mais **2 livres
 sur 3 non trouvés en ligne** (BookBuddy trouvait les trois). Idée
@@ -61,14 +86,19 @@ drop policy, confirmé, « Success », check:schema **18/18**) et
 marocaines, le Mango d'Olivier) mis de côté pour de vrai — « Livres à
 compléter · 1 » dans Gérer les sources. **Il est resté dans la file
 EXPRÈS : c'est le cas de test de la première vraie complétion.**
-**RESTE, à la reprise (Olivier redémarre Claude Code → le serveur MCP
-charge les nouveaux outils) :
-(1) première complétion réelle : Olivier demande « complète ma
-bibliothèque » → `livres_a_completer` → recherche web →
-`completer_source` (le Mango attend dans la file) ;
-(2) republier la prod (`vercel deploy --prod`, lots BnF + mise de côté
-ensemble) puis recharger l'app sur les appareils ;
-(3) M70-M72 sur iPhone (cahier).**
+**PREMIÈRE COMPLÉTION RÉELLE faite le 03/08 au soir** (« complète la
+bibliothèque ») : le Mango = « Pâtisseries marocaines », Nadia Paprikas,
+Mango 2018, trouvé par recherche web (libraires), fiche créée, couverture
+rapatriée (images.epagine.fr), file vide. La bibliothèque compte 2 livres
+(Larousse de la cuisine + celui-ci). **« Cuisine créole » (9782016279700)
+n'est ni en base ni dans la file** : consommé lors du parcours réel du
+lot 1 (fiche BnF pré-remplie mais non enregistrée) → à re-scanner sur
+iPhone (la BnF le trouve désormais).
+**PROD PUBLIÉE le 03/08 au soir en session (GO d'Olivier)** : build OK,
+`vercel deploy --prod` depuis `app/dist`, bundle `index-C7jvAhHo.js`
+vérifié sur l'alias https://garde-manger-chi.vercel.app.
+**RESTE : recharger l'app sur les appareils (service worker), puis
+M70-M72 sur iPhone (cahier) — dont le re-scan de Cuisine créole.**
 
 ### Chantier bibliothèque par scan ISBN — LIVRÉ le 02/08/2026, MIGRATION EN ATTENTE
 Demande d'Olivier du 02/08 : scanner le code-barres (ISBN) d'un livre et

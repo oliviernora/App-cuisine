@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js'
-import { seedRows } from './seed.js'
 import { parseRecipeFromHtml } from './jsonld-recipe.js'
 
 /* En développement, une mise à jour à chaud de ce module laisserait tourner
@@ -212,7 +211,7 @@ async function refresh() {
   if (i.data && s.data) saveCache()
 }
 
-export async function createHousehold(name, withSeed) {
+export async function createHousehold(name) {
   const id = crypto.randomUUID()
   const { error } = await supabase.from('households').insert({ id, name })
   if (error) throw error
@@ -221,7 +220,6 @@ export async function createHousehold(name, withSeed) {
     .insert({ household_id: id, user_id: store.session.user.id })
   if (e2) throw e2
   store.household = { id, name }
-  if (withSeed) await supabase.from('items').insert(seedRows(id))
   await startData()
 }
 
@@ -240,7 +238,7 @@ export async function joinHousehold(id) {
  * reste plus). L'état « retiré du panier » (NP1) vit au même niveau. */
 
 /** Minimum de réserve d'un ingrédient (sa fiche du référentiel ; 1 par défaut). */
-export function minOf(name) {
+function minOf(name) {
   return refOf(name)?.min ?? 1
 }
 
@@ -486,7 +484,7 @@ export async function rangerNouveau(name, qty, loc, storeName = '') {
 
 /** Range un achat : +n au stock à l'emplacement choisi, la ligne quitte la
  * liste de courses. */
-export async function stashReceived(entry, qty, loc) {
+async function stashReceived(entry, qty, loc) {
   store.shop = store.shop.filter(s => s.id !== entry.id)
   await supabase.from('shopping').delete().eq('id', entry.id)
   await rangerNouveau(entry.name, qty, loc, entry.store || '')
@@ -995,7 +993,7 @@ export function ingredientsOf(recipeId) {
     .toSorted((a, b) => a.position - b.position)
 }
 
-function fold(s) {
+export function fold(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
@@ -1370,7 +1368,7 @@ function toBase(qty, unit) {
 }
 
 /** Quantité affichable : { qty, unit } en unité lisible (1500 g → 1,5 kg). */
-export function displayPart(part) {
+function displayPart(part) {
   let { qty, unit } = part
   if (unit === 'g' && qty >= 1000) { qty /= 1000; unit = 'kg' }
   if (unit === 'ml' && qty >= 1000) { qty /= 1000; unit = 'l' }
@@ -1383,7 +1381,7 @@ export function formatQty(qty, unit) {
 }
 
 /** Facteur d'échelle d'une recette pour un événement : convives ÷ « pour N » × ajustement %. */
-export function eventScale(event, er) {
+function eventScale(event, er) {
   const recipe = store.recipes.find(r => r.id === er.recipe_id)
   const base = recipe?.servings > 0 && event.guests > 0 ? event.guests / recipe.servings : 1
   return base * (er.scale_pct ?? 100) / 100

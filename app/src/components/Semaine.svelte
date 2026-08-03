@@ -1,7 +1,7 @@
 <script>
   import { store, addEvent, removeEvent, updateEvent, attachRecipe, detachRecipe, addRealisation, lastMade,
     weekNeeds, formatQty, eventIngredients, setEventRecipeScale, setEventQtyOverride, searchRecipes, knownNames,
-    staleLots } from '../lib/store.svelte.js'
+    staleLots, fold } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import SousEcran from './SousEcran.svelte'
   import { addbarHeight } from '../lib/addbar.js'
@@ -105,9 +105,6 @@
   const paysConnus = $derived([...new Set(store.recipes.map(r => r.country).filter(Boolean))]
     .toSorted((a, b) => a.localeCompare(b, 'fr')))
 
-  function foldw(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   const pickResults = $derived.by(() => {
     if (!pick.trim() && !advSource && !advPays && !advIng.trim()) return []
@@ -115,7 +112,7 @@
     if (advSource) list = list.filter(r => r.source_id === advSource)
     if (advPays) list = list.filter(r => (r.country ?? '') === advPays)
     if (advIng.trim()) list = list.filter(r =>
-      store.ingredients.some(i => i.recipe_id === r.id && foldw(i.name).includes(foldw(advIng))))
+      store.ingredients.some(i => i.recipe_id === r.id && fold(i.name).includes(fold(advIng))))
     return list.toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
       .slice(0, 8)
   })

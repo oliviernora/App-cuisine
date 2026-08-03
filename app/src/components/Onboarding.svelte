@@ -2,7 +2,6 @@
   import { createHousehold, joinHousehold } from '../lib/store.svelte.js'
 
   let name = $state('Notre foyer')
-  let withSeed = $state(true)
   let code = $state('')
   let message = $state('')
   let busy = $state(false)
@@ -11,7 +10,7 @@
     e.preventDefault()
     busy = true
     message = ''
-    try { await createHousehold(name.trim() || 'Notre foyer', withSeed) }
+    try { await createHousehold(name.trim() || 'Notre foyer') }
     catch (err) { message = err.message; busy = false }
   }
 
@@ -31,10 +30,6 @@
 
     <form onsubmit={create}>
       <input bind:value={name} placeholder="Nom du foyer" aria-label="Nom du foyer">
-      <label class="check">
-        <input type="checkbox" bind:checked={withSeed}>
-        Importer l'inventaire d'épices initial (160 références)
-      </label>
       <button class="submit" disabled={busy}>Créer le foyer</button>
     </form>
 

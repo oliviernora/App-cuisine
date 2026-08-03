@@ -22,6 +22,7 @@
 | [`technique/suivi-cas-utilisation.md`](technique/suivi-cas-utilisation.md) | Validation et couverture de chaque cas, reste à faire |
 | [`technique/poc-ollama.md`](technique/poc-ollama.md) | POC extraction de recettes par IA locale : verdict, réglages, pièges |
 | [`technique/mcp.md`](technique/mcp.md) | Serveur MCP garde-manger : principes d'intégrité, mise en service |
+| [`technique/revues/`](technique/revues/) | Revues du 03/08/2026 (code, doc, sécurité, UX) + synthèse et plan d'action |
 | `../.claude/skills/principes-dev/` | Méthode de développement imposée (principes d'Olivier) |
 
 Règle (skill principes-dev) : la documentation est tenue à jour à chaque

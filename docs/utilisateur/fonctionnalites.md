@@ -482,8 +482,9 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   fois — 25/07/2026).
 - **Photos** : les boutons du bas ouvrent l'appareil photo (ou le sélecteur
   de fichier) ; plusieurs photos possibles — pages du livre et plats des
-  réalisations. Les vignettes s'affichent sur la fiche (× pour supprimer,
-  avec confirmation). La photo du plat ajoutée le jour d'une réalisation
+  réalisations. Les vignettes s'affichent sur la fiche (× pour supprimer :
+  le bouton devient « Supprimer ? », une 2e touche confirme — jamais de
+  fenêtre bloquante, 03/08/2026). La photo du plat ajoutée le jour d'une réalisation
   lui est rattachée. Les images sont compressées sur l'appareil avant
   l'envoi et stockées dans un espace **privé du foyer** (copie privée —
   jamais public). Limite actuelle : les photos ne sont pas encore
@@ -577,10 +578,12 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   orange sur l'icône Foyer le rappelle discrètement.
 - **Restauration** : « Restaurer une sauvegarde » recharge un fichier
   exporté et **remplace toutes les données du foyer** (décision Olivier
-  09/07/2026 : remplacement complet, pas de fusion). Garde-fous : l'état
-  actuel est d'abord exporté automatiquement, puis une confirmation
-  récapitule la date de la sauvegarde et son contenu. Un fichier étranger,
-  tronqué ou d'une autre version est refusé sans rien toucher.
+  09/07/2026 : remplacement complet, pas de fusion). Garde-fous : la
+  confirmation récapitule la date de la sauvegarde et son contenu dans
+  l'écran même (« Confirmer la restauration » / « Annuler », jamais de
+  fenêtre bloquante — 03/08/2026), et l'état actuel est exporté
+  automatiquement avant de remplacer. Un fichier étranger, tronqué ou
+  d'une autre version est refusé sans rien toucher.
 
 ## Application installable (PWA) et hors ligne
 

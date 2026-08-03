@@ -8,8 +8,6 @@
   import { addbarHeight } from '../lib/addbar.js'
   import { TRASH } from '../lib/icons.js'
 
-  const STORES = ['Leclerc', 'Grand Frais', 'Marché', 'Boutique spécialisée', 'Internet']
-
   let name = $state('')
 
   /* Courses façon liste de tâches (N4, décision Olivier 27/07/2026) : les
@@ -169,5 +167,5 @@
 {/if}
 
 <datalist id="stores-edit">
-  {#each [...new Set([...store.lieux.map(l => l.name), ...STORES, ...store.shop.map(s => s.store).filter(Boolean)])] as s (s)}<option value={s}></option>{/each}
+  {#each [...new Set([...store.lieux.map(l => l.name), ...store.shop.map(s => s.store).filter(Boolean)])] as s (s)}<option value={s}></option>{/each}
 </datalist>

@@ -10,11 +10,6 @@
   --warn: #C97B12;
   --warn-bg: #F7E8D2;
   --line: #E6E4DC;
-  --loc-cuisine: #C73E36;
-  --loc-chauffage: #E8842C;
-  --loc-reserve: #3D8B4F;
-  --loc-autre: #7B4B94;
-  --loc-vegan: #2E6F8E;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -27,11 +22,6 @@
     --warn: #E8A33B;
     --warn-bg: #33270F;
     --line: #2E3639;
-    --loc-cuisine: #E4635A;
-    --loc-chauffage: #F2A052;
-    --loc-reserve: #6FBE8C;
-    --loc-autre: #B48BC9;
-    --loc-vegan: #6FAECB;
   }
 }
 
@@ -340,6 +330,7 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
 /* « Foyer et compte » est un écran : le panneau vit dans main, pas dans l'en-tête */
 .foyer-panel { margin-top: 12px; }
 .foyer-panel .inv-manage { align-self: flex-start; }
+.foyer-panel .danger-btn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
 
 .row .info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 4px 0; }
 .row .info .note { white-space: normal; }
@@ -393,6 +384,8 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
   border: none; border-radius: 50%; cursor: pointer;
   background: rgba(0, 0, 0, .55); color: #fff; font-size: 15px; line-height: 1;
 }
+/* 2e touche demandée avant suppression (jamais de fenêtre bloquante) */
+.photo-del.confirm { width: auto; padding: 0 10px; border-radius: 12px; background: var(--warn); font-size: 13px; }
 /* photo du plat proposée à la relecture d'un import URL : aperçu + case à cocher */
 .import-photo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
 .import-photo img {

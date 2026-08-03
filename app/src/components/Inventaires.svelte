@@ -5,23 +5,16 @@
     addCategory, renameCategory, removeCategory, setCategorySourcing,
     setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
     invIsHere, unpauseInventory,
-    SOURCING_TYPES } from '../lib/store.svelte.js'
+    SOURCING_TYPES, fold } from '../lib/store.svelte.js'
   import SousEcran from './SousEcran.svelte'
   import Stock from './Stock.svelte'
-
-  const KNOWN_ORDER = ['Cuisine', 'Sous chauffage', 'Réserve entrée', 'Autre', 'Vegan',
-    'Placard', 'Frigo', 'Congélateur 1', 'Congélateur 2', 'Cave']
 
   const locs = $derived.by(() => {
     const names = [...new Set([
       ...store.items.map(i => i.loc).filter(Boolean),
       ...store.locations.map(l => l.name)
     ])]
-    const rank = n => {
-      const i = KNOWN_ORDER.indexOf(n)
-      return i === -1 ? KNOWN_ORDER.length : i
-    }
-    return names.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, 'fr'))
+    return names.sort((a, b) => a.localeCompare(b, 'fr'))
   })
 
   function lastDate(name) {
@@ -152,13 +145,10 @@
   let mlOpen = $state(false)
   let mlSearch = $state('')
 
-  function foldml(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   const mlSections = $derived.by(() => {
     let liste = masterList()
-    if (mlSearch.trim()) liste = liste.filter(i => foldml(i.name).includes(foldml(mlSearch)))
+    if (mlSearch.trim()) liste = liste.filter(i => fold(i.name).includes(fold(mlSearch)))
     const groupes = [...Map.groupBy(liste, i => i.category)]
     return groupes.toSorted((a, b) => (a[0] === '') !== (b[0] === '')
       ? (a[0] === '' ? -1 : 1)
@@ -211,7 +201,7 @@
   async function saveIngredientName(oldName) {
     const n = edName.trim()
     if (!n || n === oldName) return
-    const fusion = mlTotal.some(i => i.name !== oldName && foldml(i.name) === foldml(n))
+    const fusion = mlTotal.some(i => i.name !== oldName && fold(i.name) === fold(n))
     if (fusion && !edConfirm) { edConfirm = true; return }
     busy = true
     await renameIngredient(oldName, n)

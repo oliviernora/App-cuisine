@@ -4,7 +4,7 @@
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
     attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor, coverUrl,
-    attachPendingPhoto, removePendingBook } from '../lib/store.svelte.js'
+    attachPendingPhoto, removePendingBook, fold } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import SousEcran from './SousEcran.svelte'
@@ -19,9 +19,6 @@
    * ouverte, elle remplace liste, recherche et import ; la croix ferme. */
   const ficheRecipe = $derived(open ? store.recipes.find(r => r.id === open) : null)
 
-  function fold(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   /** Nom court d'une source pour les chips (« Alain Passard — … » → « Alain Passard »). */
   function shortSource(source) {
@@ -176,8 +173,11 @@
     busy = false
   }
 
+  let confirmPhotoDel = $state(null) // id de la photo dont le × attend une 2e touche
+
   async function removePhoto(photo) {
-    if (!confirm('Supprimer cette photo ?')) return
+    if (confirmPhotoDel !== photo.id) { confirmPhotoDel = photo.id; return }
+    confirmPhotoDel = null
     busy = true
     await deletePhoto(photo)
     busy = false
@@ -376,9 +376,10 @@
                     {#await photoUrl(photo) then url}
                       <img src={url} alt={photo.kind === 'page' ? 'Page du livre' : 'Photo du plat'} loading="lazy">
                     {/await}
+                    <button type="button" class="photo-del" class:confirm={confirmPhotoDel === photo.id}
+                      aria-label={confirmPhotoDel === photo.id ? 'Confirmer la suppression' : 'Supprimer la photo'}
+                      onclick={() => removePhoto(photo)}>{confirmPhotoDel === photo.id ? 'Supprimer ?' : '×'}</button>
                     <figcaption>{photo.kind === 'page' ? 'Page' : 'Plat'}</figcaption>
-                    <button type="button" class="photo-del" aria-label="Supprimer la photo"
-                      onclick={() => removePhoto(photo)}>×</button>
                   </figure>
                 {/each}
               </div>
@@ -554,7 +555,7 @@
           <p><strong>{importProposal.title}</strong> — relire et corriger avant d'enregistrer :</p>
           {#if importProposal.imageUrl}
             <div class="import-photo">
-              <img src={importProposal.imageUrl} alt="Photo du plat proposée par la page">
+              <img src={importProposal.imageUrl} alt="Plat proposé par la page">
               <label><input type="checkbox" bind:checked={importKeepImage}> Joindre la photo du plat</label>
             </div>
           {/if}

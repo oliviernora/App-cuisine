@@ -2,9 +2,10 @@
   import { onMount } from 'svelte'
   import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory,
     pauseInventory, lotAdjustments, looseMatch, sameIngredient, parseDictation,
-    dictationMatches, sameDictation, confirmMerge } from '../lib/store.svelte.js'
+    dictationMatches, sameDictation, confirmMerge, fold } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { addbarHeight } from '../lib/addbar.js'
+  import { creerDictee } from '../lib/dictee.js'
   import { MINUS, PLUS, MIC } from '../lib/icons.js'
 
   let search = $state('')
@@ -15,9 +16,6 @@
   let listening = $state(false)
   let voiceAvailable = $state(true)
 
-  function fold(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  }
 
   const locItems = $derived(store.items.filter(i => i.loc === store.inv.loc)
     .toSorted((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })))
@@ -114,46 +112,25 @@
     await finishInventory()
   }
 
-  let rec = null
+  function applyVoice(text) {
+    const { qty: n, name } = parseDictation(text)
+    const vu = declareByName(name, n, true)
+    hint = vu ? 'Vu : ' + vu + (n > 1 ? ' × ' + n : '')
+      : 'Plusieurs produits correspondent — choisissez dans la liste.'
+  }
+
+  let dictee = null
   onMount(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { voiceAvailable = false; hint = 'Pas de reconnaissance vocale ici : tapez quelques lettres puis touchez la ligne.'; return }
-    rec = new SR()
-    rec.lang = 'fr-FR'
-    /* interimResults : sur iPhone, couper le micro à la main ne délivre
-     * jamais de résultat « final » — on garde le dernier texte entendu et
-     * on le traite à la fin (retour Olivier 16/07/2026). */
-    rec.interimResults = true
-    let heard = ''
-    const applyVoice = text => {
-      const { qty: n, name } = parseDictation(text)
-      const vu = declareByName(name, n, true)
-      hint = vu ? 'Vu : ' + vu + (n > 1 ? ' × ' + n : '')
-        : 'Plusieurs produits correspondent — choisissez dans la liste.'
-    }
-    rec.onstart = () => { listening = true; hint = 'Je vous écoute…' }
-    rec.onend = () => {
-      listening = false
-      if (heard.trim()) { applyVoice(heard); heard = '' }
-      else if (hint === 'Je vous écoute…') hint = 'Rien entendu — réessayez, ou tapez quelques lettres.'
-    }
-    rec.onerror = ev => { hint = 'Micro indisponible (' + ev.error + ').' }
-    rec.onresult = ev => {
-      heard = [...ev.results].map(r => r[0].transcript).join(' ')
-      if (ev.results[ev.results.length - 1].isFinal) { applyVoice(heard); heard = '' }
-    }
+    dictee = creerDictee({
+      onText: applyVoice,
+      onEtat: v => { listening = v },
+      onMessage: m => { hint = m },
+      messageRien: 'Rien entendu — réessayez, ou tapez quelques lettres.'
+    })
+    if (!dictee) { voiceAvailable = false; hint = 'Pas de reconnaissance vocale ici : tapez quelques lettres puis touchez la ligne.' }
   })
 
-  /* Le 2e appui arrête TOUJOURS la dictée (demande Olivier 16/07) : l'état
-   * est posé au toucher, sans attendre l'événement onstart — sur iPhone il
-   * peut ne jamais venir, et le bouton restait « sourd ». */
-  function toggleMic() {
-    if (listening) { listening = false; rec.stop() }
-    else {
-      listening = true
-      try { rec.start() } catch { listening = false }
-    }
-  }
+  function toggleMic() { dictee.toggle() }
 </script>
 
 <section class="inventory">

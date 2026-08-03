@@ -16,7 +16,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
-import { parseIngredientLine } from '../app/src/lib/ligne-ingredient.js'
+import { parseIngredientLine, ingredientLine as ligneIngredient } from '../app/src/lib/ligne-ingredient.js'
 
 const DIR = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(DIR, '..')
@@ -24,7 +24,7 @@ const ROOT = join(DIR, '..')
 const TABLES = ['items', 'shopping', 'households', 'household_members', 'locations',
   'item_lots', 'sources', 'pending_books', 'recipes', 'realisations', 'events',
   'event_recipes', 'recipe_ingredients', 'ingredient_refs', 'ingredient_categories',
-  'recipe_photos']
+  'recipe_photos', 'stores', 'residences']
 
 let supabase = null
 let householdId = null
@@ -69,9 +69,9 @@ function fold(s) {
   return (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
+/** Ligne du module partagé, avec le « ! » (dur à sourcer) rendu lisible. */
 function ingredientLine(i) {
-  return [i.qty_raw || i.qty, i.unit, i.name].filter(v => v !== null && v !== undefined && v !== '').join(' ')
-    + (i.note ? ', ' + i.note : '') + (i.optional ? ' (facultatif)' : '') + (i.hard ? ' [à commander à l\'avance]' : '')
+  return ligneIngredient({ ...i, hard: false }) + (i.hard ? ' [à commander à l\'avance]' : '')
 }
 
 function texte(s) {
@@ -253,11 +253,19 @@ server.tool(
   { recherche: z.string().optional() },
   outil(async ({ recherche }) => {
     const items = await rows('items')
+    /* Le minimum de réserve vit sur la fiche du référentiel (défaut 1), plus
+     * sur items.min (colonne héritée, plus écrite). */
+    const refs = await rows('ingredient_refs', 'name, aliases, min')
+    const minDe = new Map()
+    for (const r of refs) for (const n of [r.name, ...(r.aliases ?? [])]) minDe.set(fold(n), r.min ?? 1)
     const q = fold(recherche ?? '')
     const list = items.filter(i => !q || fold(i.name).includes(q))
       .toSorted((a, b) => (a.loc ?? '').localeCompare(b.loc ?? '', 'fr') || a.name.localeCompare(b.name, 'fr'))
     if (!list.length) return 'Rien au stock pour cette recherche.'
-    return list.map(i => `- ${i.name} : ${i.qty ?? '?'}${i.min ? ' (mini ' + i.min + ')' : ''} · ${i.loc || 'sans emplacement'}${i.store ? ' · magasin : ' + i.store : ''}${i.qty === 0 ? ' · ÉPUISÉ' : ''}`).join('\n')
+    return list.map(i => {
+      const min = minDe.get(fold(i.name)) ?? 1
+      return `- ${i.name} : ${i.qty ?? '?'}${min > 1 ? ' (mini ' + min + ')' : ''} · ${i.loc || 'sans emplacement'}${i.store ? ' · magasin : ' + i.store : ''}${i.qty === 0 ? ' · ÉPUISÉ' : ''}`
+    }).join('\n')
   })
 )
 
