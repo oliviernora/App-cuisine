@@ -1,14 +1,15 @@
 <script>
   import { store, lastMade, addRealisation, ingredientsOf, saveRecipeDetails,
-    searchRecipes, renameSource, addSource, setRecipeSource,
+    searchRecipes, setRecipeSource,
     knownNames, photosOf, addRecipePhoto, photoUrl, deletePhoto, setWishlist, ingredientLine,
     fetchRecipeFromUrl, createImportedRecipe, findDuplicateRecipe, compressImage,
-    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor, coverUrl,
-    attachPendingPhoto, removePendingBook, fold } from '../lib/store.svelte.js'
+    attachImportedPhoto, saveRecipeNotes, fetchPagePhotoFor,
+    fold } from '../lib/store.svelte.js'
   import { ollamaReady, extractRecipeFromImages, proposalFromExtraction } from '../lib/ollama-recipe.js'
   import { proposalFromText } from '../lib/texte-recette.js'
   import SousEcran from './SousEcran.svelte'
   import ScanLivre from './ScanLivre.svelte'
+  import Bibliotheque from './Bibliotheque.svelte'
 
   let search = $state('')
   let open = $state(null)
@@ -51,12 +52,13 @@
     return recipes.toSorted((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
   })
 
-  /* Gérer les sources : sous-écran, renommage au crayon sur le nom. */
-  let manageSources = $state(false)
-  let srcEdit = $state(null)
-  let srcEditName = $state('')
-  let newSource = $state('')
+  /* Bibliothèque dédiée des livres et des sites (N16, 04/08/2026) —
+   * remplace l'ancien « Gérer les sources » du dépliant Filtres. */
+  let biblio = $state(false)
+  let biblioSource = $state(null) // fiche source ouverte (survit aux sous-écrans)
+  let importFor = $state(null) // source d'où vient l'import (fiche bibliothèque)
   let scanLivre = $state(false) // sous-écran « Scanner un livre » (N15)
+  if (store.uiAction === 'bibliotheque') { biblio = true; store.uiAction = null }
 
   /* Les filtres particuliers vivent dans un dépliant refermable (décision
    * Olivier 07/07/2026) ; seule la recherche plein texte reste toujours visible. */
@@ -64,13 +66,6 @@
   const activeFilters = $derived(
     (sourceFilter !== 'Toutes' ? 1 : 0) + (categoryFilter !== 'Toutes' ? 1 : 0) +
     (ingFilter.trim() ? 1 : 0) + (wishFilter ? 1 : 0))
-
-  async function renameOne(source) {
-    const title = srcEditName.trim()
-    if (!title) return
-    await renameSource(source, title)
-    srcEdit = null
-  }
 
   function sourceOf(recipe) {
     return store.sources.find(s => s.id === recipe.source_id)
@@ -106,7 +101,6 @@
   function toggleOpen(recipe) {
     open = open === recipe.id ? null : recipe.id
     editing = false
-    manageSources = false
     notesText = recipe.notes ?? ''
     photoMsg = ''
   }
@@ -196,7 +190,7 @@
 
   function toggleImport() {
     importOpen = !importOpen
-    if (!importOpen) { cancelImport(); return }
+    if (!importOpen) { cancelImport(); importFor = null; return }
     ollamaReady().then(ok => { ollamaOk = ok })
   }
 
@@ -221,7 +215,8 @@
         }))
       }
       const proposal = proposalFromExtraction(await extractRecipeFromImages(images))
-      importProposal = { url: '', sourceTitle: '', category: '', country: '', sourceKind: 'livre', ...proposal }
+      importProposal = { url: '', sourceTitle: importFor?.title ?? '', category: '', country: '',
+        sourceKind: importFor?.kind ?? 'livre', ...proposal }
       importFiles = files
     } catch {
       importError = 'L\'extraction locale a échoué. Vérifier qu\'Ollama tourne sur ce PC, puis réessayer.'
@@ -244,7 +239,8 @@
     importProposal = {
       url,
       title: proposal.title,
-      sourceTitle: proposal.sourceName,
+      // Venu de la fiche d'un site de la bibliothèque : la recette lui revient.
+      sourceTitle: importFor?.title ?? proposal.sourceName,
       servings: proposal.servings ?? '',
       category: proposal.category,
       country: '',
@@ -302,7 +298,8 @@
     const proposal = proposalFromText(importText)
     if (!proposal.title) { importError = 'Le texte est vide.'; return }
     importError = ''
-    importProposal = { url: '', sourceTitle: '', category: '', country: '', sourceKind: 'livre', ...proposal }
+    importProposal = { url: '', sourceTitle: importFor?.title ?? '', category: '', country: '',
+      sourceKind: importFor?.kind ?? 'livre', ...proposal }
   }
 </script>
 
@@ -441,73 +438,8 @@
     </SousEcran>
   {:else if scanLivre}
     <ScanLivre fermer={() => scanLivre = false} />
-  {:else if manageSources}
-    <SousEcran titre="Gérer les sources" fermer={() => { manageSources = false; srcEdit = null }}>
-      <div class="manage-panel">
-        <div class="manage-row">
-          <button type="button" class="inv-start" onclick={() => scanLivre = true}>
-            Scanner un livre (code-barres)
-          </button>
-        </div>
-        <p>Renommer une source (crayon) — un nom déjà existant <strong>fusionne</strong> les deux :</p>
-        <ul class="manage-items">
-          {#each store.sources.toSorted((a, b) => a.title.localeCompare(b.title, 'fr')) as source (source.id)}
-            <li class="row">
-              {#if srcEdit === source.id}
-                <input class="rename-input" bind:value={srcEditName} aria-label={'Nouveau nom de ' + source.title}>
-                <button type="button" class="inv-start" disabled={busy || !srcEditName.trim()}
-                  onclick={() => renameOne(source)}>OK</button>
-                <button type="button" class="inv-manage" onclick={() => srcEdit = null}>Annuler</button>
-              {:else}
-                {#if source.cover_path}
-                  {#await coverUrl(source) then url}
-                    <img class="cover-thumb" src={url} alt="" loading="lazy">
-                  {/await}
-                {/if}
-                <div class="info">
-                  <span class="name" title={source.title}>{source.title}</span>
-                  <span class="note">{[
-                    store.recipes.filter(r => r.source_id === source.id).length + ' recette(s)',
-                    source.author, source.year
-                  ].filter(Boolean).join(' · ')}</span>
-                </div>
-                <button type="button" class="icon-btn" aria-label={'Renommer ' + source.title} title="Renommer"
-                  onclick={() => { srcEdit = source.id; srcEditName = source.title }}>✎</button>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-        <div class="manage-row se-add">
-          <input bind:value={newSource} placeholder="Nouvelle source (livre, site…)" aria-label="Nouvelle source">
-          <button type="button" class="inv-start" disabled={busy || !newSource.trim()}
-            onclick={async () => { await addSource(newSource); newSource = '' }}>Ajouter</button>
-        </div>
-        {#if store.pendingBooks.length}
-          <p class="group-title">Livres à compléter <span class="n">· {store.pendingBooks.length}</span></p>
-          <p class="note">Mis de côté au scan — demander à Claude de « compléter la
-            bibliothèque » ; photo de secours possible pour les introuvables.</p>
-          <ul class="manage-items">
-            {#each store.pendingBooks as book (book.id)}
-              <li class="row">
-                <div class="info">
-                  <span class="name">ISBN {book.isbn}</span>
-                  <span class="note">{book.photo_path ? 'photo jointe' : 'sans photo'}</span>
-                </div>
-                <label class="icon-btn" title="Photographier la couverture">📷
-                  <input type="file" accept="image/*" capture="environment" hidden
-                    aria-label={'Photo de couverture pour ISBN ' + book.isbn}
-                    onchange={async e => { const f = e.target.files[0]; if (f) await attachPendingPhoto(book, f); e.target.value = '' }}>
-                </label>
-                <button type="button" class="icon-btn" aria-label={'Retirer ISBN ' + book.isbn}
-                  title="Retirer de la liste" onclick={() => removePendingBook(book)}>×</button>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
-    </SousEcran>
   {:else if importOpen}
-    <SousEcran titre="Importer une recette" fermer={toggleImport}>
+    <SousEcran titre={importFor ? 'Importer — ' + importFor.title : 'Importer une recette'} fermer={toggleImport}>
       <div class="manage-panel">
         {#if !importProposal}
           <form class="manage-row" onsubmit={e => { e.preventDefault(); fetchImport() }}>
@@ -594,6 +526,12 @@
         {/if}
       </div>
     </SousEcran>
+  {:else if biblio}
+    <Bibliotheque fermer={() => { biblio = false; biblioSource = null }}
+      ouvrirRecette={toggleOpen}
+      scannerLivre={() => scanLivre = true}
+      sourceOuverte={biblioSource} ouvrirSource={id => biblioSource = id}
+      importerPour={src => { importFor = src; importOpen = true; ollamaReady().then(ok => { ollamaOk = ok }) }} />
   {:else}
   <div class="filters">
     <div class="searchrow">
@@ -628,13 +566,15 @@
             onclick={() => wishFilter = !wishFilter}>★ Wish list</button>
         </div>
         <div class="manage-row">
-          <button type="button" class="inv-manage" onclick={() => manageSources = !manageSources}>Gérer les sources</button>
           <button type="button" class="inv-start" onclick={() => filtersOpen = false}>Refermer — voir les recettes</button>
         </div>
       </div>
     {/if}
   </div>
   <div class="toolbar" style="justify-content: flex-start; margin: 8px 0 0">
+    <button type="button" class="inv-manage" onclick={() => biblio = true}>
+      Bibliothèque (livres et sites)
+    </button>
     <button type="button" class="inv-manage" onclick={toggleImport}>
       Importer une recette (URL, photos, texte)
     </button>

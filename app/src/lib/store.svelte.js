@@ -26,9 +26,12 @@ export const store = $state({
   refs: [],
   categories: [], // genres d'ingrédients (master list des genres + sourcing par défaut)
   lieux: [], // lieux d'achat gérés (N3 point 4, 27/07/2026) — table stores
+  minimums: [], // réserve minimum par (ingrédient × résidence) — 04/08/2026
+  ingredientStores: [], // lieux d'achat multiples par ingrédient — 04/08/2026
   pendingBooks: [], // livres non trouvés mis de côté au scan (NP15 révisé, 03/08/2026)
   photos: [],
-  inv: null,
+  inv: null, // l'inventaire OUVERT (affiché) ; jamais en pause
+  invs: [], // les inventaires EN PAUSE, toutes résidences (plusieurs de front, 04/08/2026)
   uiAction: null, // raccourci de l'écran d'accueil, consommé par l'écran cible (27/07/2026)
   recipesLoaded: false, // avant le chargement, la synchro des courses de la semaine ne tourne pas
   schemaWarning: false,
@@ -237,9 +240,36 @@ export async function joinHousehold(id) {
  * fiche du référentiel (ingredient_refs.min, défaut 1 = rachat quand il n'en
  * reste plus). L'état « retiré du panier » (NP1) vit au même niveau. */
 
-/** Minimum de réserve d'un ingrédient (sa fiche du référentiel ; 1 par défaut). */
-function minOf(name) {
-  return refOf(name)?.min ?? 1
+/** Minimum de réserve d'un ingrédient DANS UNE RÉSIDENCE (04/08/2026) :
+ * le réglage de la résidence, sinon celui de la fiche du référentiel
+ * (l'ancien minimum global, décision Q2), sinon 1. */
+export function minOf(name, residenceId = store.residence?.id) {
+  const key = fold(canonicalName(name))
+  const row = residenceId
+    ? store.minimums.find(m => m.residence_id === residenceId && fold(m.name) === key)
+    : null
+  return row ? Number(row.min) : (refOf(name)?.min ?? 1)
+}
+
+/** Règle le minimum d'un ingrédient pour UNE résidence (upsert local + base). */
+export async function setResidenceMin(name, residenceId, min) {
+  const value = Math.max(0, Math.round(Number(min) || 0))
+  const canonical = canonicalName(name)
+  const key = fold(canonical)
+  const row = store.minimums.find(m => m.residence_id === residenceId && fold(m.name) === key)
+  if (row) {
+    row.min = value
+    const { error } = await supabase.from('ingredient_minimums')
+      .update({ min: value }).eq('id', row.id)
+    if (error) store.schemaWarning = true
+  } else {
+    const { data, error } = await supabase.from('ingredient_minimums')
+      .insert({ household_id: store.household.id, residence_id: residenceId, name: canonical, min: value })
+      .select().single()
+    if (error || !data) { store.schemaWarning = true; return }
+    store.minimums.push(data)
+  }
+  await syncShop()
 }
 
 /** « Retiré du panier » (NP1) au niveau ingrédient. */
@@ -341,7 +371,7 @@ export async function syncShop() {
       const entry = shopEntryOf(g)
       if (g.total < g.min && !entry && !g.dismissed) {
         inserts.push({ ...scopeFields(), item_id: g.rows[0].id, name: g.name,
-          store: g.rows.find(r => r.store)?.store || sourcingStore(g.name), manual: false })
+          store: g.rows.find(r => r.store)?.store || preferredStore(g.name) || sourcingStore(g.name), manual: false })
       } else if (g.total >= g.min && entry && !entry.done && !entry.manual) {
         store.shop = store.shop.filter(s => s.id !== entry.id)
         const { error } = await supabase.from('shopping').delete().eq('id', entry.id)
@@ -587,10 +617,17 @@ export async function reprendreLieux() {
   }
 }
 
-/** Ingrédients achetables sur un lieu : magasin mémorisé de l'ingrédient,
- * ou sourcing correspondant (fiche, sinon genre). */
+/** Ingrédients achetables sur un lieu : liens de la fiche ingrédient
+ * (04/08/2026), magasin mémorisé, ou sourcing correspondant (fiche, sinon
+ * genre). */
 export function lieuIngredients(name) {
   const out = new Map()
+  const lieu = store.lieux.find(l => l.name === name)
+  if (lieu) {
+    for (const l of store.ingredientStores.filter(x => x.store_id === lieu.id)) {
+      out.set(fold(canonicalName(l.name)), canonicalName(l.name))
+    }
+  }
   for (const i of store.items) {
     if (i.store === name) out.set(fold(canonicalName(i.name)), canonicalName(i.name))
   }
@@ -627,7 +664,9 @@ export function exportPayload() {
     ingredient_refs: store.refs,
     ingredient_categories: store.categories,
     recipe_photos: store.photos,
-    stores: store.lieux
+    stores: store.lieux,
+    ingredient_minimums: store.minimums,
+    ingredient_stores: store.ingredientStores
   }
 }
 
@@ -640,7 +679,8 @@ export function exportPayload() {
 // Ordre d'insertion : parents avant enfants (suppression en ordre inverse).
 const RESTORE_TABLES = ['residences', 'locations', 'items', 'shopping', 'item_lots',
   'sources', 'recipes', 'recipe_ingredients', 'realisations', 'events',
-  'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos', 'stores']
+  'event_recipes', 'ingredient_refs', 'ingredient_categories', 'recipe_photos', 'stores',
+  'ingredient_minimums', 'ingredient_stores']
 
 /** Vérifie qu'un fichier est bien une sauvegarde exploitable (sinon lève).
  * Une sauvegarde d'avant les résidences (16/07/2026) reste acceptée : ses
@@ -652,6 +692,7 @@ export function checkBackup(data) {
   for (const table of RESTORE_TABLES) {
     if (table === 'residences') continue // absente des sauvegardes antérieures au 16/07/2026
     if (table === 'stores') continue // absente des sauvegardes antérieures au 28/07/2026
+    if (table === 'ingredient_minimums' || table === 'ingredient_stores') continue // antérieures au 04/08/2026
     if (!Array.isArray(data[table])) throw new Error(`sauvegarde incomplète (« ${table} » absent).`)
   }
 }
@@ -730,6 +771,14 @@ async function loadRecipes() {
   const pb = await supabase.from('pending_books').select().eq('household_id', hid)
   if (pb.error) store.schemaWarning = true
   else store.pendingBooks = pb.data
+  // Fiche ingrédient (04/08/2026) : minimums par résidence et lieux d'achat
+  // multiples — même motif, requêtes à part tant que la migration attend.
+  const mn = await supabase.from('ingredient_minimums').select().eq('household_id', hid)
+  if (mn.error) store.schemaWarning = true
+  else store.minimums = mn.data
+  const ist = await supabase.from('ingredient_stores').select().eq('household_id', hid)
+  if (ist.error) store.schemaWarning = true
+  else store.ingredientStores = ist.data
   store.recipesLoaded = true
   await syncWeekShopping()
 }
@@ -829,6 +878,26 @@ export async function addSource(title, kind = 'livre') {
 export async function setRecipeSource(recipe, sourceId) {
   recipe.source_id = sourceId
   await supabase.from('recipes').update({ source_id: sourceId }).eq('id', recipe.id)
+}
+
+/** Adresse d'une source « site » (N16, 04/08/2026). Échec d'écriture =
+ * migration `sources.url` en attente : signalé, jamais silencieux. */
+export async function setSourceUrl(source, url) {
+  let u = url.trim()
+  if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u
+  const { error } = await supabase.from('sources').update({ url: u }).eq('id', source.id)
+  if (error) { store.schemaWarning = true; return false }
+  source.url = u
+  return true
+}
+
+/** Adresse à visiter pour une source : son url, sinon l'origine de l'une
+ * de ses recettes en ligne (les sources d'avant la migration N16). */
+export function siteUrlOf(source) {
+  if (source.url) return source.url
+  const withUrl = store.recipes.find(r => r.source_id === source.id && r.url)
+  if (!withUrl) return null
+  try { return new URL(withUrl.url).origin } catch { return null }
 }
 
 /* ----- Bibliothèque : livres documentés par ISBN (N15) ----- */
@@ -1126,6 +1195,37 @@ export function dictationMatches(name) {
   return [...best.values()].toSorted((x, y) => x.d - y.d).map(x => x.name)
 }
 
+/** Les alias confirmés d'un ingrédient (fiche N14). */
+export function aliasesOf(name) {
+  return refOf(name)?.aliases ?? []
+}
+
+/** Retire un alias confirmé d'une fiche du référentiel (fiche ingrédient,
+ * décision Olivier 04/08/2026) : l'orthographe cesse d'être reconnue. */
+export async function removeAlias(name, alias) {
+  const ref = refOf(name)
+  if (!ref) return
+  ref.aliases = ref.aliases.filter(a => fold(a) !== fold(alias))
+  const { error } = await supabase.from('ingredient_refs')
+    .update({ aliases: ref.aliases }).eq('id', ref.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Nom canonique si la saisie est EXACTEMENT un ingrédient connu du foyer
+ * (master list, stock, recettes) à la casse, aux accents et aux
+ * chiffres-en-mots près — sinon null. Un tel nom se déclare directement à
+ * l'inventaire, même si le produit n'existe que dans une autre maison
+ * (bug du 03/08 : « Cumin moulu » partait dans le menu d'ambiguïté). */
+export function exactKnownName(name) {
+  const f = foldDictation(name)
+  if (!f) return null
+  for (const r of store.refs) {
+    if (foldDictation(r.name) === f || r.aliases.some(a => foldDictation(a) === f)) return r.name
+  }
+  const known = knownNames().find(n => foldDictation(n) === f)
+  return known ? canonicalName(known) : null
+}
+
 /** Paires de noms probablement identiques, à confirmer une par une (jamais de fusion silencieuse). */
 export function pendingMerges() {
   const groups = Map.groupBy(knownNames(), depluralize)
@@ -1301,6 +1401,50 @@ export function sourcingOf(name) {
 function sourcingStore(name) {
   const s = sourcingOf(name)
   return s.note || s.sourcing
+}
+
+/* ----- Lieux d'achat MULTIPLES par ingrédient (N14, décision Olivier
+ * 04/08/2026) : un ingrédient peut s'acheter dans plusieurs boutiques et
+ * sur plusieurs sites. Les sites valent pour tout le foyer ; une boutique
+ * physique appartient à une résidence (non rangée = visible partout). */
+
+/** Les lieux d'achat d'un ingrédient (objets de la table stores). */
+export function storesOf(name) {
+  const key = fold(canonicalName(name))
+  return store.ingredientStores.filter(l => fold(l.name) === key)
+    .map(l => store.lieux.find(s => s.id === l.store_id))
+    .filter(Boolean)
+}
+
+export async function addIngredientStore(name, storeId) {
+  const canonical = canonicalName(name)
+  if (storesOf(name).some(s => s.id === storeId)) return
+  const { data, error } = await supabase.from('ingredient_stores')
+    .insert({ household_id: store.household.id, name: canonical, store_id: storeId })
+    .select().single()
+  if (error || !data) { store.schemaWarning = true; return }
+  store.ingredientStores.push(data)
+}
+
+export async function removeIngredientStore(name, storeId) {
+  const key = fold(canonicalName(name))
+  const row = store.ingredientStores.find(l => fold(l.name) === key && l.store_id === storeId)
+  if (!row) return
+  store.ingredientStores = store.ingredientStores.filter(l => l !== row)
+  const { error } = await supabase.from('ingredient_stores').delete().eq('id', row.id)
+  if (error) store.schemaWarning = true
+}
+
+/** Magasin de classement d'une ligne de courses parmi les lieux de la
+ * fiche (décision Q1 du 04/08/2026) : la boutique PHYSIQUE de la
+ * résidence courante (ou non rangée), sinon le premier site — vide si la
+ * fiche n'a pas de lieux. */
+export function preferredStore(name) {
+  const lieux = storesOf(name)
+  const physique = lieux.find(s => s.kind !== 'internet'
+    && (!s.residence_id || s.residence_id === store.residence?.id))
+  if (physique) return physique.name
+  return lieux.find(s => s.kind === 'internet')?.name ?? ''
 }
 
 /** Renomme un ingrédient de la master list : l'ancien nom devient un alias
@@ -1490,7 +1634,8 @@ export async function syncWeekShopping() {
       const row = store.shop.find(s => s.origin === 'semaine' && sameIngredient(s.name, need.name))
       if (!row) {
         const { data, error } = await supabase.from('shopping')
-          .insert({ ...scopeFields(), name: need.name, store: sourcingStore(need.name),
+          .insert({ ...scopeFields(), name: need.name,
+            store: preferredStore(need.name) || sourcingStore(need.name),
             origin: 'semaine', qty: part?.qty ?? null, unit: part?.unit ?? '' })
           .select().single()
         if (error) { store.schemaWarning = true; return }
@@ -1687,6 +1832,39 @@ export async function renameLocation(oldName, newName) {
     store.locations = store.locations.filter(l => l !== src)
     await supabase.from('locations').delete().eq('id', src.id)
   }
+  /* Un inventaire (ouvert ou en pause) suit sa boîte quel que soit son
+   * nom du moment — sans quoi une permutation de noms le fait porter sur
+   * l'autre boîte (bug du 03/08, cas N6). */
+  let touched = false
+  for (const inv of [store.inv, ...store.invs]) {
+    if (inv?.loc === oldName && (!inv.residenceId || inv.residenceId === store.residence?.id)) {
+      inv.loc = dest
+      touched = true
+    }
+  }
+  if (touched) {
+    absorbDuplicateInvs()
+    saveInv()
+  }
+}
+
+/** Si une fusion d'emplacements réunit deux inventaires sur la même boîte,
+ * leurs comptages fusionnent aussi (jamais deux inventaires par boîte). */
+function absorbDuplicateInvs() {
+  const kept = new Map()
+  for (const inv of [store.inv, ...store.invs]) {
+    if (!inv) continue
+    const key = (inv.residenceId ?? '') + '|' + inv.loc
+    const first = kept.get(key)
+    if (!first) { kept.set(key, inv); continue }
+    for (const [id, n] of Object.entries(inv.seen)) first.seen[id] = (first.seen[id] ?? 0) + n
+    for (const c of inv.created) {
+      const dup = first.created.find(x => x.name.toLowerCase() === c.name.toLowerCase())
+      if (dup) dup.qty += c.qty
+      else first.created.push(c)
+    }
+    store.invs = store.invs.filter(x => x !== inv)
+  }
 }
 
 /** Crée un emplacement vide dans la résidence courante (commentaires Olivier
@@ -1798,32 +1976,94 @@ export async function takeLot(item, lot) {
  * Rien n'est écrit au stock avant la confirmation finale : l'inventaire en
  * cours vit en mémoire et dans localStorage (interruption sans risque). */
 
-const INV_KEY = 'gm-inventaire-v1'
+const INV_KEY = 'gm-inventaire-v1' // ancien format : un seul inventaire
+const INVS_KEY = 'gm-inventaires-v2' // { active, paused: [] } — plusieurs de front (04/08/2026)
 
 function saveInv() {
   try {
-    if (store.inv) localStorage.setItem(INV_KEY, JSON.stringify(store.inv))
-    else localStorage.removeItem(INV_KEY)
-  } catch { /* stockage indisponible : l'inventaire ne survivra pas à un rechargement */ }
+    localStorage.setItem(INVS_KEY, JSON.stringify({ active: store.inv, paused: store.invs }))
+    localStorage.removeItem(INV_KEY)
+  } catch { /* stockage indisponible : les inventaires ne survivront pas à un rechargement */ }
 }
 
 export function resumeInventory() {
   try {
-    const saved = JSON.parse(localStorage.getItem(INV_KEY))
-    if (saved?.loc) store.inv = saved
+    const saved = JSON.parse(localStorage.getItem(INVS_KEY))
+    if (saved) {
+      store.inv = saved.active?.loc ? saved.active : null
+      store.invs = (saved.paused ?? []).filter(p => p?.loc)
+      return
+    }
+  } catch { /* cache illisible : on tente l'ancien format */ }
+  try {
+    const old = JSON.parse(localStorage.getItem(INV_KEY))
+    if (old?.loc) {
+      if (old.paused) store.invs = [old]
+      else store.inv = old
+    }
   } catch { /* cache illisible : on repart sans inventaire en cours */ }
 }
 
+/** Met l'inventaire ouvert en pause (dans la liste), sans en ouvrir d'autre. */
+function stashActive() {
+  if (!store.inv) return
+  store.inv.paused = true
+  store.invs.push(store.inv)
+  store.inv = null
+}
+
 export function startInventory(loc) {
+  // Un emplacement = un seul inventaire à la fois (décision Olivier 04/08) :
+  // s'il est déjà en pause, on le reprend au lieu d'en ouvrir un second.
+  const paused = pausedInvsHere().find(p => p.loc === loc)
+  if (paused) { activateInv(paused); return }
+  stashActive()
   store.inv = { loc, residenceId: store.residence?.id ?? null,
     startedAt: new Date().toISOString(), seen: {}, created: [] }
   saveInv()
 }
 
-/** L'inventaire en cours appartient-il à la résidence courante ? (Un
- * inventaire en pause dans une autre maison n'apparaît pas ici.) */
+/** Rouvre l'inventaire d'un emplacement tel qu'il s'est terminé : le stock
+ * actuel vaut comptage (les produits présents sont « vus »), on ajoute
+ * simplement — décision Olivier 04/08/2026 (objets venus d'une autre boîte). */
+export function reopenInventory(loc) {
+  stashActive()
+  const seen = {}
+  for (const i of store.items.filter(i => i.loc === loc && i.qty > 0)) seen[i.id] = i.qty
+  store.inv = { loc, residenceId: store.residence?.id ?? null,
+    startedAt: new Date().toISOString(), seen, created: [] }
+  saveInv()
+}
+
+/** L'inventaire OUVERT appartient-il à la résidence courante ? (Un
+ * inventaire d'une autre maison n'apparaît pas ici.) */
 export function invIsHere() {
   return store.inv && (!store.inv.residenceId || store.inv.residenceId === store.residence?.id)
+}
+
+/** Les inventaires en pause de la résidence courante. */
+export function pausedInvsHere() {
+  return store.invs.filter(p => !p.residenceId || p.residenceId === store.residence?.id)
+}
+
+/** Les inventaires (ouvert ou en pause) rattachés à d'autres résidences. */
+export function invsElsewhere() {
+  return [store.inv, ...store.invs]
+    .filter(i => i && i.residenceId && i.residenceId !== store.residence?.id)
+}
+
+function activateInv(p) {
+  stashActive()
+  store.invs = store.invs.filter(x => x !== p)
+  p.paused = false
+  store.inv = p
+  saveInv()
+}
+
+/** Reprend l'inventaire en pause d'un emplacement de la résidence courante. */
+export function resumePausedInventory(loc) {
+  const p = pausedInvsHere().find(x => x.loc === loc)
+  if (p) activateInv(p)
 }
 
 /** Déclare un produit trouvé : item existant de l'emplacement, ou nom libre (création). */
@@ -1848,6 +2088,37 @@ export function adjustSeen(itemId, delta) {
   saveInv()
 }
 
+/** Rectifie le nom d'un produit créé pendant l'inventaire — dictée écorchée
+ * (décision Olivier 04/08/2026). Ne touche QUE la saisie, jamais la fiche
+ * d'un produit existant : si le nouveau nom désigne un produit de
+ * l'emplacement, le comptage le rejoint ; s'il est connu du foyer, sa
+ * graphie canonique est reprise ; sinon simple renommage (les doublons de
+ * saisie fusionnent). Renvoie le nom retenu. */
+export function renameCreatedEntry(oldName, newName) {
+  const inv = store.inv
+  const entry = inv?.created.find(c => c.name === oldName)
+  const name = newName.trim()
+  if (!entry || !name || name === oldName) return oldName
+  const item = store.items.find(i => i.loc === inv.loc
+    && (fold(i.name) === fold(name) || sameDictation(i.name, name)))
+  if (item) {
+    inv.seen[item.id] = (inv.seen[item.id] ?? 0) + entry.qty
+    inv.created = inv.created.filter(c => c !== entry)
+    saveInv()
+    return item.name
+  }
+  const canonical = exactKnownName(name) ?? name
+  const dup = inv.created.find(c => c !== entry && c.name.toLowerCase() === canonical.toLowerCase())
+  if (dup) {
+    dup.qty += entry.qty
+    inv.created = inv.created.filter(c => c !== entry)
+  } else {
+    entry.name = canonical
+  }
+  saveInv()
+  return canonical
+}
+
 export function adjustCreated(name, delta) {
   const inv = store.inv
   const entry = inv.created.find(c => c.name === name)
@@ -1862,15 +2133,12 @@ export function abandonInventory() {
   saveInv()
 }
 
-/* Pause explicite (remarque Olivier 27/07/2026) : l'inventaire reste
- * sauvegardé tel quel mais rend la main sur la liste des emplacements
- * (avant, la pause n'existait qu'en changeant d'onglet, invisible). */
+/* Pause explicite (remarque Olivier 27/07/2026, élargie le 04/08/2026) :
+ * l'inventaire rejoint la liste des pauses — plusieurs peuvent attendre en
+ * même temps — et rend la main sur la liste des emplacements. */
 export function pauseInventory() {
-  if (store.inv) { store.inv.paused = true; saveInv() }
-}
-
-export function unpauseInventory() {
-  if (store.inv) { store.inv.paused = false; saveInv() }
+  stashActive()
+  saveInv()
 }
 
 /** Emplacement « à dates » : ramène les lots d'un produit au total constaté,

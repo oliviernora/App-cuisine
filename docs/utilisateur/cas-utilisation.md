@@ -44,10 +44,13 @@ Règles de fond (décisions Olivier) :
 
 1. En préparant un curry, je vide le pot de cumin. Je le signale à
    l'application en un geste, sans interrompre ma cuisine.
-2. S'il ne m'en reste plus **nulle part** (la somme de tous les emplacements
-   passe sous ma réserve minimum), le cumin est marqué « à racheter » ; il
-   figure sur la liste de courses, classé sous le magasin où je l'achète
-   habituellement. S'il m'en reste ailleurs, rien ne se passe.
+2. S'il ne m'en reste plus **nulle part dans la maison où je suis** (la
+   somme de ses emplacements passe sous la réserve minimum), le cumin est
+   marqué « à racheter » ; il figure sur la liste de courses, classé sous
+   le magasin où je l'achète habituellement. S'il m'en reste ailleurs
+   dans la maison, rien ne se passe. La **réserve minimum est propre à
+   chaque résidence** *(décision Olivier 04/08/2026)* : trois pots de
+   cumin d'avance à Argenteuil, un seul suffit à Montalivet.
 3. En fin de semaine, je fais mes courses : le cumin m'est proposé au bon
    magasin, je l'achète, je le coche.
 4. De retour à la maison, **je range mes courses** (cas N13) : chaque
@@ -59,7 +62,7 @@ Règles de fond (décisions Olivier) :
 **Résultat attendu** : à aucun moment je n'ai eu à « penser » au cumin ; le
 stock affiché correspond toujours à la réalité de mes placards.
 
-### N14 — Je gère ma liste d'ingrédients *(proposition 27/07/2026)*
+### N14 — Je gère ma liste d'ingrédients *(proposition 27/07/2026, fiche unique le 04/08/2026)*
 
 1. J'accède à **la** liste de mes ingrédients par deux portes : l'écran des
    **stocks** (tous les ingrédients) ou un **emplacement** de l'inventaire
@@ -67,15 +70,30 @@ stock affiché correspond toujours à la réalité de mes placards.
    mêmes gestes.
 2. Je **recherche** un ingrédient et je marque en un geste que **j'en ai
    encore ou que c'est épuisé** (épuisé partout → il part en courses).
-3. Je **modifie** un ingrédient : son nom, son genre, son emplacement, sa
-   réserve minimum, où l'acheter.
+3. Un ingrédient a **UNE seule fiche**, la même d'où que je vienne —
+   ligne du stock, ligne de courses, inventaire, liste complète
+   *(décision Olivier 04/08/2026 — consolidation des trois panneaux
+   d'aujourd'hui)*. Elle montre et règle tout :
+   - son **nom** (renommer ; un nom déjà connu fusionne, après
+     confirmation) et son **genre** ;
+   - son **stock**, emplacement par emplacement ;
+   - sa **réserve minimum, réglable par résidence** (décision
+     04/08/2026) ;
+   - **où l'acheter** : un ingrédient peut avoir **plusieurs lieux** —
+     des boutiques physiques et des sites de commande. Les **sites
+     (URL) valent pour toutes les résidences** ; les **boutiques
+     physiques appartiennent chacune à une résidence** (le marché de
+     Revel n'existe pas à Argenteuil) *(décision Olivier 04/08/2026)* ;
+   - les **recettes** qui l'utilisent ;
+   - sa **suppression** (en deux touches).
 4. J'**ajoute** un ingrédient nouveau — éventuellement avec un stock à
    zéro, marqué « à acheter » : il part directement en liste de courses.
 5. Je peux aussi **retirer** un ingrédient, ou le **mettre en courses**
    sans attendre qu'il s'épuise (réserve).
 
-**Résultat attendu** : une seule liste d'ingrédients, jamais deux vérités ;
-je la gère depuis l'écran qui me convient sur le moment.
+**Résultat attendu** : une seule liste d'ingrédients, UNE seule fiche par
+ingrédient, jamais deux vérités ; je la gère depuis l'écran qui me
+convient sur le moment.
 
 ## Famille 2 — Faire les courses
 
@@ -90,8 +108,10 @@ je la gère depuis l'écran qui me convient sur le moment.
 3. Ces produits rejoignent la liste de courses, chacun sous son magasin,
    avec leur quantité ; je peux **définir ou changer le lieu d'achat**
    d'une ligne (crayon) — il est mémorisé pour les prochaines fois
-   (16/07/2026).
-NOUVEAU : 4. je dispose d'un menu pour gérer les lieux d'achat, ajouter des nouveaux lieux, les renommer ou les supprimer. Chaque lieu peut être physique ou sur Internet. Je peux mettre des commentaires. Sur Internet j'ai l'URL. En lieu physique, il est possible d'ajouter l'adresse. Je peux visualiser les ingrédients achetables sur un lieu. 
+   (16/07/2026). Un ingrédient peut avoir **plusieurs lieux d'achat**
+   *(décision Olivier 04/08/2026)* : la ligne se classe sous l'un d'eux,
+   les autres restent à portée de main.
+NOUVEAU : 4. je dispose d'un menu pour gérer les lieux d'achat, ajouter des nouveaux lieux, les renommer ou les supprimer. Chaque lieu peut être physique ou sur Internet. Je peux mettre des commentaires. Sur Internet j'ai l'URL. En lieu physique, il est possible d'ajouter l'adresse. Je peux visualiser les ingrédients achetables sur un lieu. *(Complété le 04/08/2026, décision Olivier : les lieux **Internet sont communs à toutes les résidences** ; les lieux **physiques appartiennent chacun à une résidence**.)*
 
 **Résultat attendu** : la liste de courses combine ce que l'application
 détecte toute seule et ce que je décide d'y mettre, quantités comprises.

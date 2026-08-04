@@ -1,12 +1,12 @@
 <script>
   import { onMount } from 'svelte'
   import { store, addItem, changeQty, toggleOrder, stockGroups, shopEntryOf,
-    setIngredientMin, renameIngredient, removeIngredient, setIngredientCategory, categoryOf,
+    categoryOf,
     knownNames, sameIngredient, isDatedLoc, lotsOf, undatedCount, enterLot, takeLot,
     parseDictation, dictationMatches, sameDictation, confirmMerge, moveItem,
     markEpuise, fold } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
-  import SousEcran from './SousEcran.svelte'
+  import FicheIngredient from './FicheIngredient.svelte'
   import { addbarHeight } from '../lib/addbar.js'
   import { creerDictee } from '../lib/dictee.js'
   import { MINUS, PLUS, CART, CART_PLUS, MIC } from '../lib/icons.js'
@@ -134,56 +134,14 @@
     lotQty = 1
   }
 
-  /* Modifier un ingrédient (décision Olivier 16/07/2026, sous-écran depuis
-   * les commentaires du 25/07/2026) : renommer au crayon sur le nom (fusion
-   * en deux touches), genre, minimum de réserve, suppression — seule voie de
-   * suppression d'un ingrédient. Le sous-écran masque recherche, liste et
-   * barre d'ajout. */
+  /* Modifier un ingrédient : LA fiche unique (FicheIngredient.svelte,
+   * décision Olivier 04/08/2026) — nom-fusion, genre, stock, minimum par
+   * résidence, lieux d'achat, alias, recettes, suppression. */
   let edit = $state(null)
-  let edName = $state('')
-  let edMin = $state(1)
-  let edRenaming = $state(false)
-  let edConfirmFusion = $state(false)
-  let edConfirmDelete = $state(false)
-  let busy = $state(false)
-  let message = $state('')
-
   const editGroup = $derived(edit ? stockGroups().find(g => g.key === edit) : null)
 
   function toggleEdit(g) {
     edit = edit === g.key ? null : g.key
-    edName = g.name
-    edMin = g.min
-    edRenaming = false
-    edConfirmFusion = false
-    edConfirmDelete = false
-    message = ''
-  }
-
-  async function saveName(g) {
-    const n = edName.trim()
-    if (!n || fold(n) === fold(g.name)) return
-    const fusion = groups.some(x => x.key !== g.key && sameIngredient(x.name, n))
-    if (fusion && !edConfirmFusion) { edConfirmFusion = true; return }
-    busy = true
-    await renameIngredient(g.name, n)
-    message = fusion ? `« ${g.name} » fusionné dans « ${n} ».` : `Renommé en « ${n} ».`
-    busy = false
-    edit = null
-  }
-
-  async function saveMin(g) {
-    busy = true
-    await setIngredientMin(g.name, edMin)
-    busy = false
-  }
-
-  async function doDelete(g) {
-    busy = true
-    await removeIngredient(g.name)
-    message = `« ${g.name} » supprimé du stock.`
-    busy = false
-    edit = null
   }
 
   /* Barre d'ajout minimale (commentaires Olivier 25/07/2026) : une seule
@@ -258,59 +216,8 @@
       attente) : la dernière modification n'a pas pu être enregistrée.</p>
   {/if}
   {#if editGroup}
-    <!-- Sous-écran Modifier : occupe l'écran seul (commentaires Olivier 25/07/2026). -->
-    <SousEcran titre={editGroup.name} fermer={() => edit = null}>
-      <div class="manage-panel">
-        <div class="manage-block">
-          {#if edRenaming}
-            <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
-            <div class="manage-row">
-              <input class="rename-input" bind:value={edName} oninput={() => edConfirmFusion = false}
-                aria-label="Nouveau nom">
-              <button type="button" class="inv-start" class:danger-btn={edConfirmFusion}
-                disabled={busy || !edName.trim()}
-                onclick={() => saveName(editGroup)}>{edConfirmFusion ? 'Confirmer la fusion' : 'OK'}</button>
-              <button type="button" class="inv-manage" onclick={() => { edRenaming = false; edName = editGroup.name }}>Annuler</button>
-            </div>
-          {:else}
-            <div class="row source-row">
-              <span class="name">{editGroup.name}</span>
-              <button type="button" class="icon-btn" aria-label={'Renommer ' + editGroup.name} title="Renommer"
-                onclick={() => { edRenaming = true; edConfirmFusion = false }}>✎</button>
-            </div>
-          {/if}
-        </div>
-        <div class="manage-block">
-          <p>Genre (master list) :</p>
-          <div class="manage-row">
-            <select value={categoryOf(editGroup.name)} onchange={e => setIngredientCategory(editGroup.name, e.target.value)}
-              aria-label={'Genre de ' + editGroup.name}>
-              <option value="">Non classé</option>
-              {#each genreNames as c (c)}<option value={c}>{c}</option>{/each}
-            </select>
-          </div>
-        </div>
-        <div class="manage-block">
-          <p>Réserve minimum — racheté dès que la somme de tous les emplacements
-            passe en dessous (0 = jamais racheté tout seul) :</p>
-          <div class="manage-row">
-            <input class="f-qty" type="number" inputmode="numeric" min="0" bind:value={edMin} aria-label="Réserve minimum">
-            <button type="button" class="inv-start" disabled={busy} onclick={() => saveMin(editGroup)}>Enregistrer</button>
-          </div>
-        </div>
-        <div class="manage-block">
-          <p>Supprimer l'ingrédient — toutes ses lignes d'emplacement et sa ligne de courses :</p>
-          <div class="manage-row">
-            {#if edConfirmDelete}
-              <button type="button" class="inv-start danger-btn" disabled={busy} onclick={() => doDelete(editGroup)}>Confirmer la suppression</button>
-              <button type="button" class="inv-manage" onclick={() => edConfirmDelete = false}>Non, garder</button>
-            {:else}
-              <button type="button" class="inv-manage" onclick={() => edConfirmDelete = true}>Supprimer</button>
-            {/if}
-          </div>
-        </div>
-      </div>
-    </SousEcran>
+    <!-- LA fiche ingrédient : occupe l'écran seul (04/08/2026). -->
+    <FicheIngredient name={editGroup.name} fermer={() => edit = null} />
   {:else}
   <div class="filters">
     <div class="searchrow">
@@ -324,7 +231,6 @@
     </div>
   </div>
 
-  {#if message}<p class="note manage-msg">{message}</p>{/if}
 
   {#if groups.length === 0}
     <p class="empty">{search ? `Aucun résultat pour « ${search} ».` : 'Aucun ingrédient ici. Ajoutez-en un ci-dessous, au clavier ou au micro.'}</p>

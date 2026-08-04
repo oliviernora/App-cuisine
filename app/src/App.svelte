@@ -287,10 +287,10 @@
       <Recettes />
     {:else if tab === 'semaine'}
       <Semaine />
-    {:else if invIsHere() && !store.inv.paused}
-      <!-- Inventaire en cours : changer d'onglet met en pause, revenir reprend ici.
-           « Mettre en pause » (27/07/2026) rend la liste des emplacements, avec
-           un bouton Reprendre. Un inventaire en pause dans une AUTRE résidence
+    {:else if invIsHere()}
+      <!-- Inventaire ouvert : changer d'onglet le laisse ouvert, revenir reprend
+           ici. « Mettre en pause » le range dans la liste des pauses (plusieurs
+           de front, 04/08/2026). Un inventaire d'une AUTRE résidence
            n'apparaît pas (lot 5). -->
       <Inventory />
     {:else}

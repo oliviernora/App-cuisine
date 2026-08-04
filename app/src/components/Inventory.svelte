@@ -2,7 +2,8 @@
   import { onMount } from 'svelte'
   import { store, declare, adjustSeen, adjustCreated, finishInventory, abandonInventory,
     pauseInventory, lotAdjustments, looseMatch, sameIngredient, parseDictation,
-    dictationMatches, sameDictation, confirmMerge, fold } from '../lib/store.svelte.js'
+    dictationMatches, sameDictation, confirmMerge, fold, exactKnownName,
+    renameCreatedEntry } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import { addbarHeight } from '../lib/addbar.js'
   import { creerDictee } from '../lib/dictee.js'
@@ -40,6 +41,13 @@
     const sures = locItems.filter(i => fold(i.name).includes(fold(name)) || sameIngredient(i.name, name))
     if (sures.length === 1) { declare(sures[0], n); return sures[0].name }
     const candidates = locItems.filter(i => looseMatch(i.name, name))
+    /* Nom exact d'un ingrédient connu du foyer (stock d'une autre maison,
+     * recettes, master list) et rien d'ambigu ici : déclaré directement,
+     * il sera créé à cet emplacement (bug du 03/08, cas N2 × N12). */
+    if (!candidates.length) {
+      const known = exactKnownName(name)
+      if (known) { declare(known, n); return known + ' (nouveau ici)' }
+    }
     /* Dictée écorchée (« nuoc mame », « ras el anout ») : la master list
      * entière est proposée aussi, pas seulement l'emplacement en cours
      * (remarque Olivier 27/07/2026). */
@@ -100,6 +108,17 @@
   function saveQtyCreated(c) {
     adjustCreated(c.name, Math.max(0, Number(editQtyVal) || 0) - c.qty)
     editQty = null
+  }
+
+  /* Rectifier le nom d'un produit créé — dictée écorchée (décision Olivier
+   * 04/08/2026) : ne touche que la saisie, jamais une fiche existante. */
+  let editName = $state(null) // nom du produit créé en cours de rectification
+  let editNameVal = $state('')
+
+  function saveName(c) {
+    const final = renameCreatedEntry(c.name, editNameVal)
+    if (final !== c.name) hint = 'Rectifié : ' + final
+    editName = null
   }
 
   function focus(node) {
@@ -232,8 +251,18 @@
       {/each}
       {#each store.inv.created as c (c.name)}
         <li class="row seen">
-          <span class="name" title={c.name}>{c.name}</span>
-          <span class="note">nouveau</span>
+          {#if editName === c.name}
+            <input class="f-name" bind:value={editNameVal}
+              use:focus onblur={() => saveName(c)}
+              onkeydown={e => { if (e.key === 'Enter') e.target.blur() }}
+              aria-label={'Rectifier le nom de ' + c.name}>
+          {:else}
+            <span class="name" title={c.name}>{c.name}</span>
+            <button type="button" class="icon-btn" title="Rectifier le nom"
+              aria-label={'Rectifier le nom de ' + c.name}
+              onclick={() => { editName = c.name; editNameVal = c.name }}>✎</button>
+            <span class="note">nouveau</span>
+          {/if}
           <div class="qty">
             <button type="button" aria-label="Un pot de moins" onclick={() => adjustCreated(c.name, -1)}><Icon d={MINUS} /></button>
             {#if editQty === 'c:' + c.name}

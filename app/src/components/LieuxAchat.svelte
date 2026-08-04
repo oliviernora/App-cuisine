@@ -66,7 +66,8 @@
           onclick={() => toggleOpen(lieu)}>
           <span class="name" title={lieu.name}>{open === lieu.id ? '▾' : '▸'} {lieu.name}</span>
         </button>
-        <span class="note">{lieu.kind === 'internet' ? 'Internet' : 'physique'}</span>
+        <span class="note">{lieu.kind === 'internet' ? 'Internet'
+          : (store.residences.find(r => r.id === lieu.residence_id)?.name ?? 'physique — à ranger')}</span>
       </li>
       {#if open === lieu.id}
         <li class="manage-panel">
@@ -92,7 +93,9 @@
             <div class="manage-row">
               <label>Type
                 <select value={lieu.kind} aria-label="Type de lieu"
-                  onchange={e => updateLieu(lieu, { kind: e.target.value })}>
+                  onchange={e => updateLieu(lieu, e.target.value === 'internet'
+                    ? { kind: 'internet', residence_id: null } // les sites valent partout (04/08/2026)
+                    : { kind: e.target.value })}>
                   <option value="physique">Lieu physique</option>
                   <option value="internet">Internet</option>
                 </select>
@@ -106,6 +109,15 @@
                 <label>Adresse
                   <input value={lieu.address} placeholder="Adresse (facultative)" aria-label="Adresse"
                     onchange={e => updateLieu(lieu, { address: e.target.value.trim() })}>
+                </label>
+                <label>Maison
+                  <!-- Une boutique appartient à une résidence (décision Olivier
+                       04/08/2026) ; « Toutes » = pas encore rangée. -->
+                  <select value={lieu.residence_id ?? ''} aria-label={'Résidence de ' + lieu.name}
+                    onchange={e => updateLieu(lieu, { residence_id: e.target.value || null })}>
+                    <option value="">Toutes (à ranger)</option>
+                    {#each store.residences as r (r.id)}<option value={r.id}>{r.name}</option>{/each}
+                  </select>
                 </label>
               {/if}
             </div>

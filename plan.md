@@ -5,7 +5,18 @@ terminés : `docs/technique/plan-archive.md` (archivé le 04/08/2026, lot C).
 
 ## Reprise rapide (passation à jour au 04/08/2026 — à lire en premier)
 
-### Chantier en cours : commentaires 4 (docs/utilisateur/commentaires 4.md)
+### Prochaine session
+- **Aucun chantier en cours** : commentaires 4 (lots 0-5) ET fiche
+  ingrédient unique sont livrés, migrés et PUBLIÉS le 04/08 (détail
+  ci-dessous). Base : check:schema 20/20 ; dernier bundle
+  `index-Dt6j3MnA.js` sur l'alias.
+- **Prochain chantier annoncé par Olivier** : de nouveaux requirements
+  sur la gestion des boutiques et des URL d'achat (il les donnera —
+  méthode habituelle : lot 0 cas d'utilisation + questions, puis GO).
+- En attendant : tests appareils M74-M76 par Olivier (cahier), backlog
+  ci-dessous, ou chantier de fond Evernote lots 6-24.
+
+### Chantier commentaires 4 — LIVRÉ, MIGRÉ ET PUBLIÉ le 04/08 (docs/utilisateur/commentaires 4.md)
 Retours d'Olivier après essai réel (03/08), 6 points : (1) rectifier le
 nom d'un ingrédient en cours d'inventaire (dictée écorchée) ; (2) BUG
 renommages d'emplacements en chaîne pendant qu'un inventaire est ouvert
@@ -16,26 +27,47 @@ exact non) ; (4) plusieurs inventaires en pause en parallèle ;
 (5) rouvrir un inventaire pour y ajouter ce qui vient d'ailleurs ;
 (6) écran de gestion DÉDIÉ livres + URL (les filtres ne tiennent pas
 240 livres).
-**LOT 0 FAIT le 04/08** : N2/N6/NP6 amendés + N16 créé
-(cas-utilisation.md), suivi à jour. Réponses d'Olivier du 04/08
-intégrées : (2) aucun renommage vers un nom pris dans son scénario — le
-bug est ailleurs, cause racine à PROUVER au lot 1 ; (3) oui un
-emplacement = un seul inventaire à la fois, liste des inventaires en
-cours ; (4) traiter « rouvrir » seulement — pas de geste « vers l'autre
-boîte » depuis l'inventaire en cours ; (5) écran bibliothèque à ma main
-(design guide). Q1 tranchée le 04/08 : la rectification d'un nom en
-inventaire ne touche QUE l'ingrédient ajouté, jamais la fiche d'un
-produit existant (la saisie rejoint la fiche du bon nom, créée au
-besoin). **Toutes les questions sont tranchées — EN ATTENTE DU GO
-d'Olivier.** Lots proposés : 1 = les deux bugs (cause racine PROUVÉE
-d'abord) ; 2 = rectifier le nom en inventaire ; 3 = inventaires en
-parallèle + rouvrir ; 4 = écran bibliothèque (N16, avec découpage de
-Recettes.svelte) ; 5 = reste du lot D (fiche ingrédient unique, cibles
-tactiles).
-Au GO, intégrer aussi le lot D des revues (2026-08-03-synthese.md) :
-découpage de Recettes.svelte avec l'écran bibliothèque, renommage
-universel ✎, inventaires par id, fiche ingrédient unique, cibles
-tactiles.
+**LOTS 0-5 FAITS le 04/08** (GO d'Olivier pour tous les lots ; détail
+complet au cahier de tests, passages 04/08 (1)-(3)) :
+- lot 1 : les deux BUGS corrigés, causes racines PROUVÉES par tests
+  rouges (inventaire suivi par NOM → suit désormais sa boîte à travers
+  les renommages ; nom exact connu du foyer → déclaré directement) ;
+- lot 2 : ✎ « rectifier le nom » sur les lignes « nouveau » d'inventaire
+  (ne touche QUE la saisie, décision Olivier) ;
+- lot 3 : inventaires MULTIPLES (pauses en parallèle, un bandeau
+  Reprendre par inventaire, un emplacement = un seul inventaire) +
+  « Rouvrir (compléter) / Repartir de zéro » ;
+- lot 4 : écran BIBLIOTHÈQUE (N16) — grille de couvertures, fiche
+  source → ses recettes, scanner (livre) / visiter + coller l'URL
+  (site), remplace « Gérer les sources » ;
+- lot 5 : cibles tactiles (coche courses ≥ 44 px, boutons 42 px sur
+  tactile) + contrastes du thème clair relevés.
+193 tests verts, build OK, parcours réels sur 5173 (nettoyés).
+**MIGRATION `sources.url` APPLIQUÉE le 04/08 en session** (GO d'Olivier,
+SQL Editor piloté par l'API Monaco, « Success », check:schema 18/18 avec
+sources.url). **PROD PUBLIÉE le 04/08 en session (GO d'Olivier)** :
+bundle `index-CzI0v5sl.js` vérifié sur l'alias, en-têtes de sécurité en
+ligne — les lots 1-5 sont EN LIGNE. **RESTE : recharger l'app sur chaque
+appareil (service worker), puis M74-M75 sur iPhone + la liste unique des
+tests appareils (aucun test formel fait à ce jour, dit Olivier).**
+
+### Chantier FICHE INGRÉDIENT UNIQUE — LIVRÉ, MIGRÉ ET PUBLIÉ le 04/08
+GO d'Olivier + réponses Q1-Q4 + 3 exigences (minimum PAR RÉSIDENCE ;
+lieux d'achat MULTIPLES ; URL communes / boutiques par résidence).
+LIVRÉ (détail au cahier, passage 04/08 (6)) : tables
+`ingredient_minimums`/`ingredient_stores` + `stores.residence_id`
+(migration `supabase/migration-2026-08-04-fiche-ingredient.sql`),
+`FicheIngredient.svelte` unique (Stock ✎ + Master list), lieux en
+boutons au ✎ des Courses, menu « Maison » des boutiques dans Lieux
+d'achat. 199 tests verts, build OK. **MIGRATION APPLIQUÉE ET PROD
+PUBLIÉE le 04/08 en session (GO d'Olivier)** : check:schema 20/20,
+bundle `index-Dt6j3MnA.js` vérifié sur l'alias, écriture réelle d'un
+minimum par maison vérifiée sur 5173. Piège noté : la liaison Vercel de
+`app/dist` saute à chaque build — TOUJOURS `vercel link` avant
+`deploy` (un premier envoi est parti sur le projet « dist », raison de
+plus de le supprimer du dashboard). **RESTE : recharger l'app sur les
+appareils, puis M76 sur iPhone.** Le lot D des revues du 03/08 est
+entièrement soldé avec ces deux chantiers.
 
 ### Dernier chantier livré : revues + corrections (03/08) + lot C doc (04/08)
 4 revues indépendantes (code, doc, sécurité, UX) dans
@@ -78,7 +110,7 @@ au cahier. Détail de chaque M : `docs/technique/cahier-de-tests.md`.
 
 | Tests | Quoi (appareil) | Depuis |
 |---|---|---|
-| Recharger l'app | une fois sur CHAQUE appareil après la publication du 03/08 au soir (service worker) | toutes les publications |
+| Recharger l'app | une fois sur CHAQUE appareil après la publication du 04/08 (service worker) | toutes les publications |
 | M4 | foyer à deux (2e compte) | socle |
 | M5-M6 | installation écran d'accueil iPhone/iPad + mode avion | 07/07 |
 | M34 | largeur iPhone (pas de débordement) | 09/07 |
@@ -93,11 +125,14 @@ au cahier. Détail de chaque M : `docs/technique/cahier-de-tests.md`.
 | M68-M69 | scan caméra ISBN en réel (« plus compliqué que d'habitude » à surveiller) | 02/08 |
 | M70-M72 | livres non trouvés — dont re-scan de « Cuisine créole » 9782016279700 (la BnF le trouve désormais) | 03/08 |
 | M73 | confirmations deux touches + import URL | 03/08 |
+| M74 | commentaires 4, lots 1-3 : rectifier ✎ un nom dicté, nom exact d'une autre maison, pauses en parallèle, permutation de noms suivie, rouvrir | 04/08 |
+| M75 | écran bibliothèque (publiée le 04/08) : couvertures, fiche source, visiter/coller l'URL, scanner | 04/08 |
+| M76 | fiche ingrédient unique (publiée le 04/08) : minima par maison, lieux multiples, ✎ courses, alias | 04/08 |
 
 ## En attente d'Olivier
 
-- Réponse à la **Q1 commentaires 4** (portée du renommage d'ingrédient en
-  inventaire) + **GO** du chantier.
+- Les **requirements « gestion des boutiques et URL d'achat »** annoncés
+  le 04/08 (prochain chantier).
 - Optionnel, 1 clic : fermer les inscriptions (Supabase → Authentication
   → Sign-ups) — lot A des revues.
 - Tri Evernote : 12 douteuses restantes — preview
@@ -109,8 +144,9 @@ au cahier. Détail de chaque M : `docs/technique/cahier-de-tests.md`.
   lignes « eau » (2) et « ficelle de cuisine » (1) de la master list ;
   doublon « Safran » (2 lignes sans emplacement) à fusionner (Gérer) ;
   vider automatiquement la catégorie « Plat » à l'import URL ?
-- Supprimer du dashboard Vercel le projet « dist » (vide, créé par
-  erreur le 10/07, sans effet).
+- Supprimer du dashboard Vercel le projet « dist » (créé par erreur le
+  10/07 ; depuis le 04/08 il porte une copie déployée de l'app — raison
+  de plus).
 - Au premier import photo depuis la prod : cliquer « Autoriser » sur la
   bulle Chrome « réseau local » (une fois).
 

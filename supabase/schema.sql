@@ -139,6 +139,7 @@ create table sources (
   cover_path text not null default '', -- couverture dans le bucket privé « photos » (N15)
   country text not null default '',
   categories text not null default '',
+  url text not null default '', -- adresse d'une source « site » (N16, 04/08/2026)
   created_at timestamptz not null default now()
 );
 -- Livres non trouvés mis de côté au scan (NP15 révisé, 03/08/2026) : Claude
@@ -307,9 +308,40 @@ create table stores (
   url text not null default '',
   address text not null default '',
   comment text not null default '',
+  -- Une boutique PHYSIQUE appartient à une résidence (04/08/2026) ; null =
+  -- non rangée, visible partout. Les lieux Internet restent communs (null).
+  residence_id uuid references residences(id) on delete set null,
   created_at timestamptz not null default now(),
   unique (household_id, name)
 );
 alter table stores enable row level security;
 create policy "lieux d'achat du foyer" on stores
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Fiche ingrédient unique (N14 amendé, 04/08/2026) : réserve minimum PAR
+-- RÉSIDENCE (repli : ingredient_refs.min, puis 1).
+create table ingredient_minimums (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  residence_id uuid not null references residences(id) on delete cascade,
+  name text not null, -- nom canonique de l'ingrédient (master list)
+  min numeric not null default 1,
+  created_at timestamptz not null default now(),
+  unique (household_id, residence_id, name)
+);
+alter table ingredient_minimums enable row level security;
+create policy "minimums du foyer" on ingredient_minimums
+  for all using (is_member(household_id)) with check (is_member(household_id));
+
+-- Un ingrédient peut avoir PLUSIEURS lieux d'achat (04/08/2026).
+create table ingredient_stores (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  name text not null, -- nom canonique de l'ingrédient (master list)
+  store_id uuid not null references stores(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (household_id, name, store_id)
+);
+alter table ingredient_stores enable row level security;
+create policy "lieux d'achat des ingrédients du foyer" on ingredient_stores
   for all using (is_member(household_id)) with check (is_member(household_id));

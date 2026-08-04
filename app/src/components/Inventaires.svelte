@@ -3,11 +3,11 @@
     confirmMerge as confirmIngredient, rejectMerge as rejectIngredient,
     masterList, setIngredientCategory, isDatedLoc, setLocationDated, setLocationStaleMonths,
     addCategory, renameCategory, removeCategory, setCategorySourcing,
-    setIngredientSourcing, sourcingOf, renameIngredient, recipesUsing,
-    invIsHere, unpauseInventory,
+    invIsHere, pausedInvsHere, invsElsewhere, resumePausedInventory, reopenInventory,
     SOURCING_TYPES, fold } from '../lib/store.svelte.js'
   import SousEcran from './SousEcran.svelte'
   import Stock from './Stock.svelte'
+  import FicheIngredient from './FicheIngredient.svelte'
 
   const locs = $derived.by(() => {
     const names = [...new Set([
@@ -45,22 +45,19 @@
   let confirmDeleteLoc = $state(false)
   let locRenaming = $state(false) // renommage au crayon, sur le nom
 
-  /* Un inventaire en pause dans cette résidence (bouton « Mettre en pause »,
-   * 27/07/2026) : « Inventaire » sur son emplacement le reprend ; sur un
-   * autre emplacement, deux touches pour confirmer la perte de la pause. */
-  let confirmStart = $state(null)
+  /* Plusieurs inventaires de front (décision Olivier 04/08/2026) : chaque
+   * pause se reprend indépendamment, démarrer ailleurs ne perd plus rien.
+   * Sur un emplacement déjà inventorié, deux touches pour choisir :
+   * rouvrir (compléter — les produits en stock restent « vus ») ou
+   * repartir de zéro. */
+  let startChoice = $state(null)
 
   function demarrer(name) {
-    if (invIsHere()) {
-      if (store.inv.loc === name) { unpauseInventory(); return }
-      if (confirmStart !== name) {
-        confirmStart = name
-        message = `Un inventaire de « ${store.inv.loc} » est en pause — appuyer encore sur « Confirmer » l'abandonne et démarre « ${name} ».`
-        return
-      }
-      confirmStart = null
-      message = ''
-    }
+    message = ''
+    if (pausedInvsHere().some(p => p.loc === name)) { resumePausedInventory(name); return }
+    const row = store.locations.find(l => l.name === name)
+    if (row?.last_inventory_at && startChoice !== name) { startChoice = name; return }
+    startChoice = null
     startInventory(name)
   }
 
@@ -177,63 +174,37 @@
     genreEdit = null
   }
 
-  /* Fiche d'un ingrédient : renommer (fusion en deux touches), sourcing,
-   * recettes associées. */
+  /* Fiche d'un ingrédient : LA fiche unique (FicheIngredient.svelte,
+   * décision Olivier 04/08/2026). */
   let mlEdit = $state(null)
-  let edName = $state('')
-  let edSourcing = $state('')
-  let edNote = $state('')
-  let edConfirm = $state(false)
-  let mlRenaming = $state(false)
 
   function openIngredient(ing) {
-    if (mlEdit === ing.name) { mlEdit = null; return }
-    mlEdit = ing.name
+    mlEdit = mlEdit === ing.name ? null : ing.name
     mlGenres = false // une seule saisie ouverte à la fois
-    edName = ing.name
-    const ref = store.refs.find(r => r.name === ing.name)
-    edSourcing = ref?.sourcing ?? ''
-    edNote = ref?.sourcing_note ?? ''
-    edConfirm = false
-    mlRenaming = false
-  }
-
-  async function saveIngredientName(oldName) {
-    const n = edName.trim()
-    if (!n || n === oldName) return
-    const fusion = mlTotal.some(i => i.name !== oldName && fold(i.name) === fold(n))
-    if (fusion && !edConfirm) { edConfirm = true; return }
-    busy = true
-    await renameIngredient(oldName, n)
-    message = fusion ? `« ${oldName} » fusionné dans « ${n} ».` : `Renommé en « ${n} ».`
-    busy = false
-    mlEdit = null
-  }
-
-  async function saveIngredientSourcing(name) {
-    busy = true
-    await setIngredientSourcing(name, edSourcing, edNote)
-    busy = false
   }
 </script>
 
 <section>
   {#if store.schemaWarning}
-    <p class="offline-banner">La date du dernier inventaire n'a pas pu être enregistrée :
-      la base de données doit être mise à jour (migration « locations » en attente).</p>
+    <p class="offline-banner">La base de données doit être mise à jour (migration en
+      attente) : la dernière modification n'a pas pu être enregistrée.</p>
   {/if}
   {#if message}<p class="note manage-msg">{message}</p>{/if}
 
-  {#if store.inv && !invIsHere()}
-    <p class="note">Un inventaire est en pause dans une autre résidence
-      ({store.residences.find(r => r.id === store.inv.residenceId)?.name ?? 'autre maison'}) —
-      pour le reprendre, changer de résidence dans « Foyer et compte ».</p>
+  {#if invsElsewhere().length}
+    <p class="note">{invsElsewhere().length > 1
+      ? 'Des inventaires sont en pause dans d’autres résidences'
+      : 'Un inventaire est en pause dans une autre résidence (' +
+        (store.residences.find(r => r.id === invsElsewhere()[0].residenceId)?.name ?? 'autre maison') + ')'}
+      — pour les reprendre, changer de résidence dans « Foyer et compte ».</p>
   {/if}
-  {#if invIsHere()}
-    <div class="toolbar">
-      <button type="button" class="primary" onclick={unpauseInventory}>
-        Reprendre l'inventaire de « {store.inv.loc} »
-      </button>
+  {#if pausedInvsHere().length}
+    <div class="toolbar inv-paused-list">
+      {#each pausedInvsHere() as p (p.loc)}
+        <button type="button" class="primary" onclick={() => resumePausedInventory(p.loc)}>
+          Reprendre l'inventaire de « {p.loc} »
+        </button>
+      {/each}
     </div>
   {/if}
 
@@ -322,6 +293,9 @@
         </div>
       </div>
     </SousEcran>
+  {:else if mlEdit}
+    <!-- LA fiche ingrédient (04/08/2026) : la fermer ramène à la master list. -->
+    <FicheIngredient name={mlEdit} fermer={() => mlEdit = null} />
   {:else if mlOpen}
     <!-- Master list : sous-écran dédié (commentaires Olivier 25/07/2026). -->
     <SousEcran titre="Master list des ingrédients" fermer={() => { mlOpen = false; mlEdit = null; mlGenres = false }}>
@@ -388,51 +362,6 @@
                   {#each mlCategories as c (c)}<option value={c}>{c}</option>{/each}
                 </select>
               </li>
-              {#if mlEdit === ing.name}
-                {@const linked = recipesUsing(ing.name)}
-                {@const effectif = sourcingOf(ing.name)}
-                <li class="manage-panel">
-                  <div class="manage-block">
-                    {#if mlRenaming}
-                      <p>Renommer l'ingrédient — un nom déjà connu <strong>fusionne</strong> les deux :</p>
-                      <div class="manage-row">
-                        <input class="rename-input" bind:value={edName} oninput={() => edConfirm = false} aria-label="Nouveau nom">
-                        <button type="button" class="inv-start" class:danger-btn={edConfirm} disabled={busy}
-                          onclick={() => saveIngredientName(ing.name)}>
-                          {edConfirm ? 'Confirmer la fusion' : 'OK'}
-                        </button>
-                        <button type="button" class="inv-manage" onclick={() => { mlRenaming = false; edName = ing.name }}>Annuler</button>
-                      </div>
-                    {:else}
-                      <div class="row source-row">
-                        <span class="name">{ing.name}</span>
-                        <button type="button" class="icon-btn" aria-label={'Renommer ' + ing.name} title="Renommer"
-                          onclick={() => { mlRenaming = true; edConfirm = false }}>✎</button>
-                      </div>
-                    {/if}
-                  </div>
-                  <div class="manage-block">
-                    <p>Sourcing — où l'acheter (vide = comme le genre{effectif.sourcing || effectif.note ? ` : ${[effectif.sourcing, effectif.note].filter(Boolean).join(', ')}` : ''}) :</p>
-                    <div class="manage-row">
-                      <select bind:value={edSourcing} aria-label="Sourcing">
-                        <option value="">— comme le genre —</option>
-                        {#each SOURCING_TYPES as t (t)}<option value={t}>{t}</option>{/each}
-                      </select>
-                      <input bind:value={edNote} placeholder="Marché, site, boutique…" aria-label="Commentaire de sourcing">
-                      <button type="button" class="inv-start" disabled={busy}
-                        onclick={() => saveIngredientSourcing(ing.name)}>Enregistrer</button>
-                    </div>
-                  </div>
-                  <div class="manage-block">
-                    <p>{linked.length ? `Utilisé dans ${linked.length} recette(s) :` : 'Utilisé dans aucune recette.'}</p>
-                    {#if linked.length}
-                      <ul class="manage-items">
-                        {#each linked as r (r.id)}<li class="row"><span class="name">{r.title}</span></li>{/each}
-                      </ul>
-                    {/if}
-                  </div>
-                </li>
-              {/if}
             {/each}
           </ul>
         {/each}
@@ -478,11 +407,19 @@
             <span class="note">{count(name)} produits · {lastDate(name)}</span>
           </button>
           <button type="button" class="inv-manage" onclick={() => openManage(name)}>Gérer</button>
-          <button type="button" class="inv-start" class:danger-btn={confirmStart === name}
-            onclick={() => demarrer(name)}>
-            {invIsHere() && store.inv.loc === name ? 'Reprendre'
-              : confirmStart === name ? 'Confirmer' : 'Inventaire'}</button>
+          <button type="button" class="inv-start" onclick={() => demarrer(name)}>
+            {pausedInvsHere().some(p => p.loc === name) ? 'Reprendre' : 'Inventaire'}</button>
         </div>
+        {#if startChoice === name}
+          <div class="manage-row inv-start-choice">
+            <span class="note">Déjà inventorié — compléter, ou tout recompter ?</span>
+            <button type="button" class="inv-start"
+              onclick={() => { startChoice = null; reopenInventory(name) }}>Rouvrir (compléter)</button>
+            <button type="button" class="inv-start"
+              onclick={() => { startChoice = null; startInventory(name) }}>Repartir de zéro</button>
+            <button type="button" class="inv-manage" onclick={() => startChoice = null}>Annuler</button>
+          </div>
+        {/if}
       </li>
     {/each}
   </ul>

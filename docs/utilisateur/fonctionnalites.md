@@ -72,13 +72,15 @@ sous 0.
 
 ### Rachat automatique — réserve minimum
 
-Chaque ingrédient a une **réserve minimum** (1 par défaut, réglable dans le
-panneau Modifier ; 0 = jamais racheté tout seul). Quand la **somme de tous
-les emplacements passe en dessous**, la ligne passe en orange « à racheter »
-et l'ingrédient s'ajoute à la liste de courses (mention « auto », pastille
-de l'onglet Courses). Quand la somme remonte au niveau de la réserve,
-l'entrée automatique disparaît — sauf ajoutée volontairement (panier) ou
-déjà cochée.
+Chaque ingrédient a une **réserve minimum, propre à chaque maison**
+(04/08/2026, décision Olivier — trois pots d'avance à Argenteuil, un seul à
+Montalivet ; 1 par défaut, réglable dans sa fiche ; 0 = jamais racheté tout
+seul ; l'ancien réglage unique sert de valeur commune tant qu'une maison
+n'a pas le sien). Quand la **somme des emplacements de la maison passe en
+dessous**, la ligne passe en orange « à racheter » et l'ingrédient s'ajoute
+à la liste de courses (mention « auto », pastille de l'onglet Courses).
+Quand la somme remonte au niveau de la réserve, l'entrée automatique
+disparaît — sauf ajoutée volontairement (panier) ou déjà cochée.
 
 ### Bouton panier — trois états
 
@@ -93,15 +95,27 @@ Supprimer un produit lié depuis la liste de courses a le même effet qu'un
 retrait par le panier. Tout est au niveau de l'ingrédient, pas de
 l'emplacement.
 
-### Bouton Modifier (crayon ✎)
+### LA fiche ingrédient (crayon ✎ — une seule fiche partout, 04/08/2026)
 
-Ouvre le **sous-écran** de l'ingrédient (25/07/2026 : il occupe l'écran
-seul, croix pour revenir à la liste) :
-- **Renommer** — une icône ✎ sur le nom le change en champ de saisie ; un
-  nom déjà connu **fusionne** les deux (confirmation en deux touches) ;
-  stock, courses et recettes suivent ;
+Le crayon ✎ d'une ligne du Stock, comme le nom d'un ingrédient de la
+Master list, ouvre désormais **la même fiche** (décision Olivier
+04/08/2026 — elle remplace les trois panneaux d'avant : ✎ du Stock, fiche
+de la Master list, et le sourcing par ingrédient). Elle occupe l'écran
+seul (croix pour revenir) et montre TOUT :
+- **Renommer** — une icône ✎ sur le nom ; un nom déjà connu **fusionne**
+  les deux (confirmation en deux touches) ; stock, courses et recettes
+  suivent ;
 - **Genre** (master list) ;
-- **Réserve minimum** (voir ci-dessus) ;
+- **Stock** de la maison courante, emplacement par emplacement ;
+- **Réserve minimum par maison** (voir ci-dessus) — une ligne par
+  résidence ;
+- **Où l'acheter** : la liste de ses **lieux d'achat** — plusieurs
+  possibles, boutiques et sites (× pour retirer, « Ajouter un lieu… »
+  parmi les Lieux d'achat gérés). Sans lieu propre, l'héritage du genre
+  est rappelé (« hérité du genre : marché ») ;
+- **Autres orthographes reconnues** (alias confirmés des dictées), avec
+  × pour ne plus en reconnaître une ;
+- **Recettes** qui l'utilisent ;
 - **Supprimer** — toutes ses lignes d'emplacement, ses lots et sa ligne de
   courses, en deux touches. C'est la **seule** voie de suppression : plus de
   poubelle dans la liste principale.
@@ -186,13 +200,22 @@ seul** : les onglets restent accessibles, changer d'onglet suspend
 l'inventaire, revenir sur Inventaire reprend exactement où vous étiez
 (il survit aussi à un rechargement de la page).
 
-**Mettre en pause / reprendre** (27/07/2026, remarque Olivier) : un bouton
-« **Mettre en pause** » dans l'inventaire rend la main sur la liste des
-emplacements (pour la consulter, gérer, ranger des achats…). Un bandeau
-« Reprendre l'inventaire de … » et le bouton « **Reprendre** » sur
-l'emplacement concerné relancent l'inventaire là où il en était. Démarrer
-un inventaire sur un **autre** emplacement pendant une pause demande une
-confirmation (« Confirmer ») : la pause serait perdue.
+**Mettre en pause / reprendre — plusieurs de front** (27/07/2026, élargi le
+04/08/2026) : un bouton « **Mettre en pause** » dans l'inventaire rend la
+main sur la liste des emplacements. **Plusieurs inventaires peuvent être en
+pause en même temps** (pratique pour déplacer des objets de boîte en
+boîte) : un bandeau « Reprendre l'inventaire de … » **par inventaire en
+pause**, et le bouton « **Reprendre** » sur chaque emplacement concerné.
+Un emplacement n'a jamais qu'**un seul** inventaire ; démarrer un
+inventaire ailleurs met simplement l'inventaire ouvert en pause — rien
+n'est perdu. Les inventaires suivent leur boîte même si elle est
+**renommée** entre-temps (permutation de noms comprise) ; si deux boîtes
+inventoriées **fusionnent**, leurs comptages fusionnent aussi.
+
+**Rouvrir un inventaire** (04/08/2026) : « Inventaire » sur un emplacement
+**déjà inventorié** propose « **Rouvrir (compléter)** » — les produits en
+stock restent « vus » avec leur quantité, on ajoute simplement (l'objet
+sorti d'une autre boîte) — ou « **Repartir de zéro** » (tout recompter).
 
 Pendant l'inventaire, si un nom dicté ou tapé correspond à **plusieurs
 produits** (« carvi » → carvi, carvi noir, carvi noir entier), un menu
@@ -207,6 +230,18 @@ mam », « ras el hanout ») transcrits de travers ; une correction choisie
 après une dictée est **mémorisée comme alias** et reconnue directement les
 fois suivantes. Le garde-fou « 4 épices » de l'onglet Stock s'applique
 aussi : un ingrédient connu n'est jamais découpé en quantité + nom.
+Depuis le 04/08/2026, un nom tapé ou dicté **exactement égal** à un
+ingrédient connu du foyer (même rangé dans une **autre maison**, ou connu
+seulement des recettes) est **déclaré directement** — « Vu : … (nouveau
+ici) » — sans passer par le menu.
+
+**Rectifier le nom d'un produit créé** (04/08/2026, décision Olivier) : la
+dictée a écorché le nom ? Le **crayon ✎** sur une ligne « nouveau »
+permet de corriger sans quitter l'inventaire. La correction ne touche QUE
+la saisie — jamais la fiche d'un produit existant : si le nom corrigé
+désigne un produit de l'emplacement, le comptage le rejoint ; s'il est
+connu du foyer, sa graphie officielle est reprise ; deux saisies
+rectifiées vers le même nom fusionnent.
 
 **Corriger une saisie « vue »** (16/07/2026) : toucher le nom d'une ligne
 déjà vue ouvre un panneau « ce n'était pas le bon produit ? » — choisir la
@@ -232,13 +267,12 @@ La ligne « Master list des ingrédients » ouvre un **sous-écran dédié**
   ingrédients), supprimer (les ingrédients redeviennent non classés), et
   régler le **sourcing par défaut** du genre — type (marché / internet /
   boutique) et commentaire (nom du marché, site…).
-- **Toucher le nom d'un ingrédient** ouvre sa fiche : le **renommer au
-  crayon ✎** (« beurre demi-sel » → « beurre salé » : le stock et les
-  courses suivent, l'ancien nom devient un alias, un nom déjà connu
-  **fusionne** — confirmé en deux touches), régler son **sourcing** propre
-  (vide = celui du genre), et voir la **liste des recettes** qui
-  l'utilisent. Une seule saisie ouverte à la fois : ouvrir une fiche
-  referme « Gérer les genres », et inversement.
+- **Toucher le nom d'un ingrédient** ouvre **LA fiche ingrédient** — la
+  même que le crayon ✎ du Stock (04/08/2026, voir « LA fiche
+  ingrédient » de l'onglet Stock) : nom-fusion, genre, stock, réserve
+  minimum par maison, lieux d'achat, alias, recettes, suppression. Le
+  sourcing propre par ingrédient d'avant est remplacé par les **lieux
+  d'achat** de la fiche (l'héritage du genre reste le repli).
 - Le **sourcing alimente les courses** : quand un produit part en liste,
   son magasin est prérempli (commentaire du sourcing, sinon le type) — sans
   écraser un magasin déjà choisi sur le produit.
@@ -343,6 +377,10 @@ Le bouton « **Lieux d'achat** » (bas de l'onglet) ouvre leur gestion :
 - **ajouter** un lieu, **physique** (adresse facultative) ou **Internet**
   (URL, avec lien « Ouvrir le site »), plus un **commentaire** libre
   (horaires, jour de marché…) ;
+- depuis le 04/08/2026 (décision Olivier), chaque **boutique physique
+  appartient à une maison** (menu « Maison » sur sa fiche ; « Toutes (à
+  ranger) » tant qu'elle n'est pas rangée — elle reste alors visible
+  partout). Les lieux **Internet valent pour toutes les maisons** ;
 - **renommer au crayon ✎** — le nouveau nom suit partout : lignes de
   courses, magasins mémorisés des ingrédients, sourcing ;
 - **supprimer** (deux touches) — les lignes qui portaient ce lieu
@@ -352,13 +390,17 @@ Le bouton « **Lieux d'achat** » (bas de l'onglet) ouvre leur gestion :
 - au premier passage, « **Reprendre ces lieux** » crée d'un geste les lieux
   déjà utilisés en texte libre dans vos courses et votre sourcing.
 
-### Crayon ✎ — lieu d'achat (16/07/2026)
+### Crayon ✎ — lieu d'achat (16/07/2026, complété 04/08/2026)
 
-Sur chaque ligne, le crayon ouvre « Lieu d'achat » : définir ou changer le
-magasin (suggestions des lieux connus). La ligne se reclasse sous son
-magasin, et le lieu est **mémorisé sur l'ingrédient** pour les prochaines
-entrées en courses — y compris pour les lignes du groupe « Autre » (sans
-lieu).
+Sur chaque ligne, le crayon ouvre « Lieu d'achat » : les **lieux de la
+fiche de l'ingrédient** sont proposés d'abord en boutons (un toucher
+suffit — décision Q1 du 04/08/2026), puis la saisie libre (suggestions
+des lieux connus). La ligne se reclasse sous son magasin, et le lieu est
+**mémorisé sur l'ingrédient** pour les prochaines entrées en courses — y
+compris pour les lignes du groupe « Autre » (sans lieu). Une nouvelle
+ligne se classe toute seule : le magasin mémorisé, sinon la **boutique de
+la maison où je suis** parmi les lieux de la fiche, sinon son premier
+**site**, sinon l'héritage du genre.
 
 ### Formulaire d'ajout
 
@@ -394,13 +436,29 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   - **Filtre par ingrédient** : un champ qui **suggère les ingrédients
     connus au fil de la frappe** et réduit la liste aux recettes qui le
     contiennent. Présent aussi dans la « Recherche avancée » de la Semaine.
-  - **Gérer les sources** (voir plus bas).
-- **Gérer les sources** : un **sous-écran** (25/07/2026) — renommer au
-  crayon ✎ (un nom existant **fusionne** les deux), créer une source
-  (livre, site) — la liste reste courte et maîtrisée. Les livres documentés
-  y montrent leur **couverture**, l'auteur et l'année (02/08/2026). Le choix
-  de la source et le pays d'origine se règlent dans l'éditeur de la fiche.
-- **« Scanner un livre (code-barres) »** (dans Gérer les sources,
+- **« Bibliothèque (livres et sites) »** (04/08/2026 — cas N16, remplace
+  l'ancien « Gérer les sources » du panneau Filtres ; raccourci direct sur
+  la tuile d'accueil « Gérer les recettes ») : l'**écran dédié** des
+  sources, pensé pour les 240 livres.
+  - Les **livres** en **grille de couvertures** (titre et auteur sous
+    chaque vignette), les **sites** et autres sources en liste (avec leur
+    domaine et leur nombre de recettes). **Recherche** (titre, auteur) et
+    **tri** (titre, auteur, nombre de recettes).
+  - **Ouvrir une source** montre sa fiche : détails (auteur, éditeur,
+    année, ISBN…), renommage au crayon ✎ (un nom existant **fusionne**),
+    et **ses recettes** — chacune s'ouvre d'un toucher, la fermer ramène
+    à la fiche.
+  - Depuis un **livre** : « **Scanner une recette (photos, texte)** »
+    ouvre l'import pré-réglé sur ce livre.
+  - Depuis un **site** : « **Visiter le site** » (dans le navigateur),
+    puis au retour « **Coller l'URL d'une recette** » — l'import s'ouvre
+    au nom du site et la recette lui est rattachée. L'adresse du site se
+    renseigne sur la fiche (sans adresse, la visite passe par l'une de
+    ses recettes en ligne).
+  - « **Ajouter à la main** » : un livre (sans code-barres) ou un site
+    avec son adresse. « **Scanner un livre (code-barres)** » et la file
+    « **Livres à compléter** » vivent aussi ici.
+- **« Scanner un livre (code-barres) »** (dans la Bibliothèque,
   02/08/2026 — cas N15) : la caméra lit l'**ISBN** au dos du livre (saisie
   manuelle en secours), le web fournit la fiche — titre, auteur, éditeur,
   année et **couverture**, copiée dans le stockage privé du foyer — à
@@ -415,7 +473,7 @@ ensuite au crayon ✎ (mémorisé par ingrédient). Il disparaît une fois rang�
   liste en bas de l'écran pendant qu'on scanne le suivant (✎ corrige,
   × retire), un bouton enregistre tout d'un coup — les introuvables non
   corrigés sont alors **mis de côté automatiquement**.
-- **« Livres à compléter »** (dans Gérer les sources, 03/08/2026 — NP15
+- **« Livres à compléter »** (dans la Bibliothèque, 03/08/2026 — NP15
   révisé) : la file des ISBN mis de côté. On demande à **Claude** de
   « compléter la bibliothèque » : il cherche chaque ISBN sur le web
   (libraires, éditeurs), remplit la fiche et rapatrie la couverture dans

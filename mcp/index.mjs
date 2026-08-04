@@ -24,7 +24,7 @@ const ROOT = join(DIR, '..')
 const TABLES = ['items', 'shopping', 'households', 'household_members', 'locations',
   'item_lots', 'sources', 'pending_books', 'recipes', 'realisations', 'events',
   'event_recipes', 'recipe_ingredients', 'ingredient_refs', 'ingredient_categories',
-  'recipe_photos', 'stores', 'residences']
+  'recipe_photos', 'stores', 'residences', 'ingredient_minimums', 'ingredient_stores']
 
 let supabase = null
 let householdId = null

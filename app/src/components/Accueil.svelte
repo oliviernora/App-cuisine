@@ -23,6 +23,7 @@
     ] },
     { id: 'recettes', icon: BOOK, titre: 'Gérer les recettes', etapes: [
       { label: 'Rechercher une recette, wish list', tab: 'recettes' },
+      { label: 'Bibliothèque — livres et sites', tab: 'recettes', action: 'bibliotheque' },
       { label: 'Créer ou importer (photos, URL, texte)', tab: 'recettes' }
     ] },
     { id: 'inv', icon: CLIPBOARD, titre: 'Gérer les inventaires', etapes: [

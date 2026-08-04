@@ -8,7 +8,7 @@ export const tables = {
   items: [], shopping: [], households: [], household_members: [], residences: [], locations: [],
   sources: [], recipes: [], realisations: [], events: [], event_recipes: [],
   recipe_ingredients: [], ingredient_refs: [], ingredient_categories: [], recipe_photos: [],
-  item_lots: [], stores: [], pending_books: []
+  item_lots: [], stores: [], pending_books: [], ingredient_minimums: [], ingredient_stores: []
 }
 
 /** Fichiers du bucket « photos » : chemin → contenu envoyé. */

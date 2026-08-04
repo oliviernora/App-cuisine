@@ -25,10 +25,10 @@ l'appareil. Les jetons sont définis dans `app/src/app.css`.
 | `--bg` | #FFFFFF | #14181A | fond de page |
 | `--surface` | #F7F6F2 | #1F2528 | cartes, champs, boutons |
 | `--ink` | #26302A | #ECEEE8 | texte principal |
-| `--muted` | #71806F | #93A096 | texte secondaire |
+| `--muted` | #5E6C5B | #93A096 | texte secondaire (clair relevé le 04/08/2026 : contraste ≥ 4,5:1) |
 | `--accent` | #C73E36 | #E4635A | actions (tomate) |
 | `--accent-ink` | #FFF6F4 | #2A0F0C | texte sur accent |
-| `--warn` | #C97B12 | #E8A33B | alerte « à racheter » |
+| `--warn` | #A36106 | #E8A33B | alerte « à racheter » (clair relevé le 04/08/2026, lisible en petit corps) |
 | `--line` | #E6E4DC | #2E3639 | filets, bordures |
 
 Couleurs d'emplacement (repères — plus utilisées à l'écran depuis la
@@ -66,7 +66,11 @@ Règles :
 - Largeur de contenu : max 960 px centré (élargie le 16/07/2026, demande
   Olivier — l'application reste une colonne ; téléphone et tablette
   inchangés, le max ne fait que plafonner).
-- Cibles tactiles : 30 px minimum, 42 px pour les actions fréquentes (micro).
+- Cibles tactiles (revues le 04/08/2026, revue UX P5) : 30 px minimum au
+  pointeur fin (PC) ; **42 px sur écran tactile** (`pointer: coarse`) pour
+  tous les boutons d'action (✎, +, −, panier, croix…). La **coche des
+  courses** — le geste n° 1 en magasin — a une zone de toucher d'au moins
+  44 px (`check-zone`), sans gonfler la hauteur de ligne.
 - Zone d'ajout fixée en bas de l'écran (pouce), en-tête collant en haut.
 
 ## Composants établis
@@ -332,8 +336,16 @@ Règles :
   règle que l'import de recettes).
 - **Vignette de couverture** (`cover-thumb`, 02/08/2026) : petit portrait
   40 × 56 px, coins arrondis 4 px, à gauche du nom dans les listes de
-  livres (Gérer les sources, pile de scan). Jamais d'image pleine largeur
+  livres (fiche source, pile de scan). Jamais d'image pleine largeur
   dans une liste.
+- **Grille de couvertures** (`biblio-grid`, 04/08/2026 — écran
+  Bibliothèque) : les livres se parcourent **visuellement**, en vignettes
+  portrait 3:4 (colonnes automatiques ≥ 104 px, coins arrondis 8 px),
+  titre sur deux lignes maximum et auteur en note sous chaque vignette ;
+  un livre **sans couverture** affiche son titre centré dans un cadre de
+  la couleur de surface. Réservée aux collections d'objets à identité
+  visuelle (livres) ; les sites et autres sources restent en lignes
+  standard.
 - **Pile de travail en bas d'écran** (02/08/2026, multi-scan) : quand une
   action en chaîne accumule des éléments (livres scannés), ils s'empilent
   sous la zone d'action en lignes standard (vignette + nom + note), chacune

@@ -1,6 +1,6 @@
 <script>
   import { store, addShopEntry, setDone, removeShopEntry, formatQty,
-    toggleAvailable, setEntryStore } from '../lib/store.svelte.js'
+    toggleAvailable, setEntryStore, storesOf } from '../lib/store.svelte.js'
   import Icon from './Icon.svelte'
   import SousEcran from './SousEcran.svelte'
   import RangerCourses from './RangerCourses.svelte'
@@ -95,8 +95,10 @@
     <ul>
       {#each group as entry (entry.id)}
         <li class="row" class:done={entry.available}>
-          <input type="checkbox" checked={entry.done} disabled={entry.available} aria-label="Acheté"
-            onchange={e => setDone(entry, e.target.checked)}>
+          <label class="check-zone">
+            <input type="checkbox" checked={entry.done} disabled={entry.available} aria-label="Acheté"
+              onchange={e => setDone(entry, e.target.checked)}>
+          </label>
           <button type="button" class="rowbtn-full info" aria-expanded={sel === entry.id}
             title="Nom complet et boutons" onclick={() => toggleSel(entry)}>
             <span class="name" class:name-full={sel === entry.id} title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
@@ -123,6 +125,16 @@
         {#if editId === entry.id}
           <li class="manage-panel">
             <p>Lieu d'achat — mémorisé pour les prochaines courses de « {entry.name} » :</p>
+            {#if storesOf(entry.name).length}
+              <!-- Les lieux de la fiche de l'ingrédient d'abord (décision Q1, 04/08/2026). -->
+              <div class="manage-row">
+                {#each storesOf(entry.name) as l (l.id)}
+                  <button type="button" class="inv-manage" class:chip-on={entry.store === l.name}
+                    title={l.kind === 'internet' ? 'Site (toutes maisons)' : 'Boutique'}
+                    onclick={() => { editStore = l.name; saveStore(entry) }}>{l.name}</button>
+                {/each}
+              </div>
+            {/if}
             <div class="manage-row">
               <input bind:value={editStore} list="stores-edit" placeholder="Leclerc, Marché de Revel…"
                 aria-label="Lieu d'achat">
@@ -140,8 +152,10 @@
     <ul>
       {#each bought as entry (entry.id)}
         <li class="row done">
-          <input type="checkbox" checked aria-label="Acheté — décocher pour remettre à acheter"
-            onchange={() => setDone(entry, false)}>
+          <label class="check-zone">
+            <input type="checkbox" checked aria-label="Acheté — décocher pour remettre à acheter"
+              onchange={() => setDone(entry, false)}>
+          </label>
           <span class="name" title={entry.name}>{entry.qty ? formatQty(entry.qty, entry.unit) + ' ' : ''}{entry.name}</span>
           <span class="note">{entry.origin === 'semaine' ? 'semaine' : entry.store || ''}</span>
         </li>

@@ -13,7 +13,8 @@ import { tables, resetFake } from '../helpers/fake-supabase.js'
 import {
   store, addItem, declare, adjustSeen, startInventory, finishInventory,
   abandonInventory, resumeInventory, removeShopEntry, isDismissed, looseMatch,
-  pauseInventory, unpauseInventory, invIsHere
+  pauseInventory, invIsHere, renameLocation, exactKnownName,
+  renameCreatedEntry, resumePausedInventory, reopenInventory, pausedInvsHere
 } from '../../src/lib/store.svelte.js'
 
 const mem = new Map()
@@ -31,6 +32,7 @@ beforeEach(() => {
   store.shop = []
   store.refs = []
   store.inv = null
+  store.invs = []
 })
 
 async function seed(name, qty, loc = 'Cuisine') {
@@ -122,6 +124,141 @@ describe('N2 — mode inventaire', () => {
   })
 })
 
+describe('N6 × N2 — renommages pendant un inventaire (bug du 03/08)', () => {
+  test('permuter les noms de deux boîtes : l\'inventaire suit SA boîte physique', async () => {
+    const creme = await seed('Crème de soin', 2, 'soin 1')
+    const savon = await seed('Savon', 3, 'soin 2')
+
+    startInventory('soin 1')
+    declare(creme, 2)
+
+    // Permutation par nom provisoire (scénario réel d'Olivier, 03/08) :
+    await renameLocation('soin 2', 'soin 3')
+    await renameLocation('soin 1', 'soin 2')
+    await renameLocation('soin 3', 'soin 1')
+
+    // La boîte physique inventoriée s'appelle désormais « soin 2 ».
+    expect(store.inv.loc).toBe('soin 2')
+    expect(creme.loc).toBe('soin 2')
+
+    await finishInventory()
+    expect(creme.qty).toBe(2) // vue, comptée
+    expect(savon.qty).toBe(3) // l'AUTRE boîte n'est jamais touchée
+  })
+
+  test('renommage pendant une pause : la reprise retrouve la boîte', async () => {
+    const creme = await seed('Crème de soin', 1, 'soin 1')
+    startInventory('soin 1')
+    declare(creme, 1)
+    pauseInventory()
+
+    await renameLocation('soin 1', 'salle de bain')
+
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['salle de bain'])
+    // et l'inventaire sauvegardé (localStorage) suit aussi
+    store.invs = []
+    resumeInventory()
+    expect(store.invs[0].loc).toBe('salle de bain')
+
+    resumePausedInventory('salle de bain')
+    expect(store.inv.loc).toBe('salle de bain')
+    expect(store.inv.seen[creme.id]).toBe(1)
+  })
+
+  test('fusion de deux boîtes inventoriées : les comptages fusionnent aussi', async () => {
+    const creme = await seed('Crème de soin', 1, 'soin 1')
+    const savon = await seed('Savon', 2, 'soin 2')
+    startInventory('soin 1')
+    declare(creme, 1)
+    pauseInventory()
+    startInventory('soin 2')
+    declare(savon, 2)
+
+    await renameLocation('soin 1', 'soin 2') // fusion (confirmée à l'écran)
+
+    // un seul inventaire subsiste, avec les deux comptages
+    expect(store.inv.loc).toBe('soin 2')
+    expect(pausedInvsHere()).toEqual([])
+    expect(store.inv.seen[creme.id]).toBe(1)
+    expect(store.inv.seen[savon.id]).toBe(2)
+  })
+})
+
+describe('N2 × N12 — ingrédient connu du foyer, absent de la résidence (bug du 03/08)', () => {
+  test('le nom exact d\'un ingrédient connu (recettes/master list) est reconnu', () => {
+    // « Cumin moulu » existe à Argenteuil : ici (Montalivet) il n'est connu
+    // que par les recettes du foyer et la master list.
+    store.ingredients = [{ name: 'Cumin moulu' }]
+    expect(exactKnownName('cumin moulu')).toBe('Cumin moulu')
+    expect(exactKnownName('Cumin moulu')).toBe('Cumin moulu')
+    expect(exactKnownName('Cum Moul')).toBeNull() // partiel : autre chemin (création)
+    expect(exactKnownName('')).toBeNull()
+    store.ingredients = []
+  })
+
+  test('via la master list (référentiel) et ses alias', () => {
+    store.refs = [{ name: 'Nuoc mam', aliases: ['nuoc mame'], rejected: [] }]
+    expect(exactKnownName('nuoc mam')).toBe('Nuoc mam')
+    expect(exactKnownName('nuoc mame')).toBe('Nuoc mam')
+    store.refs = []
+  })
+})
+
+describe('N2 — rectifier le nom d\'un produit créé (décision Olivier 04/08)', () => {
+  test('dictée écorchée : le nom est rectifié, la graphie du foyer reprise', async () => {
+    store.ingredients = [{ name: 'Cumin moulu' }]
+    startInventory('Cuisine')
+    declare('Cumun moulu', 2)
+
+    const final = renameCreatedEntry('Cumun moulu', 'cumin moulu')
+
+    expect(final).toBe('Cumin moulu')
+    expect(store.inv.created).toEqual([{ name: 'Cumin moulu', qty: 2 }])
+    store.ingredients = []
+  })
+
+  test('le nouveau nom désigne un produit de l\'emplacement : le comptage le rejoint', async () => {
+    const cumin = await seed('Cumin moulu', 1)
+    startInventory('Cuisine')
+    declare('Cumun moulu', 3)
+
+    const final = renameCreatedEntry('Cumun moulu', 'Cumin moulu')
+
+    expect(final).toBe('Cumin moulu')
+    expect(store.inv.created).toEqual([])
+    expect(store.inv.seen[cumin.id]).toBe(3)
+  })
+
+  test('jamais la fiche d\'un produit existant : rectifier ne renomme rien au stock', async () => {
+    const cumin = await seed('Cumin', 1, 'Cave') // fiche existante, autre emplacement
+    startInventory('Cuisine')
+    declare('Cumin filet', 1)
+
+    renameCreatedEntry('Cumin filet', 'Cumin en filaments')
+
+    expect(cumin.name).toBe('Cumin') // la fiche existante n'a pas bougé
+    expect(store.inv.created).toEqual([{ name: 'Cumin en filaments', qty: 1 }])
+  })
+
+  test('deux saisies rectifiées vers le même nom fusionnent', () => {
+    startInventory('Cuisine')
+    declare('Safran poudre', 1)
+    declare('Safran en poudre', 2)
+
+    renameCreatedEntry('Safran poudre', 'Safran en poudre')
+
+    expect(store.inv.created).toEqual([{ name: 'Safran en poudre', qty: 3 }])
+  })
+
+  test('nom vide ou inchangé : rien ne bouge', () => {
+    startInventory('Cuisine')
+    declare('Sumac', 2)
+    expect(renameCreatedEntry('Sumac', '  ')).toBe('Sumac')
+    expect(renameCreatedEntry('Sumac', 'Sumac')).toBe('Sumac')
+    expect(store.inv.created).toEqual([{ name: 'Sumac', qty: 2 }])
+  })
+})
+
 describe('NP6 — interruption et abandon', () => {
   test('l\'inventaire interrompu se retrouve au retour (localStorage)', async () => {
     const cumin = await seed('Cumin', 1)
@@ -135,24 +272,108 @@ describe('NP6 — interruption et abandon', () => {
     expect(store.inv.seen[cumin.id]).toBe(2)
   })
 
-  test('pause explicite : sauvegardée, elle survit à un rechargement, la reprise la lève (27/07/2026)', async () => {
+  test('pause explicite : sauvegardée, elle survit à un rechargement, la reprise la lève (27/07/2026, élargie 04/08)', async () => {
     const cumin = await seed('Cumin', 1)
     startInventory('Cuisine')
     declare(cumin, 2)
 
     pauseInventory()
-    expect(store.inv.paused).toBe(true)
-    expect(invIsHere()).toBe(true) // l'inventaire reste attaché à la résidence
+    expect(store.inv).toBeNull() // l'inventaire attend dans la liste des pauses
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['Cuisine'])
 
-    store.inv = null // rechargement de l'app
+    store.invs = [] // rechargement de l'app
     resumeInventory()
-    expect(store.inv.paused).toBe(true)
-    expect(store.inv.seen[cumin.id]).toBe(2)
+    expect(store.invs[0].seen[cumin.id]).toBe(2)
 
-    unpauseInventory()
-    expect(store.inv.paused).toBe(false)
+    resumePausedInventory('Cuisine')
+    expect(store.inv.loc).toBe('Cuisine')
+    expect(pausedInvsHere()).toEqual([])
     await finishInventory()
     expect(cumin.qty).toBe(2)
+  })
+
+  test('plusieurs inventaires en pause de front, repris indépendamment (04/08/2026)', async () => {
+    const creme = await seed('Crème', 1, 'soin 1')
+    const savon = await seed('Savon', 1, 'soin 2')
+
+    startInventory('soin 1')
+    declare(creme, 1)
+    pauseInventory()
+    startInventory('soin 2')
+    declare(savon, 2)
+    pauseInventory()
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['soin 1', 'soin 2'])
+
+    // les deux survivent à un rechargement
+    store.invs = []
+    resumeInventory()
+    expect(store.invs).toHaveLength(2)
+
+    resumePausedInventory('soin 1')
+    expect(store.inv.loc).toBe('soin 1')
+    await finishInventory()
+    expect(creme.qty).toBe(1)
+    // l'autre inventaire n'a pas bougé
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['soin 2'])
+    resumePausedInventory('soin 2')
+    await finishInventory()
+    expect(savon.qty).toBe(2)
+  })
+
+  test('un emplacement = un seul inventaire : redémarrer reprend la pause (04/08/2026)', async () => {
+    const cumin = await seed('Cumin', 1)
+    startInventory('Cuisine')
+    declare(cumin, 2)
+    pauseInventory()
+
+    startInventory('Cuisine') // ne repart PAS de zéro : reprend la pause
+
+    expect(store.inv.seen[cumin.id]).toBe(2)
+    expect(pausedInvsHere()).toEqual([])
+  })
+
+  test('démarrer ailleurs pendant un inventaire ouvert : l\'ouvert passe en pause, rien n\'est perdu (04/08/2026)', async () => {
+    const creme = await seed('Crème', 1, 'soin 1')
+    await seed('Savon', 1, 'soin 2')
+    startInventory('soin 1')
+    declare(creme, 1)
+
+    startInventory('soin 2')
+
+    expect(store.inv.loc).toBe('soin 2')
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['soin 1'])
+    expect(pausedInvsHere()[0].seen[creme.id]).toBe(1)
+  })
+
+  test('rouvrir un inventaire terminé : les produits comptés restent vus, on ajoute (04/08/2026)', async () => {
+    const cumin = await seed('Cumin', 1)
+    const safran = await seed('Safran', 1)
+    startInventory('Cuisine')
+    declare(cumin, 2)
+    await finishInventory() // safran non trouvé -> 0
+
+    reopenInventory('Cuisine')
+    // le stock actuel vaut comptage : cumin vu (2), safran (0) reste à vérifier
+    expect(store.inv.seen[cumin.id]).toBe(2)
+    expect(store.inv.seen[safran.id]).toBeUndefined()
+    declare('Sumac', 1) // l'objet venu d'une autre boîte
+
+    await finishInventory()
+    expect(cumin.qty).toBe(2) // inchangé
+    expect(safran.qty).toBe(0) // toujours épuisé
+    expect(store.items.find(i => i.name === 'Sumac')?.qty).toBe(1)
+  })
+
+  test('ancien format localStorage (un seul inventaire) : repris sans perte', async () => {
+    const cumin = await seed('Cumin', 1)
+    mem.set('gm-inventaire-v1', JSON.stringify({
+      loc: 'Cuisine', residenceId: null, seen: { [cumin.id]: 2 }, created: [], paused: true
+    }))
+
+    resumeInventory()
+
+    expect(pausedInvsHere().map(p => p.loc)).toEqual(['Cuisine'])
+    expect(store.invs[0].seen[cumin.id]).toBe(2)
   })
 
   test('abandonner ne laisse aucune écriture : le stock est intact', async () => {

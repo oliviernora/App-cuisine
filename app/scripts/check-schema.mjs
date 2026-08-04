@@ -15,7 +15,7 @@ const CHECKS = {
   shopping: 'id,done,manual,item_id,qty,unit,origin,available,received,residence_id',
   locations: 'id,name,last_inventory_at,dated,stale_months,residence_id',
   item_lots: 'id,item_id,qty,entered_on,residence_id',
-  sources: 'id,kind,title,isbn,publisher,year,cover_path',
+  sources: 'id,kind,title,isbn,publisher,year,cover_path,url',
   pending_books: 'id,isbn,photo_path',
   recipes: 'id,source_id,title,url,video,notes,steps,servings,country,category,wishlist',
   recipe_ingredients: 'id,recipe_id,position,qty,unit,name,hard,note,optional,qty_raw',
@@ -25,7 +25,9 @@ const CHECKS = {
   ingredient_refs: 'id,name,aliases,rejected,category,sourcing,sourcing_note,min,dismissed',
   ingredient_categories: 'id,name,sourcing,sourcing_note',
   recipe_photos: 'id,recipe_id,realisation_id,kind,path',
-  stores: 'id,name,kind,url,address,comment'
+  stores: 'id,name,kind,url,address,comment,residence_id',
+  ingredient_minimums: 'id,residence_id,name,min',
+  ingredient_stores: 'id,name,store_id'
 }
 
 let failed = false

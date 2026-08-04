@@ -4,10 +4,10 @@
   --bg: #FFFFFF;
   --surface: #F7F6F2;
   --ink: #26302A;
-  --muted: #71806F;
+  --muted: #5E6C5B; /* relevé le 04/08/2026 (revue UX P5) : ≥ 4,5:1 sur fond clair */
   --accent: #C73E36;
   --accent-ink: #FFF6F4;
-  --warn: #C97B12;
+  --warn: #A36106; /* relevé le 04/08/2026 : lisible en petit corps */
   --warn-bg: #F7E8D2;
   --line: #E6E4DC;
 }
@@ -189,7 +189,23 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
 }
 .mic svg { width: 18px; height: 18px; }
 
-.row input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); flex: 0 0 auto; margin: 0; }
+.row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); flex: 0 0 auto; margin: 0; }
+/* Zone de coche élargie (revue UX P5, 04/08/2026) : le geste n°1 en magasin
+ * mérite une vraie cible — la case s'étend à ~44 px de zone tactile sans
+ * gonfler la ligne. */
+.check-zone {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; margin: -8px -6px -8px -10px;
+  flex: 0 0 auto; cursor: pointer;
+}
+/* Cibles tactiles (revue UX P5) : sur écran tactile, les gestes fréquents
+ * passent à 42 px sans changer la densité au PC. */
+@media (pointer: coarse) {
+  .qty button, .icon-btn { width: 42px; height: 42px; }
+  .icon-btn svg, .qty button svg { width: 18px; height: 18px; }
+  .row input[type="checkbox"] { width: 24px; height: 24px; }
+  .photo-del { width: 32px; height: 32px; }
+}
 
 .empty { padding: 32px 8px; text-align: center; color: var(--muted); }
 
@@ -403,6 +419,30 @@ li.row.subrow { justify-content: flex-end; background: var(--surface); }
   height: 56px; width: 40px; object-fit: cover; flex: none;
   border-radius: 4px; display: block;
 }
+/* Bibliothèque (N16, 04/08/2026) : grille de couvertures pour les livres. */
+.biblio-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px; margin: 0 0 12px;
+}
+.biblio-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 0;
+  border: none; background: none; color: inherit; cursor: pointer;
+  text-align: left; font: inherit;
+}
+.biblio-cover {
+  width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+}
+.biblio-cover-vide {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; font-size: 0.78rem; color: var(--muted);
+  overflow: hidden; text-align: center;
+}
+.biblio-titre {
+  font-size: 0.85rem; line-height: 1.25; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.visit-btn { text-decoration: none; display: inline-flex; align-items: center; }
 /* emplacements datés (N7) : détail des lots sous la ligne du produit */
 .lot-panel {
   padding: 8px 12px; margin: 0 0 6px;
